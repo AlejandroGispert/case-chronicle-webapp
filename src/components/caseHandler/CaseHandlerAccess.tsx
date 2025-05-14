@@ -4,13 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/router";
+import { useNavigate } from 'react-router-dom';
+
 
 const CaseHandlerAccess = () => {
   const [caseCode, setCaseCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const handleAccess = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +32,7 @@ const CaseHandlerAccess = () => {
       // e.g., await fetch(`/api/cases/validate?code=${caseCode}`)
 
       // Redirect to read-only case view
-      router.push(`/case/${caseCode}?readonly=true`);
+      navigate(`/case/${caseCode}?readonly=true`);
     } catch (error) {
       toast({
         title: "Access denied",

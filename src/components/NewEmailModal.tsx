@@ -31,45 +31,67 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
   const [open, setOpen] = useState(false);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const { toast } = useToast();
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [time, setTime] = useState(new Date().toLocaleTimeString('en-US', { 
-    hour12: false, 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  }));
+
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [time, setTime] = useState(
+    new Date().toLocaleTimeString("en-US", {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  );
+
+  const resetForm = () => {
+    setSelectedCaseId(null);
+    setDate(new Date().toISOString().split("T")[0]);
+    setTime(
+      new Date().toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    );
+  };
 
   const handleAddEmail = (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
 
-    const emailData: Email = {
-      id: uuidv4(),
-      case_id: selectedCaseId!,
-      subject: formData.get("emailSubject")?.toString() || "",
-      sender: formData.get("emailSender")?.toString() || "",
-      recipient: formData.get("emailRecipient")?.toString() || "",
-      date: date,
-      time: time,
-      content: formData.get("emailContent")?.toString() || "",
-      attachments: [],
-      created_at: new Date().toISOString(),
-      user_id: "", // This will be set by the backend
-    };
+    const subject = formData.get("emailSubject")?.toString() || "";
+    const sender = formData.get("emailSender")?.toString() || "";
+    const recipient = formData.get("emailRecipient")?.toString() || "";
+    const content = formData.get("emailContent")?.toString() || "";
 
-    if (selectedCaseId) {
-      onAddEmail(emailData, selectedCaseId);
+    if (!selectedCaseId || !subject || !sender || !recipient || !content) {
       toast({
-        title: "Email Added",
-        description: "Email successfully assigned to the case.",
-      });
-      setOpen(false);
-    } else {
-      toast({
-        title: "No Case Selected",
-        description: "Please select a case before submitting.",
+        title: "Missing Fields",
+        description: "Please fill out all required fields.",
         variant: "destructive",
       });
+      return;
     }
+
+    const emailData: Email = {
+      id: uuidv4(),
+      case_id: selectedCaseId,
+      subject,
+      sender,
+      recipient,
+      date,
+      time,
+      content,
+      attachments: [], // Can be extended later
+      created_at: new Date().toISOString(),
+      user_id: "", // Assigned by backend
+    };
+
+    onAddEmail(emailData, selectedCaseId);
+    toast({
+      title: "Email Added",
+      description: "Email successfully assigned to the case.",
+    });
+    setOpen(false);
+    resetForm();
   };
 
   return (
@@ -86,9 +108,12 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
         </DialogHeader>
         <form onSubmit={handleAddEmail} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label>Select Case</Label>
-            <Select onValueChange={setSelectedCaseId}>
-              <SelectTrigger>
+            <Label htmlFor="case">Select Case</Label>
+            <Select
+              value={selectedCaseId ?? ""}
+              onValueChange={setSelectedCaseId}
+            >
+              <SelectTrigger id="case">
                 <SelectValue placeholder="Choose a case" />
               </SelectTrigger>
               <SelectContent>
@@ -100,46 +125,55 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
               </SelectContent>
             </Select>
           </div>
+
           <div className="space-y-2">
-            <Label>Email Subject</Label>
-            <Input name="emailSubject" required />
+            <Label htmlFor="emailSubject">Email Subject</Label>
+            <Input id="emailSubject" name="emailSubject" required />
           </div>
+
           <div className="space-y-2">
-            <Label>Sender</Label>
-            <Input name="emailSender" required />
+            <Label htmlFor="emailSender">Sender</Label>
+            <Input id="emailSender" name="emailSender" required />
           </div>
+
           <div className="space-y-2">
-            <Label>Recipient</Label>
-            <Input name="emailRecipient" required />
+            <Label htmlFor="emailRecipient">Recipient</Label>
+            <Input id="emailRecipient" name="emailRecipient" required />
           </div>
+
           <div className="space-y-2">
-            <Label>Email Content</Label>
+            <Label htmlFor="emailContent">Email Content</Label>
             <textarea
+              id="emailContent"
               name="emailContent"
               className="w-full h-32 rounded-md border px-3 py-2 text-sm"
               required
             />
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date</Label>
-              <Input 
-                type="date" 
+              <Label htmlFor="emailDate">Date</Label>
+              <Input
+                id="emailDate"
+                type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                required 
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label>Time</Label>
-              <Input 
-                type="time" 
+              <Label htmlFor="emailTime">Time</Label>
+              <Input
+                id="emailTime"
+                type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                required 
+                required
               />
             </div>
           </div>
+
           <DialogFooter>
             <Button type="submit">Add Email</Button>
           </DialogFooter>

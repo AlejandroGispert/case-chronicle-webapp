@@ -25,6 +25,7 @@ import {
 import EmailCard from "./EmailCard";
 import EventCard from "./EventCard";
 import { eventController } from "@/backend/controllers/eventController";
+import { Attachment } from "../types";
 
 interface CaseDetailProps {
   caseData: Case;
@@ -43,14 +44,19 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const fetchEmails = useCallback(async () => {
     try {
       const fetchedEmails = await emailController.fetchEmailsByCase(caseData.id);
-      console.log("Fetched Emails:", fetchedEmails);
       if (fetchedEmails) {
-        setEmails(fetchedEmails);
+        const enrichedEmails: Email[] = fetchedEmails.map((email) => ({
+          ...email,
+          event_type: "Email",
+          attachments: email.attachments as unknown as Attachment[],
+        }));
+        setEmails(enrichedEmails);
       }
     } catch (error) {
       console.error("Error fetching emails:", error);
     }
   }, [caseData.id]);
+  
 
   useEffect(() => {
     console.log("CaseData:", caseData);
@@ -157,8 +163,21 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
         : bDate.getTime() - aDate.getTime();
     });
   };
-
-  const isEmail = (item: any): item is Email => item.event_type === "Email";
+  type Email = {
+    attachments: JSON | null;
+    case_id: string;
+    content: string;
+    created_at: string;
+    date: string;
+    id: string;
+    recipient: string;
+    sender: string;
+    subject: string;
+    time: string;
+    user_id: string;
+    event_type: string;
+}
+  const isEmail = (item: Email): item is Email => item.event_type === "Email";
 
   const filteredItems = getCombinedTimeline().filter((item) => {
     const matchesType = filterType === "all" || 

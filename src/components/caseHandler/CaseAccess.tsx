@@ -5,9 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
+interface CaseData {
+  id: string;
+  title: string;
+  status: string;
+  description: string;
+  createdAt?: string;
+  // Add all the fields you expect from the case
+}
+
 const CaseAccess = () => {
   const [caseCode, setCaseCode] = useState("");
-  const [caseData, setCaseData] = useState<any | null>(null);
+  const [caseData, setCaseData] = useState<CaseData | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 

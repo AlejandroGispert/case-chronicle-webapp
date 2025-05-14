@@ -5,6 +5,7 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
+    "types": ["next", "next/types/global"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

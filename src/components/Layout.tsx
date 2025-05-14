@@ -6,9 +6,8 @@ import Header from "./Header";
 
 interface LayoutProps {
   children: React.ReactNode;
-  onAddEvent?: (event: string[]) => void;
+  onAddEvent?: (eventData: Event, caseId?: string) => void;
 }
-
 const Layout = ({ children, onAddEvent }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
