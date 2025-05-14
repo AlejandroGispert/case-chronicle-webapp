@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import EmailTimeline from "./EmailTimeline";
 import NewEmailModal from "./NewEmailModal";
-import { Calendar, Mail, Folder, Filter, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, Mail, Folder, Filter, ChevronDown, ChevronUp, ArrowUpDown } from "lucide-react";
 import { format, isValid } from "date-fns";
 import EventTimeline from "./EventTimeline";
 import { emailController } from "@/backend/controllers/emailController";
@@ -36,6 +36,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [groupBy, setGroupBy] = useState<string>("date");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const fetchEmails = async () => {
     try {
@@ -112,7 +113,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const getCombinedTimeline = (): Event[] => {
     console.log("Current emails:", emails);
     console.log("Current events:", events);
-    const emailEvents: Event[] = emails.map((email, index) => ({
+    const emailEvents: Event[] = emails.map((email) => ({
       id: email.id,
       title: email.subject,
       description: email.content,
@@ -132,7 +133,9 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     return combined.sort((a, b) => {
       const aDate = new Date(`${a.date}T${a.time || "00:00"}`);
       const bDate = new Date(`${b.date}T${b.time || "00:00"}`);
-      return aDate.getTime() - bDate.getTime();
+      return sortDirection === "asc" 
+        ? aDate.getTime() - bDate.getTime()
+        : bDate.getTime() - aDate.getTime();
     });
   };
 
@@ -244,7 +247,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
 
           <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <CollapsibleContent className="space-y-4 p-4 bg-muted/50 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Filter by Type</label>
                   <Select value={filterType} onValueChange={setFilterType}>
@@ -280,6 +283,19 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Sort Order</label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSortDirection(sortDirection === "asc" ? "desc" : "asc")}
+                    className="w-full"
+                  >
+                    <ArrowUpDown className="h-4 w-4 mr-2" />
+                    {sortDirection === "asc" ? "Oldest First" : "Newest First"}
+                  </Button>
                 </div>
               </div>
             </CollapsibleContent>
