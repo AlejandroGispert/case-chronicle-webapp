@@ -1,23 +1,47 @@
 import { useState, useEffect } from "react";
 import { Event } from "@/types";
-import { CalendarDays, Clock, Mail } from "lucide-react";
+import { CalendarDays, Clock, Mail, Edit2, Check, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format, isValid, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface EventCardProps {
   event: Event;
+  onUpdate?: (updatedEvent: Event) => void;
 }
 
-const EventCard = ({ event }: EventCardProps) => {
+const EventCard = ({ event, onUpdate }: EventCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(event);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedDate, setEditedDate] = useState(event.date);
+  const [editedTime, setEditedTime] = useState(event.time);
 
   useEffect(() => {
     setCurrentEvent(event);
+    setEditedDate(event.date);
+    setEditedTime(event.time);
   }, [event]);
+
+  const handleSave = () => {
+    const updatedEvent = {
+      ...currentEvent,
+      date: editedDate,
+      time: editedTime,
+    };
+    onUpdate?.(updatedEvent);
+    setCurrentEvent(updatedEvent);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditedDate(currentEvent.date);
+    setEditedTime(currentEvent.time);
+    setIsEditing(false);
+  };
 
   const formatTime = (timeString: string) => {
     if (!timeString) return "";
@@ -111,14 +135,61 @@ const EventCard = ({ event }: EventCardProps) => {
           </div>
 
           <div className="text-right text-xs text-muted-foreground whitespace-nowrap">
-            <div className="flex items-center gap-1">
-              <CalendarDays className="h-3.5 w-3.5" />
-              <span>{formatDate(currentEvent.date)}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" />
-              <span>{formatTime(currentEvent.time)}</span>
-            </div>
+            {isEditing ? (
+              <div className="space-y-2">
+                <Input
+                  type="date"
+                  value={editedDate}
+                  onChange={(e) => setEditedDate(e.target.value)}
+                  className="h-7 text-xs"
+                />
+                <Input
+                  type="time"
+                  value={editedTime}
+                  onChange={(e) => setEditedTime(e.target.value)}
+                  className="h-7 text-xs"
+                />
+                <div className="flex gap-1 justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSave}
+                    className="h-6 w-6 p-0"
+                  >
+                    <Check className="h-4 w-4 text-green-600" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCancel}
+                    className="h-6 w-6 p-0"
+                  >
+                    <X className="h-4 w-4 text-red-600" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-1 justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    <span>{formatDate(currentEvent.date)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>{formatTime(currentEvent.time)}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </CardContent>

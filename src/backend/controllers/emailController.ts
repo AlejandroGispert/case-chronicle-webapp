@@ -1,7 +1,8 @@
 import { emailModel } from "../models/emailModel";
-import { CreateEmailInput, EmailAttachment } from "../models/types";
+import { CreateEmailInput, EmailAttachment, Email } from "../models/types";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { Email as ModelEmail } from "../models/types";
 
 export const emailController = {
   async fetchEmailsByCase(caseId: string) {
@@ -48,6 +49,30 @@ export const emailController = {
     } catch (error) {
       console.error("Error in removeEmail:", error);
       return false;
+    }
+  },
+
+  async updateEmail(emailData: Partial<ModelEmail>) {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return null;
+
+      const { data, error } = await supabase
+        .from('emails')
+        .update({
+          date: emailData.date,
+          time: emailData.time,
+        })
+        .eq('id', emailData.id)
+        .eq('user_id', user.user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Error updating email:", error);
+      return null;
     }
   },
 };

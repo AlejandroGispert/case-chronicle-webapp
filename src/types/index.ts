@@ -1,3 +1,5 @@
+import { Database } from "@/integrations/supabase/types";
+
 export interface Attachment {
   id: string;
   filename: string;
@@ -7,35 +9,9 @@ export interface Attachment {
   size?: number;
 }
 
-export interface Email {
-  id: string;
-  from?: string;
-  to?: string;
-  sender?: string;
-  recipient?: string;
-  subject: string;
-  body?: string;
-  content?: string;
-  date: string;
-  time: string;
-  hasAttachments?: boolean;
-  attachments?: Attachment[]; // Attachments array can be undefined
-  case_id?: string;
-  user_id?: string;
-}
+export type Email = Database["public"]["Tables"]["emails"]["Row"];
 
-export interface Event {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  description: string;
-  type: "event";
-  case_id?: string;
-  created_at?: string;
-  event_type?: string;
-  user_id?: string;
-}
+export type Event = Database["public"]["Tables"]["events"]["Row"];
 
 export interface Case {
   id: string;
@@ -48,15 +24,8 @@ export interface Case {
   events: Event[];
 }
 
-export interface CreateEmailInput {
-  id: string;
-  attachments?: Attachment[]; // Attachments field is optional
-  case_id: string;
-  content: string;
-  date: string;
-  recipient: string;
-  sender: string;
-  subject: string;
-  time: string;
-  user_id: string;
-}
+export type CreateEmailInput = Database["public"]["Tables"]["emails"]["Insert"];
+export type CreateEventInput = Database["public"]["Tables"]["events"]["Insert"];
+
+export type UpdateEmailInput = Database["public"]["Tables"]["emails"]["Update"];
+export type UpdateEventInput = Database["public"]["Tables"]["events"]["Update"];

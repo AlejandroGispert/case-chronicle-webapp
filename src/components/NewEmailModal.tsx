@@ -52,6 +52,8 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
       time: time,
       content: formData.get("emailContent")?.toString() || "",
       attachments: [],
+      created_at: new Date().toISOString(),
+      user_id: "", // This will be set by the backend
     };
 
     if (selectedCaseId) {

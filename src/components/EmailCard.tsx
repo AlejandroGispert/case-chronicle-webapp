@@ -8,22 +8,56 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FileImage, File } from "lucide-react";
+import { FileImage, File, Mail, Edit2, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Mail } from "lucide-react";
+import { Input } from "@/components/ui/input";
+
 interface EmailCardProps {
   email: Email;
+  onUpdate?: (updatedEmail: Email) => void;
 }
 
-const EmailCard = ({ email }: EmailCardProps) => {
+interface Attachment {
+  id: string;
+  url: string;
+  filename: string;
+  type?: string;
+}
+
+const EmailCard = ({ email, onUpdate }: EmailCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedDate, setEditedDate] = useState(email.date);
+  const [editedTime, setEditedTime] = useState(email.time);
 
-  const hasAttachments =
-    email.attachments &&
-    Array.isArray(email.attachments) &&
-    email.attachments.length > 0;
+  const hasAttachments = 
+    email.attachments && 
+    Array.isArray(email.attachments) && 
+    email.attachments.length > 0 &&
+    email.attachments.every(att => 
+      typeof att === 'object' && 
+      att !== null && 
+      'id' in att && 
+      'url' in att && 
+      'filename' in att
+    );
+
+  const handleSave = () => {
+    onUpdate?.({
+      ...email,
+      date: editedDate,
+      time: editedTime,
+    });
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditedDate(email.date);
+    setEditedTime(email.time);
+    setIsEditing(false);
+  };
 
   return (
     <>
@@ -59,7 +93,7 @@ const EmailCard = ({ email }: EmailCardProps) => {
 
                 {hasAttachments && (
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {email.attachments.map((attachment) => (
+                    {(email.attachments as unknown as Attachment[] || []).map((attachment) => (
                       <div
                         key={attachment.id}
                         className="flex items-center gap-2 p-1.5 bg-muted rounded-md hover:bg-muted/80 cursor-pointer text-xs"
@@ -98,8 +132,55 @@ const EmailCard = ({ email }: EmailCardProps) => {
             </div>
 
             <div className="text-right text-xs text-muted-foreground whitespace-nowrap">
-              <p>{email.date}</p>
-              <p>{email.time}</p>
+              {isEditing ? (
+                <div className="space-y-2">
+                  <Input
+                    type="date"
+                    value={editedDate}
+                    onChange={(e) => setEditedDate(e.target.value)}
+                    className="h-7 text-xs"
+                  />
+                  <Input
+                    type="time"
+                    value={editedTime}
+                    onChange={(e) => setEditedTime(e.target.value)}
+                    className="h-7 text-xs"
+                  />
+                  <div className="flex gap-1 justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSave}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Check className="h-4 w-4 text-green-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCancel}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1 justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditing(true)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <p>{email.date}</p>
+                  </div>
+                  <p>{email.time}</p>
+                </>
+              )}
             </div>
           </div>
         </CardContent>

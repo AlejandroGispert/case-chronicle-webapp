@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Case, Email, Event } from "../types";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -24,11 +24,13 @@ import {
 } from "@/components/ui/collapsible";
 import EmailCard from "./EmailCard";
 import EventCard from "./EventCard";
+import { eventController } from "@/backend/controllers/eventController";
 
 interface CaseDetailProps {
   caseData: Case;
 }
 
+type TimelineItem = Email & { event_type: "Email" } | Event & { event_type: "Event" };
 const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -38,7 +40,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-  const fetchEmails = async () => {
+  const fetchEmails = useCallback(async () => {
     try {
       const fetchedEmails = await emailController.fetchEmailsByCase(caseData.id);
       console.log("Fetched Emails:", fetchedEmails);
@@ -48,13 +50,13 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     } catch (error) {
       console.error("Error fetching emails:", error);
     }
-  };
+  }, [caseData.id]);
 
   useEffect(() => {
     console.log("CaseData:", caseData);
     fetchEmails();
     setEvents(caseData.events || []);
-  }, [caseData.id]);
+  }, [caseData, fetchEmails]);
 
   const handleAddEmail = async (newEmail: Email, caseId: string) => {
     if (caseId === caseData.id) {
@@ -78,6 +80,32 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
       } catch (error) {
         console.error("Error adding email:", error);
       }
+    }
+  };
+
+  const handleEmailUpdate = async (updatedEmail: Email) => {
+    try {
+      const result = await emailController.updateEmail({
+        id: updatedEmail.id,
+        date: updatedEmail.date,
+        time: updatedEmail.time,
+      });
+      if (result) {
+        await fetchEmails();
+      }
+    } catch (error) {
+      console.error("Error updating email:", error);
+    }
+  };
+
+  const handleEventUpdate = async (updatedEvent: Event) => {
+    try {
+      const result = await eventController.updateEvent(updatedEvent);
+      if (result) {
+        setEvents(events.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+      }
+    } catch (error) {
+      console.error("Error updating event:", error);
     }
   };
 
@@ -110,27 +138,18 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
 
   const totalCommunications = (emails.length || 0) + (events.length || 0);
 
-  const getCombinedTimeline = (): Event[] => {
-    console.log("Current emails:", emails);
-    console.log("Current events:", events);
-    const emailEvents: Event[] = emails.map((email) => ({
-      id: email.id,
-      title: email.subject,
-      description: email.content,
-      date: email.date,
-      time: email.time || "00:00",
-      type: "event",
-      event_type: "Email",
+  const getCombinedTimeline = () => {
+    const emailEvents = emails.map((email) => ({
+      ...email,
+      event_type: "Email" as const,
     }));
 
-    const caseEvents: Event[] = events.map((event) => ({
+    const caseEvents = events.map((event) => ({
       ...event,
-      event_type: event.event_type || "Event",
+      event_type: event.event_type || "Event" as const,
     }));
 
-    const combined = [...emailEvents, ...caseEvents];
-
-    return combined.sort((a, b) => {
+    return [...emailEvents, ...caseEvents].sort((a, b) => {
       const aDate = new Date(`${a.date}T${a.time || "00:00"}`);
       const bDate = new Date(`${b.date}T${b.time || "00:00"}`);
       return sortDirection === "asc" 
@@ -139,14 +158,19 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     });
   };
 
+  const isEmail = (item: any): item is Email => item.event_type === "Email";
+
   const filteredItems = getCombinedTimeline().filter((item) => {
     const matchesType = filterType === "all" || 
       (filterType === "email" && item.event_type === "Email") ||
       (filterType === "event" && item.event_type !== "Email");
     
     const matchesSearch = searchQuery === "" || 
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      (isEmail(item)
+        ? item.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.content?.toLowerCase().includes(searchQuery.toLowerCase())
+        : item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.description?.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return matchesType && matchesSearch;
   });
@@ -322,15 +346,15 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                   {items.map((item) => (
                     <div key={item.id} className="relative">
                       {item.event_type === "Email" ? (
-                        <EmailCard email={{
-                          ...item,
-                          subject: item.title,
-                          content: item.description,
-                          sender: "",
-                          recipient: "",
-                        } as Email} />
+                        <EmailCard 
+                          email={item as Email} 
+                          onUpdate={handleEmailUpdate} 
+                        />
                       ) : (
-                        <EventCard event={item} />
+                        <EventCard 
+                          event={item} 
+                          onUpdate={handleEventUpdate} 
+                        />
                       )}
                     </div>
                   ))}
