@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Case } from "../types";
 import CaseDetail from "./CaseDetail";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, ArrowUpDown, WifiOff } from "lucide-react";
 import { format, isValid, parse } from "date-fns";
-import { ArrowUpDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner"; // You might need to create or import this
 
 interface CasesListProps {
   cases: Case[];
@@ -19,6 +19,26 @@ const CasesList = ({ cases }: CasesListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [sortBy, setSortBy] = useState<"date" | "title" | "client">("date");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
+
+  useEffect(() => {
+    // Simulate loading delay
+    const timer = setTimeout(() => setIsLoading(false), 1000);
+
+    // Online/offline event listeners
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   const filteredAndSortedCases = cases
     .filter((c) =>
@@ -54,16 +74,35 @@ const CasesList = ({ cases }: CasesListProps) => {
         return 'bg-blue-500';
     }
   };
-  
-  // Handle selection of a case
+
   const handleCaseSelect = (caseItem: Case) => {
-    console.log("Selected case with events:", caseItem.events);
     setSelectedCase(caseItem);
   };
 
+  if (!isOnline) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center py-12">
+        <WifiOff className="w-12 h-12 text-red-500 mb-4" />
+        <h2 className="text-xl font-semibold mb-2">No Internet Connection</h2>
+        <p className="text-muted-foreground">Please check your connection and try again.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full py-12">
+        <Spinner /> {/* Replace with your spinner component */}
+        <span className="ml-2 text-muted-foreground">Loading cases...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Sidebar */}
       <div className="lg:col-span-1 space-y-4">
+        {/* Search and Sort */}
         <div className="space-y-2">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -74,7 +113,7 @@ const CasesList = ({ cases }: CasesListProps) => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
+
           <div className="flex gap-2">
             <Select value={sortBy} onValueChange={(value: "date" | "title" | "client") => setSortBy(value)}>
               <SelectTrigger className="w-[130px]">
@@ -86,7 +125,7 @@ const CasesList = ({ cases }: CasesListProps) => {
                 <SelectItem value="client">Client</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -98,10 +137,11 @@ const CasesList = ({ cases }: CasesListProps) => {
             </Button>
           </div>
         </div>
-        
+
+        {/* Case List */}
         <div className="space-y-3">
           {filteredAndSortedCases.map((caseItem) => (
-            <Card 
+            <Card
               key={caseItem.id}
               className={`cursor-pointer hover:shadow-md transition-shadow ${
                 selectedCase?.id === caseItem.id ? 'border-legal-300 ring-1 ring-legal-300' : ''
@@ -125,7 +165,7 @@ const CasesList = ({ cases }: CasesListProps) => {
               </CardContent>
             </Card>
           ))}
-          
+
           {filteredAndSortedCases.length === 0 && (
             <div className="text-center py-8">
               <p className="text-muted-foreground">No cases found matching your search.</p>
@@ -133,7 +173,8 @@ const CasesList = ({ cases }: CasesListProps) => {
           )}
         </div>
       </div>
-      
+
+      {/* Detail view */}
       <div className="lg:col-span-2">
         {selectedCase ? (
           <CaseDetail caseData={selectedCase} />
@@ -155,24 +196,22 @@ const CasesList = ({ cases }: CasesListProps) => {
 // Format date to a more readable format
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
-  
+
   try {
-    // Check if it's a full ISO date
     if (dateString.includes('T')) {
       const date = new Date(dateString);
       if (isValid(date)) {
         return format(date, 'MMM d, yyyy');
       }
     }
-    
-    // Try to parse YYYY-MM-DD format
+
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const parsedDate = parse(dateString, 'yyyy-MM-dd', new Date());
       if (isValid(parsedDate)) {
         return format(parsedDate, 'MMM d, yyyy');
       }
     }
-    
+
     return dateString;
   } catch (error) {
     console.error("Error formatting date:", error);
