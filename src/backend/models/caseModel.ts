@@ -103,8 +103,20 @@ export const caseModel = {
       events: events || []
     };
     
-    console.log("Returning case with relations:", result);
-    return result;
+    // Parse attachments from JSON to EmailAttachment[]
+    const processedEmails = (emails || []).map(email => ({
+      ...email,
+      attachments: email.attachments ? JSON.parse(email.attachments as string) : []
+    }));
+
+    const processedResult = {
+      ...caseData,
+      emails: processedEmails,
+      events: events || []
+    };
+
+    console.log("Returning case with relations:", processedResult); 
+    return processedResult;
   },
   
   async createCase(caseData: CreateCaseInput): Promise<Case | null> {
