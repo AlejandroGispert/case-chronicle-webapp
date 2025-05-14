@@ -163,7 +163,7 @@ const Dashboard = () => {
       />
 
       <div className="space-y-6 mt-4">
-        <h1 className="text-3xl font-serif font-bold mb-1">Your Cases</h1>
+        
         <p className="text-muted-foreground mb-4">
           Manage and view all your cases in one place
         </p>
