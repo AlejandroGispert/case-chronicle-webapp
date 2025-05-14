@@ -8,7 +8,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     port: 3000,
     strictPort: true,
-    host: true
+    host: true,
+    headers: {
+      'Content-Type': 'application/javascript',
+    },
   },
   plugins: [
     react(),
@@ -18,6 +21,15 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
     },
   },
 }));
