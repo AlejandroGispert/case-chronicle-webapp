@@ -6,6 +6,8 @@ import EmailTimeline from "./EmailTimeline";
 import NewEmailModal from "./NewEmailModal";
 import { Calendar, Mail, Folder } from "lucide-react";
 import { format, isValid } from "date-fns";
+import EventTimeline from "./EventTimeline";
+import { emailController } from "@/backend/controllers/emailController";
 
 interface CaseDetailProps {
   caseData: Case;
@@ -15,14 +17,44 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
 
-  useEffect(() => {
-    setEmails(caseData.emails || []);
-    setEvents(caseData.events || []);
-  }, [caseData]);
+  const fetchEmails = async () => {
+    try {
+      const fetchedEmails = await emailController.fetchEmailsByCase(caseData.id);
+      if (fetchedEmails) {
+        setEmails(fetchedEmails);
+      }
+    } catch (error) {
+      console.error("Error fetching emails:", error);
+    }
+  };
 
-  const handleAddEmail = (newEmail: Email, caseId: string) => {
+  useEffect(() => {
+    fetchEmails();
+    setEvents(caseData.events || []);
+  }, [caseData.id]);
+
+  const handleAddEmail = async (newEmail: Email, caseId: string) => {
     if (caseId === caseData.id) {
-      setEmails((prev) => [...prev, newEmail]);
+      try {
+        const createdEmail = await emailController.createNewEmail({
+          id: newEmail.id,
+          case_id: caseId,
+          sender: newEmail.sender,
+          recipient: newEmail.recipient,
+          subject: newEmail.subject,
+          content: newEmail.content,
+          date: newEmail.date,
+          time: newEmail.time,
+          user_id: "",
+          attachments: newEmail.attachments,
+        });
+
+        if (createdEmail) {
+          await fetchEmails();
+        }
+      } catch (error) {
+        console.error("Error adding email:", error);
+      }
     }
   };
 
@@ -55,15 +87,47 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
 
   const totalCommunications = (emails.length || 0) + (events.length || 0);
 
+  const getCombinedTimeline = (): Event[] => {
+    const emailEvents: Event[] = emails.map((email, index) => ({
+      id: email.id,
+      title: email.subject,
+      description: email.content,
+      date: email.date,
+      time: email.time || "00:00",
+      type: "event",
+      event_type: "Email",
+    }));
+
+    const caseEvents: Event[] = events.map((event) => ({
+      ...event,
+      event_type: event.event_type || "Event",
+    }));
+
+    const combined = [...emailEvents, ...caseEvents];
+
+    return combined.sort((a, b) => {
+      const aDate = new Date(`${a.date}T${a.time || "00:00"}`);
+      const bDate = new Date(`${b.date}T${b.time || "00:00"}`);
+      return aDate.getTime() - bDate.getTime();
+    });
+  };
+
   return (
     <div className="bg-white rounded-lg border shadow-sm">
       <div className="p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2 sm:gap-0">
           <div>
-            <h2 className="text-2xl font-serif font-semibold">{caseData.title}</h2>
+            <h2 className="text-2xl font-serif font-semibold">
+              {caseData.title}
+            </h2>
             <p className="text-muted-foreground">{caseData.number}</p>
           </div>
-          <Badge variant="outline" className={`${getStatusColor(caseData.status)} text-white px-3 py-1`}>
+          <Badge
+            variant="outline"
+            className={`${getStatusColor(
+              caseData.status
+            )} text-white px-3 py-1`}
+          >
             {caseData.status.charAt(0).toUpperCase() + caseData.status.slice(1)}
           </Badge>
         </div>
@@ -103,7 +167,9 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
         <Separator className="my-6" />
 
         <div className="space-y-2 mb-4">
-          <h3 className="text-lg font-medium font-serif">Communication Timeline</h3>
+          <h3 className="text-lg font-medium font-serif">
+            Communication Timeline
+          </h3>
           <p className="text-sm text-muted-foreground">
             All communications and events related to this case
           </p>
@@ -115,7 +181,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
         />
 
         <div className="pt-4 pb-6 px-6">
-          <EmailTimeline emails={emails} events={events} />
+          <EventTimeline events={getCombinedTimeline()} />
         </div>
       </div>
     </div>

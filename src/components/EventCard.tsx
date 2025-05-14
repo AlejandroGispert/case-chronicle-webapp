@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { Event } from "@/types";
-import { CalendarDays, Clock } from "lucide-react";
+import { CalendarDays, Clock, Mail } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { format, isValid, parse } from "date-fns";
 
 interface EventCardProps {
@@ -12,20 +13,20 @@ const EventCard = ({ event }: EventCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(event);
 
-  // Update local state when event prop changes
   useEffect(() => {
     setCurrentEvent(event);
   }, [event]);
 
-  // Format time to be more readable
   const formatTime = (timeString: string) => {
-    if (!timeString) return '';
+    if (!timeString) return "";
     try {
       if (timeString.match(/^\d{1,2}:\d{2}$/)) {
-        const [hours, minutes] = timeString.split(':').map(Number);
-        const period = hours >= 12 ? 'PM' : 'AM';
+        const [hours, minutes] = timeString.split(":").map(Number);
+        const period = hours >= 12 ? "PM" : "AM";
         const displayHours = hours % 12 || 12;
-        return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+        return `${displayHours}:${minutes
+          .toString()
+          .padStart(2, "0")} ${period}`;
       }
       return timeString;
     } catch (error) {
@@ -34,24 +35,23 @@ const EventCard = ({ event }: EventCardProps) => {
     }
   };
 
-  // Format date to be more readable
   const formatDate = (dateString: string) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     try {
-      if (dateString.includes('T')) {
+      if (dateString.includes("T")) {
         const date = new Date(dateString);
-        return format(date, 'MMM d, yyyy');
+        return format(date, "MMM d, yyyy");
       }
       if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        const parsedDate = parse(dateString, 'yyyy-MM-dd', new Date());
+        const parsedDate = parse(dateString, "yyyy-MM-dd", new Date());
         if (isValid(parsedDate)) {
-          return format(parsedDate, 'MMM d, yyyy');
+          return format(parsedDate, "MMM d, yyyy");
         }
       }
       if (dateString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-        const parsedDate = parse(dateString, 'MM/dd/yyyy', new Date());
+        const parsedDate = parse(dateString, "MM/dd/yyyy", new Date());
         if (isValid(parsedDate)) {
-          return format(parsedDate, 'MMM d, yyyy');
+          return format(parsedDate, "MMM d, yyyy");
         }
       }
       return dateString;
@@ -61,21 +61,32 @@ const EventCard = ({ event }: EventCardProps) => {
     }
   };
 
-  // Toggle expansion
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
   };
 
   return (
     <Card
-      className={`w-full transition-all duration-300 ${isExpanded ? 'h-auto' : 'h-24'} cursor-pointer`}
+      className={`w-full transition-all duration-300 ${
+        isExpanded ? "h-auto" : "h-24"
+      } cursor-pointer`}
       onClick={toggleExpand}
     >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-blue-100 p-1.5 rounded-full">
-              <CalendarDays className="h-4 w-4 text-blue-600" />
+            <div
+              className={`p-1.5 rounded-full ${
+                currentEvent.event_type === "Email"
+                  ? "bg-yellow-100"
+                  : "bg-blue-100"
+              }`}
+            >
+              {currentEvent.event_type === "Email" ? (
+                <Mail className="h-4 w-4 text-yellow-600" />
+              ) : (
+                <CalendarDays className="h-4 w-4 text-blue-600" />
+              )}
             </div>
             <h3 className="font-medium">{currentEvent.title}</h3>
           </div>
@@ -86,11 +97,17 @@ const EventCard = ({ event }: EventCardProps) => {
         </div>
       </CardHeader>
       <CardContent className="pt-1">
-        <p className={`text-sm transition-all duration-300 ${isExpanded ? 'h-auto' : 'h-8 overflow-hidden'}`}>
+        <p
+          className={`text-sm transition-all duration-300 ${
+            isExpanded ? "h-auto" : "h-8 overflow-hidden"
+          }`}
+        >
           {currentEvent.description}
         </p>
         {isExpanded && currentEvent.event_type && (
-          <p className="text-xs text-muted-foreground mt-2">Type: {currentEvent.event_type}</p>
+          <Badge className="mt-2" variant="outline">
+            {currentEvent.event_type}
+          </Badge>
         )}
       </CardContent>
     </Card>

@@ -47,16 +47,13 @@ const EmailCard = ({ email }: EmailCardProps) => {
           </div>
 
           <div
-            className={cn(
-              "transition-all duration-200 overflow-hidden",
-              {
-                "max-h-16": !expanded,
-                "max-h-full": expanded,
-              }
-            )}
+            className={cn("transition-all duration-200 overflow-hidden", {
+              "max-h-16": !expanded,
+              "max-h-full": expanded,
+            })}
           >
             <p className="text-sm whitespace-pre-line">
-              {email.content?.toString().trim() || "(No content provided)"}
+              {email.content?.trim() || "(No content provided)"}
             </p>
 
             {hasAttachments && (
@@ -76,8 +73,7 @@ const EmailCard = ({ email }: EmailCardProps) => {
                       }
                     }}
                   >
-                    {attachment.type &&
-                    attachment.type.startsWith("image/") ? (
+                    {attachment.type && attachment.type.startsWith("image/") ? (
                       <FileImage className="h-4 w-4" />
                     ) : (
                       <File className="h-4 w-4" />

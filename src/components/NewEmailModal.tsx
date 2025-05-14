@@ -38,13 +38,17 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
 
     const emailData: Email = {
       id: uuidv4(),
+      case_id: selectedCaseId!, // Add case_id
       subject: formData.get("emailSubject")?.toString() || "",
       sender: formData.get("emailSender")?.toString() || "",
       recipient: formData.get("emailRecipient")?.toString() || "",
-      date: new Date().toLocaleDateString(),
-      time: new Date().toLocaleTimeString(),
+      date: new Date().toISOString().split('T')[0], // Format as YYYY-MM-DD
+      time: new Date().toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }), // Format as HH:mm
       content: formData.get("emailContent")?.toString() || "",
-      event_type: "email",
       attachments: [],
     };
 
