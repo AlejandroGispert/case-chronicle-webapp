@@ -22,6 +22,9 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { caseController } from "@/backend/controllers/caseController";
 
+// Add this type at the top with other imports
+type CaseStatus = "active" | "pending" | "closed";
+
 const NewCaseModal = () => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -31,7 +34,7 @@ const NewCaseModal = () => {
   const [title, setTitle] = useState("");
   const [caseNumber, setCaseNumber] = useState("");
   const [client, setClient] = useState("");
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState<CaseStatus>("active");
 
   // Handle the case creation
   const handleCreateCase = async (e: React.FormEvent) => {
@@ -130,7 +133,7 @@ const NewCaseModal = () => {
           </div>
           <div className="space-y-2">
             <Label htmlFor="status">Case Status</Label>
-            <Select value={status} onValueChange={setStatus}>
+            <Select value={status} onValueChange={(value) => setStatus(value as CaseStatus)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>

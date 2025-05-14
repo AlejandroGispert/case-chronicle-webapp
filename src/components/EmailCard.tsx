@@ -11,7 +11,7 @@ import {
 import { FileImage, File } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-
+import { Mail } from "lucide-react";
 interface EmailCardProps {
   email: Email;
 }
@@ -32,6 +32,7 @@ const EmailCard = ({ email }: EmailCardProps) => {
           <div className="flex justify-between items-start gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
+              <Mail className="h-4 w-4 text-yellow-600" />
                 <Badge variant="outline" className="text-xs">
                   Email
                 </Badge>
