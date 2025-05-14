@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { caseController } from "@/backend/controllers/caseController";
 
 const NewCaseModal = () => {
   const { user } = useAuth();
@@ -34,47 +35,53 @@ const NewCaseModal = () => {
 
   // Handle the case creation
   const handleCreateCase = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const caseData = {
-    title,
-    caseNumber,
-    client,
-    status,
-    user_id: user.id,
-  };
-
-  try {
-    const response = await fetch('/api/cases', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(caseData),
-    });
-
-    const createdCase = await response.json();
-
-    if (response.ok) {
-      setOpen(false);
-      toast({
-        title: "Case Created",
-        description: "Your new case has been created successfully",
-      });
-    } else {
+    if (!user) {
       toast({
         title: "Error",
-        description: createdCase.message || "An error occurred.",
+        description: "You must be logged in to create a case.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const caseData = {
+      title,
+      number: caseNumber, // Note: changed from caseNumber to number to match the schema
+      client,
+      status,
+      user_id: user.id,
+      date_created: new Date().toISOString(), // Add date_created field
+    };
+
+    try {
+      const createdCase = await caseController.createNewCase(caseData);
+
+      if (createdCase) {
+        setOpen(false);
+        // Reset form
+        setTitle("");
+        setCaseNumber("");
+        setClient("");
+        setStatus("active");
+        
+        toast({
+          title: "Case Created",
+          description: "Your new case has been created successfully",
+        });
+      } else {
+        throw new Error("Failed to create case");
+      }
+    } catch (error) {
+      console.error("Error creating case:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create case. Please try again.",
         variant: "destructive",
       });
     }
-  } catch (error) {
-    toast({
-      title: "Error",
-      description: "An unexpected error occurred.",
-      variant: "destructive",
-    });
-    console.error(error);
-  }
-};
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

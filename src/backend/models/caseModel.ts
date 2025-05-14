@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Case, CaseWithRelations, CreateCaseInput } from './types';
 
@@ -41,8 +40,12 @@ export const caseModel = {
   },
   
   async getCaseWithRelations(caseId: string): Promise<CaseWithRelations | null> {
+    console.log("Fetching case with ID:", caseId);
     const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return null;
+    if (!user.user) {
+      console.error("No authenticated user found");
+      return null;
+    }
     
     // Get the case
     const { data: caseData, error: caseError } = await supabase
@@ -52,10 +55,17 @@ export const caseModel = {
       .eq('user_id', user.user.id)
       .maybeSingle();
       
-    if (caseError || !caseData) {
+    if (caseError) {
       console.error('Error fetching case:', caseError);
       return null;
     }
+    
+    if (!caseData) {
+      console.error('No case data found for ID:', caseId);
+      return null;
+    }
+    
+    console.log("Found case data:", caseData);
     
     // Get emails for this case
     const { data: emails, error: emailsError } = await supabase
@@ -70,6 +80,8 @@ export const caseModel = {
       return null;
     }
     
+    console.log("Found emails:", emails);
+    
     // Get events for this case
     const { data: events, error: eventsError } = await supabase
       .from('events')
@@ -83,11 +95,16 @@ export const caseModel = {
       return null;
     }
     
-    return {
+    console.log("Found events:", events);
+    
+    const result = {
       ...caseData,
       emails: emails || [],
       events: events || []
     };
+    
+    console.log("Returning case with relations:", result);
+    return result;
   },
   
   async createCase(caseData: CreateCaseInput): Promise<Case | null> {
