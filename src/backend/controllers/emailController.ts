@@ -23,33 +23,13 @@ export const emailController = {
         return null;
       }
 
-      // Create formatted date and time for the email
-      const now = new Date();
-      const formattedDate = format(now, "yyyy-MM-dd");
-      const formattedTime = format(now, "HH:mm");
-
-      // Upload attachments if any
-      const attachments: EmailAttachment[] = [];
-
-      if (files && files.length > 0) {
-        for (const file of files) {
-          const uploadedAttachment = await emailModel.uploadAttachment(
-            file,
-            user.user.id
-          );
-          if (uploadedAttachment) {
-            attachments.push(uploadedAttachment);
-          }
-        }
-      }
-
-      // Create email with attachments
+      // Use the provided date and time from emailData
       const emailWithAttachments: CreateEmailInput = {
         ...emailData,
         user_id: user.user.id,
-        date: formattedDate,
-        time: formattedTime,
-        attachments: attachments.length > 0 ? attachments : undefined,
+        date: emailData.date,
+        time: emailData.time,
+        attachments: emailData.attachments,
       };
 
       console.log("Creating email with data:", emailWithAttachments);

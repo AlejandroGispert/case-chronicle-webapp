@@ -12,20 +12,21 @@ export const emailModel = {
         return [];
       }
 
-      console.log("Fetching emails for case:", caseId); // Add logging
+      console.log("Fetching emails for case:", caseId);
       const { data, error } = await supabase
         .from("emails")
         .select("*")
         .eq("case_id", caseId)
         .eq("user_id", user.user.id)
-        .order("created_at", { ascending: false });
+        .order("date", { ascending: false })
+        .order("time", { ascending: false });
 
       if (error) {
         console.error("Error fetching emails:", error.message, error.details);
         return [];
       }
 
-      console.log("Fetched emails data:", data); // Add logging
+      console.log("Fetched emails data:", data);
       return data as Email[];
     } catch (error) {
       console.error("Error in getEmailsByCase:", error);

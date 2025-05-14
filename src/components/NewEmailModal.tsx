@@ -31,6 +31,12 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
   const [open, setOpen] = useState(false);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const { toast } = useToast();
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [time, setTime] = useState(new Date().toLocaleTimeString('en-US', { 
+    hour12: false, 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  }));
 
   const handleAddEmail = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,16 +44,12 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
 
     const emailData: Email = {
       id: uuidv4(),
-      case_id: selectedCaseId!, // Add case_id
+      case_id: selectedCaseId!,
       subject: formData.get("emailSubject")?.toString() || "",
       sender: formData.get("emailSender")?.toString() || "",
       recipient: formData.get("emailRecipient")?.toString() || "",
-      date: new Date().toISOString().split('T')[0], // Format as YYYY-MM-DD
-      time: new Date().toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      }), // Format as HH:mm
+      date: date,
+      time: time,
       content: formData.get("emailContent")?.toString() || "",
       attachments: [],
     };
@@ -115,6 +117,26 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
               className="w-full h-32 rounded-md border px-3 py-2 text-sm"
               required
             />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <Input 
+                type="date" 
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Time</Label>
+              <Input 
+                type="time" 
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                required 
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button type="submit">Add Email</Button>
