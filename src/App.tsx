@@ -9,7 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-
+import AuthCallback from "@/pages/AuthCallback";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -26,7 +26,7 @@ const App = () => {
               
               {/* Redirect root to dashboard if authenticated, otherwise to login */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              
+              <Route path="/auth/callback" element={<AuthCallback />} />
               {/* Protected routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard" element={<Dashboard />} />
