@@ -4,38 +4,28 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client"; 
-
-interface CaseData {
-  id: string;
-  title: string;
-  status: string;
-  description: string;
-  createdAt?: string;
-  // Add all the fields you expect from the case
-}
+import { supabase } from "@/integrations/supabase/client";
 
 const CaseAccess = () => {
   const [caseCode, setCaseCode] = useState("");
-  const [caseData, setCaseData] = useState<CaseData | null>(null);
+  const [caseData, setCaseData] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handleAccessCase = async () => {
     setLoading(true);
-
     try {
-      // Replace with actual fetch logic
-      const mockResponse = {
-        id: caseCode,
-        title: "Case Example Title",
-        description: "Details about this case...",
-        status: "In Review",
-      };
+      const { data, error } = await supabase
+        .from("cases")
+        .select("*")
+        .eq("id", caseCode.trim())
+        .single();
 
-      // Simulate network delay
-      await new Promise((res) => setTimeout(res, 500));
-      setCaseData(mockResponse);
+      if (error || !data) {
+        throw new Error("Case not found");
+      }
+
+      setCaseData(data);
     } catch (error) {
       toast({
         title: "Invalid Code",

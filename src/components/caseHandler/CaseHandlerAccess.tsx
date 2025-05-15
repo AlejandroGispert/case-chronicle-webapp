@@ -1,10 +1,17 @@
 import { useState } from "react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const CaseHandlerAccess = () => {
@@ -28,17 +35,18 @@ const CaseHandlerAccess = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await (supabase as any)
-      .from("case_access_codes")
-      .select("case_id")
-      .eq("code", caseCode.trim())
-      .single();
-    
+      const { data, error } = await (
+        supabase
+          .from("case_access_codes")
+          .select("case_id")
+          .eq("code", caseCode.trim())
+          .single() as Promise<{ data: any; error: any }>
+      );
+
       if (error || !data?.case_id) {
         throw new Error("Code not found");
       }
 
-      // Redirect to read-only case view using the internal ID
       navigate(`/case/${data.case_id}?readonly=true`);
     } catch (error) {
       toast({
@@ -57,7 +65,9 @@ const CaseHandlerAccess = () => {
         <form onSubmit={handleAccess}>
           <CardHeader>
             <CardTitle className="text-2xl">Case Handler Access</CardTitle>
-            <CardDescription>Enter the code to view a case in read-only mode</CardDescription>
+            <CardDescription>
+              Enter the code to view a case in read-only mode
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">

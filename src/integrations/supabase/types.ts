@@ -47,7 +47,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       emails: {
@@ -104,7 +104,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       events: {
@@ -155,7 +155,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       profiles: {
@@ -184,6 +184,45 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      case_access_codes: {
+        Row: {
+          id: string
+          case_id: string
+          access_code: string
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          case_id: string
+          access_code: string
+          user_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          case_id?: string
+          access_code?: string
+          user_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_access_codes_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_access_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getCases } from "../data/mockData";
+import { supabase } from "@/integrations/supabase/client";
 import { Case, Event } from "../types";
 import Layout from "../components/Layout";
 import CasesList from "../components/CasesList";
@@ -14,11 +14,15 @@ const Index = () => {
   useEffect(() => {
     const fetchCases = async () => {
       try {
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulated delay
-        const casesData = getCases();
+        const { data, error } = await supabase
+          .from("cases")
+          .select("*, events(*)");
 
-        // Ensure all cases have events array
-        const casesWithEvents = casesData.map((c) => ({
+        if (error) {
+          throw error;
+        }
+
+        const casesWithEvents = data.map((c) => ({
           ...c,
           events: c.events || [],
         }));
@@ -45,17 +49,27 @@ const Index = () => {
     }
   }, [cases, location.search]);
 
-  const handleAddEvent = (eventData: Event, caseId?: string) => {
-    setCases((prevCases) => {
-      return prevCases.map((c) =>
-        (caseId ? c.id === caseId : c === prevCases[0]) // fallback to first case
-          ? {
-              ...c,
-              events: [...(c.events || []), eventData],
-            }
-          : c
+  const handleAddEvent = async (eventData: Event, caseId?: string) => {
+    const targetCaseId = caseId || (cases[0]?.id ?? "");
+
+    try {
+      const { error } = await supabase
+        .from("events")
+        .insert([{ ...eventData, case_id: targetCaseId }]);
+
+      if (error) throw error;
+
+      // Re-fetch or locally update
+      setCases((prev) =>
+        prev.map((c) =>
+          c.id === targetCaseId
+            ? { ...c, events: [...(c.events || []), eventData] }
+            : c
+        )
       );
-    });
+    } catch (error) {
+      console.error("Error adding event:", error);
+    }
   };
 
   return (
