@@ -1,15 +1,10 @@
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client"; 
 
 interface CaseData {
   id: string;
@@ -17,6 +12,7 @@ interface CaseData {
   status: string;
   description: string;
   createdAt?: string;
+  // Add all the fields you expect from the case
 }
 
 const CaseAccess = () => {
@@ -29,35 +25,17 @@ const CaseAccess = () => {
     setLoading(true);
 
     try {
-      // Step 1: Fetch the case_id using the case code
-      const { data: mapping, error: mappingError } = await supabase
-        .from("case_access_codes")
-        .select("case_id")
-        .eq("code", caseCode.trim())
-        .single();
+      // Replace with actual fetch logic
+      const mockResponse = {
+        id: caseCode,
+        title: "Case Example Title",
+        description: "Details about this case...",
+        status: "In Review",
+      };
 
-      if (mappingError || !mapping?.case_id) {
-        throw new Error("Invalid or missing case mapping");
-      }
-
-      // Step 2: Fetch the case data using the case_id
-      const { data: caseData, error: caseError } = await supabase
-        .from("cases")
-        .select("id, title, status, description, date_created")
-        .eq("id", mapping.case_id)
-        .single();
-
-      if (caseError || !caseData) {
-        throw new Error("Case not found");
-      }
-
-      setCaseData({
-        id: caseData.id,
-        title: caseData.title,
-        status: caseData.status,
-        description: caseData.description,
-        createdAt: caseData.date_created,
-      });
+      // Simulate network delay
+      await new Promise((res) => setTimeout(res, 500));
+      setCaseData(mockResponse);
     } catch (error) {
       toast({
         title: "Invalid Code",
@@ -103,9 +81,6 @@ const CaseAccess = () => {
               <p><strong>ID:</strong> {caseData.id}</p>
               <p><strong>Status:</strong> {caseData.status}</p>
               <p><strong>Description:</strong> {caseData.description}</p>
-              {caseData.createdAt && (
-                <p><strong>Created At:</strong> {new Date(caseData.createdAt).toLocaleString()}</p>
-              )}
             </CardContent>
           </Card>
         )}

@@ -31,81 +31,80 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const isAuthenticated = !!user;
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("Auth state changed:", event, session);
 
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-          if (session) {
-            setUser(session.user);
-            setSession(session);
-            setIsAuthenticated(true);
-
-            setTimeout(async () => {
-              try {
-                const profileData = await authController.getCurrentProfile();
-                setProfile(profileData);
-              } catch (error) {
-                console.error("Error fetching profile:", error);
-              }
-            }, 0);
-          }
-        } else if (event === "SIGNED_OUT") {
-          setUser(null);
-          setProfile(null);
-          setSession(null);
-          setIsAuthenticated(false);
-          navigate("/login");
+        switch (event) {
+          case "SIGNED_IN":
+          case "TOKEN_REFRESHED":
+            if (session) {
+              handleAuthSuccess(session);
+            }
+            break;
+          case "SIGNED_OUT":
+            handleSignOut();
+            break;
         }
       }
     );
 
-    const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (session) {
-          setUser(session.user);
-          setSession(session);
-          setIsAuthenticated(true);
-          const profileData = await authController.getCurrentProfile();
-          setProfile(profileData);
-        } else {
-          setUser(null);
-          setProfile(null);
-          setSession(null);
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.error("Auth check error:", error);
-        setUser(null);
-        setProfile(null);
-        setSession(null);
-        setIsAuthenticated(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
+    checkInitialAuth();
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
+
+  const handleAuthSuccess = async (session: Session) => {
+    setUser(session.user);
+    setSession(session);
+
+    try {
+      const profileData = await authController.getCurrentProfile();
+      setProfile(profileData);
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    }
+  };
+
+  const handleSignOut = () => {
+    setUser(null);
+    setProfile(null);
+    setSession(null);
+    navigate("/login");
+  };
+
+  const checkInitialAuth = async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+
+      if (data.session) {
+        await handleAuthSuccess(data.session);
+      } else {
+        handleSignOut();
+      }
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      handleSignOut();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (email: string, password: string) => {
+    setLoading(true);
     try {
-      setLoading(true);
       const { user } = await authController.login(email, password);
 
       if (user) {
@@ -153,8 +152,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     firstName: string,
     lastName: string
   ) => {
+    setLoading(true);
     try {
-      setLoading(true);
       const { user } = await authController.signup(
         email,
         password,
