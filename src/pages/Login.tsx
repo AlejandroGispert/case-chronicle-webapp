@@ -321,6 +321,7 @@ const Login = () => {
                     variant="outline" 
                     className="w-full"
                     onClick={handleGoogleLogin}
+                    disabled={isLoading}
                   >
                     <div className="mr-2">
                       <svg viewBox="0 0 24 24" width="16" height="16">
