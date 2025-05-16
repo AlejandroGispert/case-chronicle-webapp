@@ -31,15 +31,16 @@ const CaseHandlerAccess = () => {
     setIsLoading(true);
 
     try {
+      console.log("[Component] Submitting code:", caseCode.trim());
       const caseData = await caseAccessController.fetchPublicCase(trimmedCode);
 
       if (!caseData) {
         throw new Error("Invalid or expired case code");
       }
-
+      console.log("[Component] Navigation triggered with caseData.id:", caseData.id);
       navigate(`/case/${caseData.id}?readonly=true`);
     } catch (err) {
-      console.error("Access error:", err);
+      console.error("[Component] Error during access:", error);
       toast({
         title: "Access denied",
         description: "Invalid or inaccessible case code.",
