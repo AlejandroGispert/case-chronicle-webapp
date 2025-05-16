@@ -40,7 +40,7 @@ const CaseHandlerAccess = () => {
       console.log("[Component] Navigation triggered with caseData.id:", caseData.id);
       navigate(`/case/${caseData.id}?readonly=true`);
     } catch (err) {
-      console.error("[Component] Error during access:", error);
+      console.error("[Component] Error during access:", err);
       toast({
         title: "Access denied",
         description: "Invalid or inaccessible case code.",
