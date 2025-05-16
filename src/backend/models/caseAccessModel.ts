@@ -6,7 +6,7 @@ export const caseAccessModel = {
     const { data: accessEntry, error: accessError } = await supabase
       .from("case_access_codes")
       .select("*")
-      .eq("access_code", code)
+      .eq("code", code)
       .maybeSingle();
 
     if (accessError || !accessEntry) {
@@ -33,7 +33,7 @@ export const caseAccessModel = {
     const { data: accessEntry, error: accessError } = await supabase
       .from("case_access_codes")
       .select("*")
-      .eq("access_code", code)
+      .eq("code", code)
       .maybeSingle();
 
     if (accessError || !accessEntry) {
