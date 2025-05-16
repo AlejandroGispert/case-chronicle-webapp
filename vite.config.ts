@@ -10,13 +10,12 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
     host: true,
     headers: {
-      'Content-Type': 'application/javascript',
+      "Content-Type": "application/javascript",
     },
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === "development" && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -24,12 +23,14 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
+    outDir: "dist",
+    assetsDir: "assets",
     rollupOptions: {
       output: {
         manualChunks: undefined,
       },
     },
   },
+  // ✅ Enable SPA fallback for all routes (Vite does this automatically via middleware)
+  appType: "spa",
 }));
