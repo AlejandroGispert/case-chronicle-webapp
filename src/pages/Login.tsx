@@ -12,7 +12,7 @@ import {
   Tabs, TabsContent, TabsList, TabsTrigger
 } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import CaseAccess from "@/components/caseHandler/CaseAccess"; // ✅ IMPORT THIS
+import CaseHandlerAccess from "@/components/caseHandler/CaseHandlerAccess";
 
 
 const Login = () => {
@@ -340,11 +340,12 @@ const Login = () => {
             </TabsContent>
             <TabsContent value="case">
               <CardHeader>
-                <CardTitle className="text-2xl">Access a Case</CardTitle>
+                <CardTitle className="text-2xl">Access a Case (External)</CardTitle>
                 <CardDescription>Enter your case access code below</CardDescription>
               </CardHeader>
               <CardContent>
-                <CaseAccess />
+              <CaseHandlerAccess />
+
               </CardContent>
             </TabsContent>
           </Tabs>
