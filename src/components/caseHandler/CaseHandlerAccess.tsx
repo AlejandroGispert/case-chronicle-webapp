@@ -15,10 +15,11 @@ const CaseHandlerAccess = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleAccess = async (e: React.FormEvent) => {
+  const handleAccess = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!caseCode.trim()) {
+    const trimmedCode = caseCode.trim();
+    if (!trimmedCode) {
       toast({
         title: "Code required",
         description: "Please enter a valid case code.",
@@ -30,14 +31,15 @@ const CaseHandlerAccess = () => {
     setIsLoading(true);
 
     try {
-      const caseData = await caseAccessController.fetchPublicCase(caseCode.trim());
+      const caseData = await caseAccessController.fetchPublicCase(trimmedCode);
 
       if (!caseData) {
         throw new Error("Invalid or expired case code");
       }
 
       navigate(`/case/${caseData.id}?readonly=true`);
-    } catch {
+    } catch (err) {
+      console.error("Access error:", err);
       toast({
         title: "Access denied",
         description: "Invalid or inaccessible case code.",
@@ -72,7 +74,7 @@ const CaseHandlerAccess = () => {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading || !caseCode.trim()}>
               {isLoading ? "Loading..." : "View Case"}
             </Button>
           </CardFooter>
