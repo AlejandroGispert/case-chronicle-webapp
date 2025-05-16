@@ -4,6 +4,7 @@ and visualize individual cases or events, whether it's reports, incident trackin
 Built with a focus on clarity and user-centric design, the app is especially useful for individuals who need 
 to present and manage their case history to a caseworker, advisor, or handler in a structured and organized way.
  
+<img width="1433" alt="Screenshot 2025-05-16 at 13 53 37" src="https://github.com/user-attachments/assets/55643fcd-89ce-45b0-8761-5e045b90deb7" />
 
 
 ## What It Does
