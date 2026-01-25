@@ -67,14 +67,14 @@ const AttachDocumentButton = ({
           onDocumentAttached();
         }
       } else {
-        throw new Error("Failed to upload document");
+        throw new Error("Failed to upload document - no document returned");
       }
     } catch (error) {
       console.error("Error uploading document:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
-          : "Could not upload the document";
+          : "Could not upload the document. Please check your Supabase bucket configuration.";
       toast({
         title: "Error uploading document",
         description: errorMessage,

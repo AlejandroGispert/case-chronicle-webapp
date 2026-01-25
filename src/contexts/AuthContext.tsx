@@ -62,40 +62,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [navigate]);
 
-  const checkInitialAuth = useCallback(async () => {
-    try {
-      // Wait for Supabase to restore session from localStorage
-      const { data, error } = await supabase.auth.getSession();
-
-      if (error) {
-        console.error("Auth check failed:", error);
-        setUser(null);
-        setProfile(null);
-        setSession(null);
-      } else if (data.session) {
-        await handleAuthSuccess(data.session);
-      } else {
-        // No session found, but don't navigate - let ProtectedRoute handle it
-        setUser(null);
-        setProfile(null);
-        setSession(null);
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
-      setUser(null);
-      setProfile(null);
-      setSession(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [handleAuthSuccess]);
 
   useEffect(() => {
+    let mounted = true;
+    let sessionChecked = false;
+
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("Auth state changed:", event, session);
 
+        if (!mounted) return;
+
         switch (event) {
+          case "INITIAL_SESSION":
+            // This fires when the session is restored from storage on page load
+            sessionChecked = true;
+            if (session) {
+              await handleAuthSuccess(session);
+            } else {
+              setUser(null);
+              setProfile(null);
+              setSession(null);
+            }
+            setLoading(false);
+            break;
           case "SIGNED_IN":
           case "TOKEN_REFRESHED":
             if (session) {
@@ -109,12 +99,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    checkInitialAuth();
+    // Fallback: check session if INITIAL_SESSION doesn't fire within 1 second
+    const fallbackCheck = setTimeout(async () => {
+      if (!mounted || sessionChecked) return;
+      
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (!mounted) return;
+
+        if (error) {
+          console.error("Auth check failed:", error);
+          setUser(null);
+          setProfile(null);
+          setSession(null);
+        } else if (data.session) {
+          await handleAuthSuccess(data.session);
+        } else {
+          setUser(null);
+          setProfile(null);
+          setSession(null);
+        }
+      } catch (error) {
+        console.error("Auth initialization failed:", error);
+        setUser(null);
+        setProfile(null);
+        setSession(null);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }, 1000);
 
     return () => {
+      mounted = false;
+      clearTimeout(fallbackCheck);
       authListener.subscription.unsubscribe();
     };
-  }, [handleAuthSuccess, handleSignOut, checkInitialAuth]);
+  }, [handleAuthSuccess, handleSignOut]);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
