@@ -182,16 +182,16 @@ export const emailModel = {
     }
 
     // Get the public URL for the uploaded attachment
-    const { data: publicUrlData } = supabase.storage
+    const { data: urlData } = supabase.storage
       .from("email_attachments")
       .getPublicUrl(fileName);
 
-    return publicUrlData?.publicUrl
+    return urlData?.publicUrl
       ? {
           id: fileName,
           filename: file.name,
           type: file.type,
-          url: publicUrlData.publicUrl,
+          url: urlData.publicUrl,
           size: file.size,
         }
       : null;

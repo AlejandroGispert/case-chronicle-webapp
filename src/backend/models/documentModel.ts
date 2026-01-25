@@ -70,11 +70,11 @@ export const documentModel = {
       }
 
       // Get the public URL for the uploaded document
-      const { data: publicUrlData } = supabase.storage
+      const { data: urlData } = supabase.storage
         .from(bucketName)
         .getPublicUrl(fileName);
 
-      if (!publicUrlData?.publicUrl) {
+      if (!urlData?.publicUrl) {
         console.error("Failed to get public URL for document");
         return null;
       }
@@ -86,7 +86,7 @@ export const documentModel = {
         case_id: caseId,
         filename: file.name,
         type: file.type,
-        url: publicUrlData.publicUrl,
+        url: urlData.publicUrl,
         size: file.size,
         uploaded_at: new Date().toISOString(),
         user_id: userId,
@@ -133,7 +133,7 @@ export const documentModel = {
       const documents: CaseDocument[] = await Promise.all(
         files.map(async (file) => {
           const filePath = `${folderPath}${file.name}`;
-          const { data: publicUrlData } = supabase.storage
+          const { data: urlData } = supabase.storage
             .from(BUCKET_NAME)
             .getPublicUrl(filePath);
 
@@ -142,7 +142,7 @@ export const documentModel = {
             case_id: caseId,
             filename: file.name.replace(/^\d+-/, ""), // Remove timestamp prefix
             type: file.metadata?.mimetype || "application/octet-stream",
-            url: publicUrlData?.publicUrl || "",
+            url: urlData?.publicUrl || "",
             size: file.metadata?.size || 0,
             uploaded_at: file.created_at || new Date().toISOString(),
             user_id: user.user.id,
