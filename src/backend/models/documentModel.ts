@@ -46,13 +46,31 @@ export const documentModel = {
 
       const bucketExists = buckets?.some((b) => b.name === bucketName);
       if (!bucketExists) {
-        console.error(
+        console.warn(
           `Bucket "${bucketName}" does not exist. Available buckets:`,
           buckets?.map((b) => b.name),
         );
-        throw new Error(
-          `Bucket "${bucketName}" not found. Please create it in Supabase Storage.`,
+        
+        // Attempt to create the bucket (may fail if user doesn't have permissions)
+        const { data: createData, error: createError } = await supabase.storage.createBucket(
+          bucketName,
+          {
+            public: true, // Make bucket public so files can be accessed
+            fileSizeLimit: 52428800, // 50MB limit
+            allowedMimeTypes: null, // Allow all file types
+          }
         );
+
+        if (createError) {
+          console.error("Failed to create bucket:", createError);
+          throw new Error(
+            `Bucket "${bucketName}" not found and could not be created automatically. ` +
+            `Please create it manually in Supabase Dashboard: ` +
+            `Storage > New bucket > Name: "${bucketName}" > Public bucket: ON`
+          );
+        }
+
+        console.log(`Bucket "${bucketName}" created successfully`);
       }
 
       const { data: uploadData, error: uploadError } = await supabase.storage
