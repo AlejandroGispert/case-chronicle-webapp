@@ -290,7 +290,10 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                 cases={[{ id: caseData.id, title: caseData.title, number: caseData.number || undefined }]}
                 defaultCaseId={caseData.id}
                 onDocumentAttached={() => {
-                  // Optionally refresh case data or documents list
+                  // Refresh documents list if available
+                  if ((window as any).refreshDocumentsList) {
+                    (window as any).refreshDocumentsList();
+                  }
                 }}
               />
             </div>

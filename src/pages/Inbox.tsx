@@ -138,7 +138,15 @@ const Inbox = () => {
             {/* Attach Document Section */}
             <Card className="bg-muted/50">
               <CardContent className="p-4">
-                <AttachDocumentButton cases={cases} />
+                <AttachDocumentButton 
+                  cases={cases} 
+                  onDocumentAttached={() => {
+                    // Refresh documents list if available
+                    if ((window as any).refreshDocumentsList) {
+                      (window as any).refreshDocumentsList();
+                    }
+                  }}
+                />
               </CardContent>
             </Card>
 
