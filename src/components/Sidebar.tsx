@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Sidebar as SidebarComponent,
@@ -10,7 +9,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Calendar, File, Folder, Home, Mail, Settings, Info } from "lucide-react";
+import {
+  Calendar,
+  File,
+  Folder,
+  Home,
+  Mail,
+  Settings,
+  Info,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import NewCaseModal from "./NewCaseModal";
 
@@ -21,9 +28,7 @@ interface SidebarProps {
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   return (
-    <SidebarComponent
-      className={`border-r h-full`}
-    >
+    <SidebarComponent className={`border-r h-full`}>
       <SidebarContent>
         <div className="p-4">
           <NewCaseModal />
@@ -69,30 +74,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>General</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/settings" className="flex items-center">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/about" className="flex items-center">
-                    <Info className="h-4 w-4 mr-2" />
-                    About
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
           <SidebarGroupLabel>Case Status</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -118,6 +99,30 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     <div className="h-2 w-2 rounded-full bg-gray-500 mr-2" />
                     Closed Cases
                   </Button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>General</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/settings" className="flex items-center">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/about" className="flex items-center">
+                    <Info className="h-4 w-4 mr-2" />
+                    About
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

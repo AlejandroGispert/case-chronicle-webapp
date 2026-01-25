@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
             break;
           case "SIGNED_OUT":
-            handleSignOut();
+            handleSignOut(true);
             break;
         }
       }
@@ -78,25 +78,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = (shouldNavigate: boolean = true) => {
     setUser(null);
     setProfile(null);
     setSession(null);
-    navigate("/login");
+    if (shouldNavigate) {
+      navigate("/login");
+    }
   };
 
   const checkInitialAuth = async () => {
     try {
-      const { data } = await supabase.auth.getSession();
+      // Wait for Supabase to restore session from localStorage
+      const { data, error } = await supabase.auth.getSession();
 
-      if (data.session) {
+      if (error) {
+        console.error("Auth check failed:", error);
+        setUser(null);
+        setProfile(null);
+        setSession(null);
+      } else if (data.session) {
         await handleAuthSuccess(data.session);
       } else {
-        handleSignOut();
+        // No session found, but don't navigate - let ProtectedRoute handle it
+        setUser(null);
+        setProfile(null);
+        setSession(null);
       }
     } catch (error) {
       console.error("Auth check failed:", error);
-      handleSignOut();
+      setUser(null);
+      setProfile(null);
+      setSession(null);
     } finally {
       setLoading(false);
     }
@@ -183,11 +196,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       await authController.logout();
+      handleSignOut(true);
       toast({
         title: "Logged out",
         description: "You have been logged out successfully",
       });
-      navigate("/login");
     } catch (error: any) {
       toast({
         title: "Logout failed",
