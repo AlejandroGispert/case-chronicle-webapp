@@ -25,17 +25,21 @@ import {
 } from "@/components/ui/collapsible";
 import EmailCard from "./EmailCard";
 import EventCard from "./EventCard";
+import DocumentCard from "./DocumentCard";
 import { eventController } from "@/backend/controllers/eventController";
+import { documentController } from "@/backend/controllers/documentController";
+import { CaseDocument } from "@/backend/models/documentModel";
 import { Attachment } from "../types";
 
 interface CaseDetailProps {
   caseData: Case;
 }
 
-type TimelineItem = Email & { event_type: "Email" } | Event & { event_type: "Event" };
+type TimelineItem = Email & { event_type: "Email" } | Event & { event_type: "Event" } | (CaseDocument & { date: string; time: string; event_type: "Document" });
 const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [documents, setDocuments] = useState<(CaseDocument & { date: string; time: string })[]>([]);
   const [filterType, setFilterType] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [groupBy, setGroupBy] = useState<string>("date");
@@ -59,11 +63,39 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   }, [caseData.id]);
   
 
+  const fetchDocuments = useCallback(async () => {
+    try {
+      const fetchedDocuments = await documentController.fetchDocumentsByCase(caseData.id);
+      // Parse date and time from uploaded_at
+      const documentsWithDateTime = fetchedDocuments.map((doc) => {
+        try {
+          const date = new Date(doc.uploaded_at);
+          return {
+            ...doc,
+            date: format(date, "yyyy-MM-dd"),
+            time: format(date, "HH:mm"),
+          };
+        } catch {
+          const now = new Date();
+          return {
+            ...doc,
+            date: format(now, "yyyy-MM-dd"),
+            time: format(now, "HH:mm"),
+          };
+        }
+      });
+      setDocuments(documentsWithDateTime);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+    }
+  }, [caseData.id]);
+
   useEffect(() => {
     console.log("CaseData:", caseData);
     fetchEmails();
+    fetchDocuments();
     setEvents(caseData.events || []);
-  }, [caseData, fetchEmails]);
+  }, [caseData, fetchEmails, fetchDocuments]);
 
   const handleAddEmail = async (newEmail: Email, caseId: string) => {
     if (caseId === caseData.id) {
@@ -116,6 +148,21 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     }
   };
 
+  const handleDocumentUpdate = async (updatedDocument: CaseDocument & { date: string; time: string }) => {
+    try {
+      // Update the document's date/time in state
+      // Note: We're storing this in local state for now since documents don't have date/time fields in the database
+      // In the future, you might want to store this in document metadata or a separate table
+      setDocuments(documents.map(doc => 
+        doc.id === updatedDocument.id 
+          ? { ...doc, date: updatedDocument.date, time: updatedDocument.time }
+          : doc
+      ));
+    } catch (error) {
+      console.error("Error updating document:", error);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -143,7 +190,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     }
   };
 
-  const totalCommunications = (emails.length || 0) + (events.length || 0);
+  const totalCommunications = (emails.length || 0) + (events.length || 0) + (documents.length || 0);
 
   const getCombinedTimeline = () => {
     const emailEvents = emails.map((email) => ({
@@ -156,7 +203,12 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
       event_type: event.event_type || "Event" as const,
     }));
 
-    return [...emailEvents, ...caseEvents].sort((a, b) => {
+    const documentEvents = documents.map((doc) => ({
+      ...doc,
+      event_type: "Document" as const,
+    }));
+
+    return [...emailEvents, ...caseEvents, ...documentEvents].sort((a, b) => {
       const aDate = new Date(`${a.date}T${a.time || "00:00"}`);
       const bDate = new Date(`${b.date}T${b.time || "00:00"}`);
       return sortDirection === "asc" 
@@ -183,9 +235,11 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const filteredItems = getCombinedTimeline().filter((item) => {
     const matchesType = filterType === "all" || 
       (filterType === "email" && item.event_type === "Email") ||
-      (filterType === "event" && item.event_type !== "Email");
+      (filterType === "event" && item.event_type !== "Email" && item.event_type !== "Document") ||
+      (filterType === "document" && item.event_type === "Document");
     
     const matchesSearch = searchQuery === "" || 
+      (item.event_type === "Document" && (item as CaseDocument & { date: string; time: string }).filename.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (isEmail(item)
         ? item.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.content?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -290,6 +344,8 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                 cases={[{ id: caseData.id, title: caseData.title, number: caseData.number || undefined }]}
                 defaultCaseId={caseData.id}
                 onDocumentAttached={() => {
+                  // Refresh documents in timeline
+                  fetchDocuments();
                   // Refresh documents list if available
                   if ((window as any).refreshDocumentsList) {
                     (window as any).refreshDocumentsList();
@@ -312,6 +368,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                       <SelectItem value="all">All</SelectItem>
                       <SelectItem value="email">Emails</SelectItem>
                       <SelectItem value="event">Events</SelectItem>
+                      <SelectItem value="document">Documents</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -380,10 +437,15 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                           email={item as Email} 
                           onUpdate={handleEmailUpdate} 
                         />
-                      ) : (
+                      ) : item.event_type === "Event" ? (
                         <EventCard 
-                          event={item} 
+                          event={item as Event} 
                           onUpdate={handleEventUpdate} 
+                        />
+                      ) : (
+                        <DocumentCard 
+                          document={item as CaseDocument & { date: string; time: string }}
+                          onUpdate={handleDocumentUpdate}
                         />
                       )}
                     </div>

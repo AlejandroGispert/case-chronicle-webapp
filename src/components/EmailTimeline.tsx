@@ -3,25 +3,30 @@ import { Email, Event } from "../types";
 import { Separator } from "@/components/ui/separator";
 import EmailCard from "./EmailCard";
 import EventCard from "./EventCard";
+import DocumentCard from "./DocumentCard";
+import { CaseDocument } from "@/backend/models/documentModel";
 
 interface TimelineItem {
   id: string;
   date: string;
   time: string;
-  type: 'email' | 'event';
-  data: Email | Event;
+  type: 'email' | 'event' | 'document';
+  data: Email | Event | (CaseDocument & { date: string; time: string });
 }
 
 interface EmailTimelineProps {
   emails: Email[];
   events?: Event[];
+  documents?: (CaseDocument & { date: string; time: string })[];
+  onDocumentUpdate?: (updatedDocument: CaseDocument & { date: string; time: string }) => void;
 }
 
-const EmailTimeline = ({ emails, events = [] }: EmailTimelineProps) => {
+const EmailTimeline = ({ emails, events = [], documents = [], onDocumentUpdate }: EmailTimelineProps) => {
   console.log("Timeline received emails:", emails?.length || 0);
   console.log("Timeline received events:", events?.length || 0, events);
+  console.log("Timeline received documents:", documents?.length || 0, documents);
   
-  // Combine emails and events into a single timeline
+  // Combine emails, events, and documents into a single timeline
   const timelineItems: TimelineItem[] = [
     ...emails.map(email => ({
       id: email.id,
@@ -36,6 +41,13 @@ const EmailTimeline = ({ emails, events = [] }: EmailTimelineProps) => {
       time: event.time,
       type: 'event' as const,
       data: event
+    })),
+    ...documents.map(doc => ({
+      id: doc.id,
+      date: doc.date,
+      time: doc.time,
+      type: 'document' as const,
+      data: doc
     }))
   ];
 
@@ -115,8 +127,13 @@ const EmailTimeline = ({ emails, events = [] }: EmailTimelineProps) => {
               <div className="timeline-dot absolute left-0 top-2 w-4 h-4 bg-legal-500 rounded-full"></div>
               {item.type === 'email' ? (
                 <EmailCard email={item.data as Email} />
-              ) : (
+              ) : item.type === 'event' ? (
                 <EventCard event={item.data as Event} />
+              ) : (
+                <DocumentCard 
+                  document={item.data as CaseDocument & { date: string; time: string }}
+                  onUpdate={onDocumentUpdate}
+                />
               )}
               {index < sortedItems.length - 1 && <Separator className="mt-6" />}
             </div>
