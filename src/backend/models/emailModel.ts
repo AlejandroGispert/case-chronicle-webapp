@@ -34,6 +34,47 @@ export const emailModel = {
     }
   },
 
+  // Fetch all emails for the user
+  async getAllEmails(): Promise<Email[]> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user?.user) {
+        console.error("No authenticated user found");
+        return [];
+      }
+
+      console.log("Fetching all emails");
+      const { data, error } = await supabase
+        .from("emails")
+        .select("*")
+        .eq("user_id", user.user.id)
+        .order("date", { ascending: false })
+        .order("time", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching all emails:", error.message, error.details);
+        return [];
+      }
+
+      console.log("Fetched all emails data:", data);
+      
+      // Parse attachments from JSON to EmailAttachment[]
+      const processedEmails = (data || []).map((email) => ({
+        ...email,
+        attachments: email.attachments
+          ? (typeof email.attachments === "string"
+              ? JSON.parse(email.attachments)
+              : email.attachments)
+          : [],
+      }));
+
+      return processedEmails as Email[];
+    } catch (error) {
+      console.error("Error in getAllEmails:", error);
+      return [];
+    }
+  },
+
   // Fetch unassigned emails (emails without a case_id)
   async getUnassignedEmails(): Promise<Email[]> {
     try {

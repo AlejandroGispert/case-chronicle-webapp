@@ -50,7 +50,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/" className="flex items-center">
+                  <Link to="/calendar" className="flex items-center">
                     <Calendar className="h-4 w-4 mr-2" />
                     Calendar
                   </Link>

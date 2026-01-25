@@ -16,6 +16,17 @@ export const emailController = {
     }
   },
 
+  async fetchAllEmails() {
+    try {
+      const emails = await emailModel.getAllEmails();
+      console.log("Fetched all emails:", emails);
+      return emails;
+    } catch (error) {
+      console.error("Error in fetchAllEmails:", error);
+      return [];
+    }
+  },
+
   async fetchUnassignedEmails() {
     try {
       const emails = await emailModel.getUnassignedEmails();

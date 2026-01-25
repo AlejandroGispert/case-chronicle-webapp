@@ -22,6 +22,24 @@ export const eventModel = {
     console.log('Events fetched from Supabase for case', caseId, ':', data);
     return data || [];
   },
+
+  async getAllEvents(): Promise<Event[]> {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) return [];
+    
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('user_id', user.user.id)
+      .order('date', { ascending: false });
+      
+    if (error) {
+      console.error('Error fetching all events:', error);
+      return [];
+    }
+    
+    return data || [];
+  },
   
   async createEvent(eventData: CreateEventInput): Promise<Event | null> {
   const { data: user } = await supabase.auth.getUser();

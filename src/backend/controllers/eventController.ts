@@ -6,6 +6,10 @@ export const eventController = {
   async fetchEventsByCase(caseId: string): Promise<Event[]> {
     return await eventModel.getEventsByCase(caseId);
   },
+
+  async fetchAllEvents(): Promise<Event[]> {
+    return await eventModel.getAllEvents();
+  },
   
   async createNewEvent(eventData: CreateEventInput): Promise<Event | null> {
     return await eventModel.createEvent(eventData);

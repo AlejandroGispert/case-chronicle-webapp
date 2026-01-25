@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Inbox from "./pages/Inbox";
+import Calendar from "./pages/Calendar";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "@/pages/AuthCallback";
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => {
               <Route element={<ProtectedRoute />}>
                 <Route path="/inbox" element={<Inbox />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/calendar" element={<Calendar />} />
                 {/* ADD ALL CUSTOM PROTECTED ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               </Route>
               
