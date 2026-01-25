@@ -16,6 +16,26 @@ export const emailController = {
     }
   },
 
+  async fetchUnassignedEmails() {
+    try {
+      const emails = await emailModel.getUnassignedEmails();
+      console.log("Fetched unassigned emails:", emails);
+      return emails;
+    } catch (error) {
+      console.error("Error in fetchUnassignedEmails:", error);
+      return [];
+    }
+  },
+
+  async assignEmailToCase(emailId: string, caseId: string) {
+    try {
+      return await emailModel.assignEmailToCase(emailId, caseId);
+    } catch (error) {
+      console.error("Error in assignEmailToCase:", error);
+      return false;
+    }
+  },
+
   async createNewEmail(emailData: CreateEmailInput, files?: File[]) {
     try {
       const { data: user } = await supabase.auth.getUser();

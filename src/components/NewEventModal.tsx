@@ -63,7 +63,7 @@ const NewEventModal = ({ cases = [], onAddEvent }: NewEventModalProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary">Add Event</Button>
+        <Button variant="secondary">Register New Event</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>

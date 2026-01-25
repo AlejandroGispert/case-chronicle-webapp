@@ -1,19 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Menu, Mail, LogOut } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Menu, LogOut } from "lucide-react";
+
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+
 import { useAuth } from "@/contexts/AuthContext";
 import NewEventModal from "@/components/NewEventModal";
 
@@ -24,7 +14,12 @@ interface HeaderProps {
   cases: { id: string; title: string }[];
 }
 
-const Header = ({ sidebarOpen, setSidebarOpen, onAddEvent, cases }: HeaderProps) => {
+const Header = ({
+  sidebarOpen,
+  setSidebarOpen,
+  onAddEvent,
+  cases,
+}: HeaderProps) => {
   const { toast } = useToast();
   const { logout } = useAuth();
 
@@ -52,50 +47,6 @@ const Header = ({ sidebarOpen, setSidebarOpen, onAddEvent, cases }: HeaderProps)
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Send Email Modal */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>
-                <Mail className="h-4 w-4 mr-2" />
-                Send Email
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[525px]">
-              <DialogHeader>
-                <DialogTitle>Send Email to Case</DialogTitle>
-                <DialogDescription>
-                  Send an email that will be automatically stored in the selected case.
-                </DialogDescription>
-              </DialogHeader>
-
-              <form onSubmit={handleSendEmail} className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Send to Case Email</Label>
-                  <Input id="email" defaultValue="cases@mycases.com" readOnly />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input id="subject" placeholder="Email subject" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="body">Message</Label>
-                  <textarea 
-                    id="body"
-                    className="w-full h-32 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" 
-                    placeholder="Type your message here"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="attachment">Attachment</Label>
-                  <Input id="attachment" type="file" />
-                </div>
-                <DialogFooter>
-                  <Button type="submit">Send Email</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-
           {/* New Event Modal */}
           <NewEventModal
             cases={cases}

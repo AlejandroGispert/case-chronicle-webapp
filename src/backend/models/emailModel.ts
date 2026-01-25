@@ -34,6 +34,48 @@ export const emailModel = {
     }
   },
 
+  // Fetch unassigned emails (emails without a case_id)
+  async getUnassignedEmails(): Promise<Email[]> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user?.user) {
+        console.error("No authenticated user found");
+        return [];
+      }
+
+      console.log("Fetching unassigned emails");
+      const { data, error } = await supabase
+        .from("emails")
+        .select("*")
+        .is("case_id", null)
+        .eq("user_id", user.user.id)
+        .order("date", { ascending: false })
+        .order("time", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching unassigned emails:", error.message, error.details);
+        return [];
+      }
+
+      console.log("Fetched unassigned emails data:", data);
+      
+      // Parse attachments from JSON to EmailAttachment[]
+      const processedEmails = (data || []).map((email) => ({
+        ...email,
+        attachments: email.attachments
+          ? (typeof email.attachments === "string"
+              ? JSON.parse(email.attachments)
+              : email.attachments)
+          : [],
+      }));
+
+      return processedEmails as Email[];
+    } catch (error) {
+      console.error("Error in getUnassignedEmails:", error);
+      return [];
+    }
+  },
+
   // Create a new email with attachment metadata
   async createEmail(emailData: CreateEmailInput): Promise<Email | null> {
     try {
@@ -163,5 +205,32 @@ export const emailModel = {
     }
 
     return true;
+  },
+
+  // Assign email to a case
+  async assignEmailToCase(emailId: string, caseId: string): Promise<boolean> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user?.user) {
+        console.error("No authenticated user found");
+        return false;
+      }
+
+      const { error } = await supabase
+        .from("emails")
+        .update({ case_id: caseId })
+        .eq("id", emailId)
+        .eq("user_id", user.user.id);
+
+      if (error) {
+        console.error("Error assigning email to case:", error.message);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in assignEmailToCase:", error);
+      return false;
+    }
   },
 };

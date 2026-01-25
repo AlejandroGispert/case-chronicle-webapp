@@ -9,9 +9,8 @@ export default defineConfig(({ mode }) => ({
     port: 3000,
     strictPort: true,
     host: true,
-    headers: {
-      "Content-Type": "application/javascript",
-    },
+    // Avoid adding custom Content-Type in headers—Vite sets it per file. Forcing
+    // "application/javascript" for all responses breaks index.html (raw HTML in browser).
   },
   plugins: [
     react(),

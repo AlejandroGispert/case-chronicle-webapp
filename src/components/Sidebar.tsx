@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Calendar, File, Folder, Home } from "lucide-react";
+import { Calendar, File, Folder, Home, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import NewCaseModal from "./NewCaseModal";
 
@@ -34,17 +34,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/" className="flex items-center">
-                    <Home className="h-4 w-4 mr-2" />
-                    Dashboard
+                  <Link to="/inbox" className="flex items-center">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Inbox
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/" className="flex items-center">
-                    <Folder className="h-4 w-4 mr-2" />
-                    All Cases
+                  <Link to="/dashboard" className="flex items-center">
+                    <Home className="h-4 w-4 mr-2" />
+                    Dashboard
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
