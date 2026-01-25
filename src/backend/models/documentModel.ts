@@ -46,31 +46,19 @@ export const documentModel = {
 
       const bucketExists = buckets?.some((b) => b.name === bucketName);
       if (!bucketExists) {
-        console.warn(
-          `Bucket "${bucketName}" does not exist. Available buckets:`,
-          buckets?.map((b) => b.name),
+        const availableBuckets = buckets?.map((b) => b.name).join(", ") || "none";
+        console.error(
+          `Bucket "${bucketName}" does not exist. Available buckets: [${availableBuckets}]`,
         );
-        
-        // Attempt to create the bucket (may fail if user doesn't have permissions)
-        const { data: createData, error: createError } = await supabase.storage.createBucket(
-          bucketName,
-          {
-            public: true, // Make bucket public so files can be accessed
-            fileSizeLimit: 52428800, // 50MB limit
-            allowedMimeTypes: null, // Allow all file types
-          }
+        throw new Error(
+          `Bucket "${bucketName}" not found. Please create it in Supabase Dashboard:\n` +
+          `1. Go to Storage in your Supabase Dashboard\n` +
+          `2. Click "New bucket"\n` +
+          `3. Name: "${bucketName}"\n` +
+          `4. Enable "Public bucket"\n` +
+          `5. Set file size limit (e.g., 50MB)\n` +
+          `6. Click "Create bucket"`
         );
-
-        if (createError) {
-          console.error("Failed to create bucket:", createError);
-          throw new Error(
-            `Bucket "${bucketName}" not found and could not be created automatically. ` +
-            `Please create it manually in Supabase Dashboard: ` +
-            `Storage > New bucket > Name: "${bucketName}" > Public bucket: ON`
-          );
-        }
-
-        console.log(`Bucket "${bucketName}" created successfully`);
       }
 
       const { data: uploadData, error: uploadError } = await supabase.storage

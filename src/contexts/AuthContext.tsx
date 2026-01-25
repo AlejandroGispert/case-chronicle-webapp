@@ -42,6 +42,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = !!user;
 
   const handleAuthSuccess = useCallback(async (session: Session) => {
+    if (!session || !session.user) {
+      console.warn("Invalid session provided to handleAuthSuccess");
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      return;
+    }
+
     setUser(session.user);
     setSession(session);
 
@@ -50,6 +58,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setProfile(profileData);
     } catch (error) {
       console.error("Failed to fetch profile:", error);
+      // Don't fail auth if profile fetch fails - user is still authenticated
+      setProfile(null);
     }
   }, []);
 
@@ -111,11 +121,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (error) {
           console.error("Auth check failed:", error);
+          // Clear any invalid session data from storage
+          try {
+            await supabase.auth.signOut();
+          } catch (signOutError) {
+            console.error("Error clearing invalid session:", signOutError);
+          }
           setUser(null);
           setProfile(null);
           setSession(null);
-        } else if (data.session) {
-          await handleAuthSuccess(data.session);
+        } else if (data.session && data.session.user) {
+          // Verify session is still valid
+          const { data: userData, error: userError } = await supabase.auth.getUser();
+          if (userError || !userData.user) {
+            console.warn("Session expired or invalid, clearing auth state");
+            setUser(null);
+            setProfile(null);
+            setSession(null);
+          } else {
+            await handleAuthSuccess(data.session);
+          }
         } else {
           setUser(null);
           setProfile(null);
@@ -123,6 +148,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         console.error("Auth initialization failed:", error);
+        // Clear potentially corrupted session data
+        try {
+          await supabase.auth.signOut();
+        } catch (signOutError) {
+          // Ignore errors during cleanup
+        }
         setUser(null);
         setProfile(null);
         setSession(null);
