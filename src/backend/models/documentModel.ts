@@ -36,31 +36,7 @@ export const documentModel = {
       const fileName = `${userId}/${caseId}/${Date.now()}-${file.name}`;
       const bucketName = BUCKET_NAME;
 
-      // Check if bucket exists and is accessible
-      const { data: buckets, error: bucketError } =
-        await supabase.storage.listBuckets();
-      if (bucketError) {
-        console.error("Error checking buckets:", bucketError);
-        throw new Error(`Storage error: ${bucketError.message}`);
-      }
-
-      const bucketExists = buckets?.some((b) => b.name === bucketName);
-      if (!bucketExists) {
-        const availableBuckets = buckets?.map((b) => b.name).join(", ") || "none";
-        console.error(
-          `Bucket "${bucketName}" does not exist. Available buckets: [${availableBuckets}]`,
-        );
-        throw new Error(
-          `Bucket "${bucketName}" not found. Please create it in Supabase Dashboard:\n` +
-          `1. Go to Storage in your Supabase Dashboard\n` +
-          `2. Click "New bucket"\n` +
-          `3. Name: "${bucketName}"\n` +
-          `4. Enable "Public bucket"\n` +
-          `5. Set file size limit (e.g., 50MB)\n` +
-          `6. Click "Create bucket"`
-        );
-      }
-
+      // Try to upload directly - this will fail if bucket doesn't exist or user lacks permissions
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from(bucketName)
         .upload(fileName, file, {
@@ -70,6 +46,32 @@ export const documentModel = {
 
       if (uploadError) {
         console.error("Error uploading document:", uploadError);
+        
+        // Check if it's a bucket not found error
+        if (uploadError.message?.includes("Bucket not found") || 
+            uploadError.message?.includes("not found") ||
+            uploadError.statusCode === 404) {
+          throw new Error(
+            `Bucket "${bucketName}" not found. Please create it in Supabase Dashboard:\n` +
+            `1. Go to Storage in your Supabase Dashboard\n` +
+            `2. Click "New bucket"\n` +
+            `3. Name: "${bucketName}"\n` +
+            `4. Enable "Public bucket"\n` +
+            `5. Set file size limit (e.g., 50MB)\n` +
+            `6. Click "Create bucket"`
+          );
+        }
+        
+        // Check if it's a permissions/RLS error
+        if (uploadError.message?.includes("policy") || 
+            uploadError.message?.includes("permission") ||
+            uploadError.message?.includes("row-level security")) {
+          throw new Error(
+            `Upload failed due to permissions: ${uploadError.message}. ` +
+            `Please check your bucket's RLS policies in Supabase Dashboard.`
+          );
+        }
+        
         throw new Error(
           `Upload failed: ${uploadError.message}. Check bucket permissions and RLS policies.`,
         );
