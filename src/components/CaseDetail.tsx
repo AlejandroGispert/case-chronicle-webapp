@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import EmailTimeline from "./EmailTimeline";
 import NewEmailModal from "./NewEmailModal";
+import AttachDocumentButton from "./AttachDocumentButton";
 import { Calendar, Mail, Folder, Filter, ChevronDown, ChevronUp, ArrowUpDown } from "lucide-react";
 import { format, isValid } from "date-fns";
 import EventTimeline from "./EventTimeline";
@@ -284,6 +285,13 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
               <NewEmailModal
                 cases={[{ id: caseData.id, title: caseData.title }]}
                 onAddEmail={handleAddEmail}
+              />
+              <AttachDocumentButton
+                cases={[{ id: caseData.id, title: caseData.title, number: caseData.number || undefined }]}
+                defaultCaseId={caseData.id}
+                onDocumentAttached={() => {
+                  // Optionally refresh case data or documents list
+                }}
               />
             </div>
           </div>

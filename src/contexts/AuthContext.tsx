@@ -3,6 +3,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import { useNavigate } from "react-router-dom";
@@ -40,33 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const isAuthenticated = !!user;
 
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("Auth state changed:", event, session);
-
-        switch (event) {
-          case "SIGNED_IN":
-          case "TOKEN_REFRESHED":
-            if (session) {
-              await handleAuthSuccess(session);
-            }
-            break;
-          case "SIGNED_OUT":
-            handleSignOut(true);
-            break;
-        }
-      }
-    );
-
-    checkInitialAuth();
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  const handleAuthSuccess = async (session: Session) => {
+  const handleAuthSuccess = useCallback(async (session: Session) => {
     setUser(session.user);
     setSession(session);
 
@@ -76,18 +51,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Failed to fetch profile:", error);
     }
-  };
+  }, []);
 
-  const handleSignOut = (shouldNavigate: boolean = true) => {
+  const handleSignOut = useCallback((shouldNavigate: boolean = true) => {
     setUser(null);
     setProfile(null);
     setSession(null);
     if (shouldNavigate) {
       navigate("/login");
     }
-  };
+  }, [navigate]);
 
-  const checkInitialAuth = async () => {
+  const checkInitialAuth = useCallback(async () => {
     try {
       // Wait for Supabase to restore session from localStorage
       const { data, error } = await supabase.auth.getSession();
@@ -113,7 +88,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [handleAuthSuccess]);
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("Auth state changed:", event, session);
+
+        switch (event) {
+          case "SIGNED_IN":
+          case "TOKEN_REFRESHED":
+            if (session) {
+              await handleAuthSuccess(session);
+            }
+            break;
+          case "SIGNED_OUT":
+            handleSignOut(true);
+            break;
+        }
+      }
+    );
+
+    checkInitialAuth();
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [handleAuthSuccess, handleSignOut, checkInitialAuth]);
 
   const login = async (email: string, password: string) => {
     setLoading(true);

@@ -15,13 +15,15 @@ import { Upload, Loader2 } from "lucide-react";
 interface AttachDocumentButtonProps {
   cases: Case[];
   onDocumentAttached?: () => void;
+  defaultCaseId?: string;
 }
 
 const AttachDocumentButton = ({
   cases,
   onDocumentAttached,
+  defaultCaseId,
 }: AttachDocumentButtonProps) => {
-  const [selectedCaseId, setSelectedCaseId] = useState<string>("");
+  const [selectedCaseId, setSelectedCaseId] = useState<string>(defaultCaseId || "");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -95,33 +97,40 @@ const AttachDocumentButton = ({
     fileInputRef.current?.click();
   };
 
+  // Compact mode: if defaultCaseId is provided and there's only one case, hide dropdown
+  const isCompactMode = defaultCaseId && cases.length === 1;
+
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm font-medium text-muted-foreground">
-        Attach document to case:
-      </span>
-      <Select
-        value={selectedCaseId}
-        onValueChange={setSelectedCaseId}
-        disabled={isUploading}
-      >
-        <SelectTrigger className="w-[250px]">
-          <SelectValue placeholder="Select a case..." />
-        </SelectTrigger>
-        <SelectContent>
-          {cases.length === 0 ? (
-            <SelectItem value="none" disabled>
-              No cases available
-            </SelectItem>
-          ) : (
-            cases.map((caseItem) => (
-              <SelectItem key={caseItem.id} value={caseItem.id}>
-                {caseItem.title} {caseItem.number && `(${caseItem.number})`}
-              </SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
+      {!isCompactMode && (
+        <>
+          <span className="text-sm font-medium text-muted-foreground">
+            Attach document to case:
+          </span>
+          <Select
+            value={selectedCaseId}
+            onValueChange={setSelectedCaseId}
+            disabled={isUploading}
+          >
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="Select a case..." />
+            </SelectTrigger>
+            <SelectContent>
+              {cases.length === 0 ? (
+                <SelectItem value="none" disabled>
+                  No cases available
+                </SelectItem>
+              ) : (
+                cases.map((caseItem) => (
+                  <SelectItem key={caseItem.id} value={caseItem.id}>
+                    {caseItem.title} {caseItem.number && `(${caseItem.number})`}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        </>
+      )}
       <input
         ref={fileInputRef}
         type="file"
@@ -143,7 +152,7 @@ const AttachDocumentButton = ({
         ) : (
           <>
             <Upload className="h-4 w-4 mr-2" />
-            Upload Document
+            {isCompactMode ? "Upload Document" : "Upload Document"}
           </>
         )}
       </Button>

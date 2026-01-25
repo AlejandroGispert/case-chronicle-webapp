@@ -63,7 +63,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/" className="flex items-center">
+                  <Link to="/documents" className="flex items-center">
                     <File className="h-4 w-4 mr-2" />
                     Documents
                   </Link>
