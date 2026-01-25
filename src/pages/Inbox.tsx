@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import EmailCard from "../components/EmailCard";
+import AttachDocumentButton from "../components/AttachDocumentButton";
 import { emailController } from "@/backend/controllers/emailController";
 import { caseController } from "@/backend/controllers/caseController";
 import { useToast } from "@/hooks/use-toast";
@@ -133,6 +134,13 @@ const Inbox = () => {
                 {emails.length} unassigned email{emails.length !== 1 ? "s" : ""}
               </Badge>
             </div>
+
+            {/* Attach Document Section */}
+            <Card className="bg-muted/50">
+              <CardContent className="p-4">
+                <AttachDocumentButton cases={cases} />
+              </CardContent>
+            </Card>
 
             <div className="space-y-4">
               {emails.map((email) => (
