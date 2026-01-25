@@ -5,6 +5,7 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Case = Database["public"]["Tables"]["cases"]["Row"];
 export type EmailDb = Database["public"]["Tables"]["emails"]["Row"];
 export type Event = Database["public"]["Tables"]["events"]["Row"];
+export type Contact = Database["public"]["Tables"]["contacts"]["Row"];
 
 // Enhanced Email type with optional attachments field
 export type Email = EmailDb & {
@@ -61,4 +62,13 @@ export interface CreateEventInput {
   date: string;
   time: string;
   user_id: string;
+}
+
+// CreateContactInput represents the structure to create a contact (user_id set by backend from auth)
+export interface CreateContactInput {
+  case_id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  role?: string | null;
 }

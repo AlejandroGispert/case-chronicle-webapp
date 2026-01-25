@@ -20,7 +20,7 @@ type AuthContextType = {
     email: string,
     password: string,
     firstName: string,
-    lastName: string
+    lastName: string,
   ) => Promise<void>;
   logout: () => Promise<void>;
   user: User | null;
@@ -53,15 +53,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const handleSignOut = useCallback((shouldNavigate: boolean = true) => {
-    setUser(null);
-    setProfile(null);
-    setSession(null);
-    if (shouldNavigate) {
-      navigate("/login");
-    }
-  }, [navigate]);
-
+  const handleSignOut = useCallback(
+    (shouldNavigate: boolean = true) => {
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      if (shouldNavigate) {
+        navigate("/login");
+      }
+    },
+    [navigate],
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -96,13 +98,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             handleSignOut(true);
             break;
         }
-      }
+      },
     );
 
     // Fallback: check session if INITIAL_SESSION doesn't fire within 1 second
     const fallbackCheck = setTimeout(async () => {
       if (!mounted || sessionChecked) return;
-      
+
       try {
         const { data, error } = await supabase.auth.getSession();
         if (!mounted) return;
@@ -186,7 +188,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     email: string,
     password: string,
     firstName: string,
-    lastName: string
+    lastName: string,
   ) => {
     setLoading(true);
     try {
@@ -194,7 +196,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email,
         password,
         firstName,
-        lastName
+        lastName,
       );
 
       if (user) {

@@ -15,6 +15,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import About from "./pages/About";
 import Settings from "./pages/Settings";
 import Index from "./pages/Index";
+import Contacts from "./pages/Contacts";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -38,6 +39,7 @@ const App = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/documents" element={<Index />} />
+                <Route path="/contacts" element={<Contacts />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/about" element={<About />} />
                 {/* ADD ALL CUSTOM PROTECTED ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

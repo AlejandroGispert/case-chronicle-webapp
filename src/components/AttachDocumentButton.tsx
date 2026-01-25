@@ -23,12 +23,16 @@ const AttachDocumentButton = ({
   onDocumentAttached,
   defaultCaseId,
 }: AttachDocumentButtonProps) => {
-  const [selectedCaseId, setSelectedCaseId] = useState<string>(defaultCaseId || "");
+  const [selectedCaseId, setSelectedCaseId] = useState<string>(
+    defaultCaseId || "",
+  );
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -49,7 +53,7 @@ const AttachDocumentButton = ({
       setIsUploading(true);
       const document = await documentController.uploadDocumentToCase(
         file,
-        selectedCaseId
+        selectedCaseId,
       );
 
       if (document) {

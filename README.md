@@ -17,6 +17,13 @@ Case Chronicles lets users:
 
 
 
+## Database migrations
+To add the **Contacts** feature, create the `contacts` table in Supabase by running the SQL migration:
+
+- `supabase/migrations/20250125000000_create_contacts_table.sql`
+
+Run it via the Supabase SQL editor or your migration tooling.
+
 ## How It Works
 Users log new cases through a clean and intuitive interface.
 

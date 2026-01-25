@@ -224,6 +224,54 @@ export type Database = {
           }
         ]
       }
+      contacts: {
+        Row: {
+          id: string
+          case_id: string
+          user_id: string
+          name: string
+          email: string | null
+          phone: string | null
+          role: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          case_id: string
+          user_id: string
+          name: string
+          email?: string | null
+          phone?: string | null
+          role?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          case_id?: string
+          user_id?: string
+          name?: string
+          email?: string | null
+          phone?: string | null
+          role?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
