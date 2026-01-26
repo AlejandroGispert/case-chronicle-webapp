@@ -1,19 +1,20 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import { getDatabaseService, getAuthService } from '../services';
 import { Profile } from './types';
 
 export const profileModel = {
   async getCurrentProfile(): Promise<Profile | null> {
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const authService = getAuthService();
+      const { user, error: userError } = await authService.getUser();
       
       if (userError || !user) {
         console.warn('No authenticated user for profile fetch:', userError);
         return null;
       }
       
-      const { data, error } = await supabase
-        .from('profiles')
+      const db = getDatabaseService();
+      const { data, error } = await db
+        .from<Profile>('profiles')
         .select('*')
         .eq('id', user.id)
         .maybeSingle();
@@ -31,12 +32,14 @@ export const profileModel = {
   },
   
   async updateProfile(updates: Partial<Profile>): Promise<Profile | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
     
     if (!user) return null;
     
-    const { data, error } = await supabase
-      .from('profiles')
+    const db = getDatabaseService();
+    const { data, error } = await db
+      .from<Profile>('profiles')
       .update(updates)
       .eq('id', user.id)
       .select()

@@ -1,20 +1,16 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import { getAuthService } from '../services';
 import { profileModel } from '../models/profileModel';
 
 export const authController = {
   async login(email: string, password: string) {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const authService = getAuthService();
+      const { user, session, error } = await authService.signInWithPassword(email, password);
       
       if (error) throw error;
       
-      return { user: data.user, session: data.session };
+      return { user, session };
     } catch (error) {
-      
       console.error('Login error:', error);
       throw error;
     }
@@ -22,20 +18,15 @@ export const authController = {
   
   async signup(email: string, password: string, firstName: string, lastName: string) {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          },
-        }
+      const authService = getAuthService();
+      const { user, session, error } = await authService.signUp(email, password, {
+        first_name: firstName,
+        last_name: lastName,
       });
       
       if (error) throw error;
       
-      return { user: data.user, session: data.session };
+      return { user, session };
     } catch (error) {
       console.error('Signup error:', error);
       throw error;
@@ -44,7 +35,8 @@ export const authController = {
   
   async logout() {
     try {
-      const { error } = await supabase.auth.signOut();
+      const authService = getAuthService();
+      const { error } = await authService.signOut();
       if (error) throw error;
       return true;
     } catch (error) {
@@ -55,9 +47,10 @@ export const authController = {
   
   async getCurrentUser() {
     try {
-      const { data, error } = await supabase.auth.getUser();
+      const authService = getAuthService();
+      const { user, error } = await authService.getUser();
       if (error) throw error;
-      return data.user;
+      return user;
     } catch (error) {
       console.error('Get current user error:', error);
       return null;
@@ -66,13 +59,35 @@ export const authController = {
   
   async getCurrentSession() {
     try {
-      const { data, error } = await supabase.auth.getSession();
+      const authService = getAuthService();
+      const { session, error } = await authService.getSession();
       if (error) throw error;
-      return data.session;
+      return session;
     } catch (error) {
       console.error('Get session error:', error);
       return null;
     }
+  },
+  
+  async loginWithGoogle(redirectTo?: string) {
+    try {
+      const authService = getAuthService();
+      const { error } = await authService.signInWithOAuth('google', {
+        redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
+      });
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Google login error:', error);
+      throw error;
+    }
+  },
+  
+  onAuthStateChange(callback: (event: any, session: any) => void | Promise<void>) {
+    const authService = getAuthService();
+    return authService.onAuthStateChange((event) => {
+      return callback(event.event, event.session);
+    });
   },
   
   async getCurrentProfile() {

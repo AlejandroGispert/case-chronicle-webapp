@@ -1,7 +1,7 @@
 import { emailModel } from "../models/emailModel";
 import { CreateEmailInput, EmailAttachment, Email } from "../models/types";
 import { format } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+import { getDatabaseService, getAuthService } from "../services";
 import { Email as ModelEmail } from "../models/types";
 
 export const emailController = {
@@ -49,8 +49,9 @@ export const emailController = {
 
   async createNewEmail(emailData: CreateEmailInput, files?: File[]) {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      if (!user) {
         console.error("No authenticated user found");
         return null;
       }
@@ -58,7 +59,7 @@ export const emailController = {
       // Use the provided date and time from emailData
       const emailWithAttachments: CreateEmailInput = {
         ...emailData,
-        user_id: user.user.id,
+        user_id: user.id,
         date: emailData.date,
         time: emailData.time,
         attachments: emailData.attachments,
@@ -85,17 +86,19 @@ export const emailController = {
 
   async updateEmail(emailData: Partial<ModelEmail>) {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return null;
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      if (!user) return null;
 
-      const { data, error } = await supabase
-        .from('emails')
+      const db = getDatabaseService();
+      const { data, error } = await db
+        .from<ModelEmail>('emails')
         .update({
           date: emailData.date,
           time: emailData.time,
         })
         .eq('id', emailData.id)
-        .eq('user_id', user.user.id)
+        .eq('user_id', user.id)
         .select()
         .single();
 

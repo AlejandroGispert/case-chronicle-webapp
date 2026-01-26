@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getStorageService, getAuthService } from "../services";
 
 export interface CaseDocument {
   id: string;
@@ -25,24 +25,27 @@ export interface CreateDocumentInput {
 const BUCKET_NAME = "case_document";
 
 export const documentModel = {
-  // Upload a document to Supabase Storage and create a record
+  // Upload a document to storage and create a record
   async uploadDocument(
     file: File,
     caseId: string,
     userId: string,
   ): Promise<CaseDocument | null> {
     try {
-      // Upload file to Supabase Storage
+      const storageService = getStorageService();
       const fileName = `${userId}/${caseId}/${Date.now()}-${file.name}`;
       const bucketName = BUCKET_NAME;
 
-      // Try to upload directly - this will fail if bucket doesn't exist or user lacks permissions
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(fileName, file, {
+      // Upload file to storage
+      const { data: uploadData, error: uploadError } = await storageService.upload(
+        bucketName,
+        fileName,
+        file,
+        {
           cacheControl: "3600",
           upsert: false,
-        });
+        }
+      );
 
       if (uploadError) {
         console.error("Error uploading document:", uploadError);
@@ -50,10 +53,10 @@ export const documentModel = {
         // Check if it's a bucket not found error
         if (uploadError.message?.includes("Bucket not found") || 
             uploadError.message?.includes("not found") ||
-            uploadError.statusCode === 404) {
+            uploadError.message?.includes("404")) {
           throw new Error(
-            `Bucket "${bucketName}" not found. Please create it in Supabase Dashboard:\n` +
-            `1. Go to Storage in your Supabase Dashboard\n` +
+            `Bucket "${bucketName}" not found. Please create it in your storage provider:\n` +
+            `1. Go to Storage in your Dashboard\n` +
             `2. Click "New bucket"\n` +
             `3. Name: "${bucketName}"\n` +
             `4. Enable "Public bucket"\n` +
@@ -68,21 +71,24 @@ export const documentModel = {
             uploadError.message?.includes("row-level security")) {
           throw new Error(
             `Upload failed due to permissions: ${uploadError.message}. ` +
-            `Please check your bucket's RLS policies in Supabase Dashboard.`
+            `Please check your bucket's access policies.`
           );
         }
         
         throw new Error(
-          `Upload failed: ${uploadError.message}. Check bucket permissions and RLS policies.`,
+          `Upload failed: ${uploadError.message}. Check bucket permissions and access policies.`,
         );
       }
 
-      // Get the public URL for the uploaded document
-      const { data: urlData } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(fileName);
+      if (!uploadData?.path) {
+        console.error("Failed to upload document");
+        return null;
+      }
 
-      if (!urlData?.publicUrl) {
+      // Get the public URL for the uploaded document
+      const { publicUrl } = storageService.getPublicUrl(bucketName, uploadData.path);
+
+      if (!publicUrl) {
         console.error("Failed to get public URL for document");
         return null;
       }
@@ -94,7 +100,7 @@ export const documentModel = {
         case_id: caseId,
         filename: file.name,
         type: file.type,
-        url: urlData.publicUrl,
+        url: publicUrl,
         size: file.size,
         uploaded_at: new Date().toISOString(),
         user_id: userId,
@@ -112,21 +118,21 @@ export const documentModel = {
   // Get documents for a specific case
   async getDocumentsByCase(caseId: string): Promise<CaseDocument[]> {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user?.user) {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      if (!user) {
         console.error("No authenticated user found");
         return [];
       }
 
+      const storageService = getStorageService();
       // List files in the case's folder
-      const folderPath = `${user.user.id}/${caseId}/`;
-      const { data: files, error } = await supabase.storage
-        .from(BUCKET_NAME)
-        .list(folderPath, {
-          limit: 100,
-          offset: 0,
-          sortBy: { column: "created_at", order: "desc" },
-        });
+      const folderPath = `${user.id}/${caseId}/`;
+      const { data: files, error } = await storageService.list(BUCKET_NAME, folderPath, {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: "created_at", order: "desc" },
+      });
 
       if (error) {
         console.error("Error fetching documents:", error.message);
@@ -138,25 +144,21 @@ export const documentModel = {
       }
 
       // Convert storage files to CaseDocument format
-      const documents: CaseDocument[] = await Promise.all(
-        files.map(async (file) => {
-          const filePath = `${folderPath}${file.name}`;
-          const { data: urlData } = supabase.storage
-            .from(BUCKET_NAME)
-            .getPublicUrl(filePath);
+      const documents: CaseDocument[] = files.map((file) => {
+        const filePath = `${folderPath}${file.name}`;
+        const { publicUrl } = storageService.getPublicUrl(BUCKET_NAME, filePath);
 
-          return {
-            id: filePath,
-            case_id: caseId,
-            filename: file.name.replace(/^\d+-/, ""), // Remove timestamp prefix
-            type: file.metadata?.mimetype || "application/octet-stream",
-            url: urlData?.publicUrl || "",
-            size: file.metadata?.size || 0,
-            uploaded_at: file.created_at || new Date().toISOString(),
-            user_id: user.user.id,
-          };
-        }),
-      );
+        return {
+          id: filePath,
+          case_id: caseId,
+          filename: file.name.replace(/^\d+-/, ""), // Remove timestamp prefix
+          type: file.metadata?.mimetype || "application/octet-stream",
+          url: publicUrl || "",
+          size: file.metadata?.size || 0,
+          uploaded_at: file.created_at || new Date().toISOString(),
+          user_id: user.id,
+        };
+      });
 
       return documents;
     } catch (error) {
@@ -165,18 +167,18 @@ export const documentModel = {
     }
   },
 
-  // Delete a document from Supabase Storage
+  // Delete a document from storage
   async deleteDocument(documentId: string): Promise<boolean> {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user?.user) {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      if (!user) {
         console.error("No authenticated user found");
         return false;
       }
 
-      const { error } = await supabase.storage
-        .from(BUCKET_NAME)
-        .remove([documentId]);
+      const storageService = getStorageService();
+      const { error } = await storageService.remove(BUCKET_NAME, [documentId]);
 
       if (error) {
         console.error("Error deleting document:", error.message);

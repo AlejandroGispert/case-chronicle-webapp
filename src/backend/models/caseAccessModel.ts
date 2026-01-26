@@ -1,11 +1,11 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getDatabaseService } from "../services";
 
 // --- Timeout Utility ---
 function timeout<T>(promise: Promise<T>, ms = 8000): Promise<T> {
   return Promise.race([
     promise,
     new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Supabase request timeout")), ms)
+      setTimeout(() => reject(new Error("Database request timeout")), ms)
     ),
   ]);
 }
@@ -47,17 +47,18 @@ export const caseAccessModel = {
   async getCaseWithRelationsByAccessCode(code: string) {
     console.log("[Model] Fetching access entry for code:", code);
 
+    const db = getDatabaseService();
+
     // --- Access Entry Lookup ---
-    const { data: accessEntry, error: accessError }: {
-      data: CaseAccessCode | null;
-      error: any;
-    } = await timeout(
-      supabase
-        .from("case_access_codes")
+    const accessResult = await timeout(
+      db
+        .from<CaseAccessCode>("case_access_codes")
         .select("*")
         .eq("code", code)
         .maybeSingle()
     );
+
+    const { data: accessEntry, error: accessError } = accessResult;
 
     if (accessError || !accessEntry) {
       console.error("[Model] Invalid or expired access code", { accessError, accessEntry });
@@ -68,16 +69,15 @@ export const caseAccessModel = {
     console.log("[Model] Access granted. Fetching case ID:", caseId);
 
     // --- Case Lookup ---
-    const { data: caseData, error: caseError }: {
-      data: Case | null;
-      error: any;
-    } = await timeout(
-      supabase
-        .from("cases")
+    const caseResult = await timeout(
+      db
+        .from<Case>("cases")
         .select("*")
         .eq("id", caseId)
         .maybeSingle()
     );
+
+    const { data: caseData, error: caseError } = caseResult;
 
     if (caseError || !caseData) {
       console.error("[Model] Case not found", { caseError, caseData });
@@ -87,23 +87,22 @@ export const caseAccessModel = {
     console.log("[Model] Case data found:", caseData);
 
     // --- Related Emails & Events ---
-    const [emailsRes, eventsRes]: [
-      { data: Email[] | null; error: any },
-      { data: Event[] | null; error: any }
-    ] = await Promise.all([
+    const [emailsRes, eventsRes] = await Promise.all([
       timeout(
-        supabase
-          .from("emails")
+        db
+          .from<Email>("emails")
           .select("*")
           .eq("case_id", caseId)
           .order("date", { ascending: false })
+          .execute()
       ),
       timeout(
-        supabase
-          .from("events")
+        db
+          .from<Event>("events")
           .select("*")
           .eq("case_id", caseId)
           .order("date", { ascending: false })
+          .execute()
       ),
     ]);
 

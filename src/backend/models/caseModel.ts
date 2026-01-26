@@ -1,16 +1,19 @@
-import { supabase } from '@/integrations/supabase/client';
+import { getDatabaseService, getAuthService } from '../services';
 import { Case, CaseWithRelations, CreateCaseInput } from './types';
 
 export const caseModel = {
   async getCases(): Promise<Case[]> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return [];
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return [];
     
-    const { data, error } = await supabase
-      .from('cases')
+    const db = getDatabaseService();
+    const { data, error } = await db
+      .from<Case>('cases')
       .select('*')
-      .eq('user_id', user.user.id)
-      .order('date_created', { ascending: false });
+      .eq('user_id', user.id)
+      .order('date_created', { ascending: false })
+      .execute();
       
     if (error) {
       console.error('Error fetching cases:', error);
@@ -21,15 +24,18 @@ export const caseModel = {
   },
   
   async getCasesByStatus(status: string): Promise<Case[]> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return [];
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return [];
     
-    const { data, error } = await supabase
-      .from('cases')
+    const db = getDatabaseService();
+    const { data, error } = await db
+      .from<Case>('cases')
       .select('*')
-      .eq('user_id', user.user.id)
+      .eq('user_id', user.id)
       .eq('status', status)
-      .order('date_created', { ascending: false });
+      .order('date_created', { ascending: false })
+      .execute();
       
     if (error) {
       console.error(`Error fetching ${status} cases:`, error);
@@ -41,18 +47,21 @@ export const caseModel = {
   
   async getCaseWithRelations(caseId: string): Promise<CaseWithRelations | null> {
     console.log("Fetching case with ID:", caseId);
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) {
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) {
       console.error("No authenticated user found");
       return null;
     }
     
+    const db = getDatabaseService();
+    
     // Get the case
-    const { data: caseData, error: caseError } = await supabase
-      .from('cases')
+    const { data: caseData, error: caseError } = await db
+      .from<Case>('cases')
       .select('*')
       .eq('id', caseId)
-      .eq('user_id', user.user.id)
+      .eq('user_id', user.id)
       .maybeSingle();
       
     if (caseError) {
@@ -68,12 +77,13 @@ export const caseModel = {
     console.log("Found case data:", caseData);
     
     // Get emails for this case
-    const { data: emails, error: emailsError } = await supabase
+    const { data: emails, error: emailsError } = await db
       .from('emails')
       .select('*')
       .eq('case_id', caseId)
-      .eq('user_id', user.user.id)
-      .order('date', { ascending: false });
+      .eq('user_id', user.id)
+      .order('date', { ascending: false })
+      .execute();
       
     if (emailsError) {
       console.error('Error fetching case emails:', emailsError);
@@ -83,12 +93,13 @@ export const caseModel = {
     console.log("Found emails:", emails);
     
     // Get events for this case
-    const { data: events, error: eventsError } = await supabase
+    const { data: events, error: eventsError } = await db
       .from('events')
       .select('*')
       .eq('case_id', caseId)
-      .eq('user_id', user.user.id)
-      .order('date', { ascending: false });
+      .eq('user_id', user.id)
+      .order('date', { ascending: false })
+      .execute();
       
     if (eventsError) {
       console.error('Error fetching case events:', eventsError);
@@ -96,12 +107,6 @@ export const caseModel = {
     }
     
     console.log("Found events:", events);
-    
-    const result = {
-      ...caseData,
-      emails: emails || [],
-      events: events || []
-    };
     
     // Parse attachments from JSON to EmailAttachment[]
     const processedEmails = (emails || []).map(email => ({
@@ -123,8 +128,9 @@ export const caseModel = {
     try {
       console.log("Attempting to create a case with data:", caseData);
   
-      const { data, error } = await supabase
-        .from('cases')
+      const db = getDatabaseService();
+      const { data, error } = await db
+        .from<Case>('cases')
         .insert(caseData)
         .select()
         .single();
@@ -143,14 +149,16 @@ export const caseModel = {
   },
   
   async updateCase(caseId: string, updates: Partial<Case>): Promise<Case | null> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return null;
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return null;
     
-    const { data, error } = await supabase
-      .from('cases')
+    const db = getDatabaseService();
+    const { data, error } = await db
+      .from<Case>('cases')
       .update(updates)
       .eq('id', caseId)
-      .eq('user_id', user.user.id)
+      .eq('user_id', user.id)
       .select()
       .single();
       
@@ -163,14 +171,17 @@ export const caseModel = {
   },
   
   async deleteCase(caseId: string): Promise<boolean> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return false;
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return false;
     
-    const { error } = await supabase
+    const db = getDatabaseService();
+    const { error } = await db
       .from('cases')
       .delete()
       .eq('id', caseId)
-      .eq('user_id', user.user.id);
+      .eq('user_id', user.id)
+      .execute();
       
     if (error) {
       console.error('Error deleting case:', error);

@@ -1,6 +1,6 @@
 import { eventModel } from '../models/eventModel';
 import { CreateEventInput, Event } from '../models/types';
-import { supabase } from '../../integrations/supabase/client';
+import { getDatabaseService, getAuthService } from '../services';
 
 export const eventController = {
   async fetchEventsByCase(caseId: string): Promise<Event[]> {
@@ -21,17 +21,19 @@ export const eventController = {
 
   async updateEvent(eventData: Partial<Event>) {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return null;
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      if (!user) return null;
 
-      const { data, error } = await supabase
-        .from('events')
+      const db = getDatabaseService();
+      const { data, error } = await db
+        .from<Event>('events')
         .update({
           date: eventData.date,
           time: eventData.time,
         })
         .eq('id', eventData.id)
-        .eq('user_id', user.user.id)
+        .eq('user_id', user.id)
         .select()
         .single();
 

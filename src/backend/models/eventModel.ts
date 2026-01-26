@@ -1,37 +1,42 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import { getDatabaseService, getAuthService } from '../services';
 import { Event, CreateEventInput } from './types';
 
 export const eventModel = {
   async getEventsByCase(caseId: string): Promise<Event[]> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return [];
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return [];
     
-    const { data, error } = await supabase
-      .from('events')
+    const db = getDatabaseService();
+    const { data, error } = await db
+      .from<Event>('events')
       .select('*')
       .eq('case_id', caseId)
-      .eq('user_id', user.user.id)
-      .order('date', { ascending: false });
+      .eq('user_id', user.id)
+      .order('date', { ascending: false })
+      .execute();
       
     if (error) {
       console.error('Error fetching events:', error);
       return [];
     }
     
-    console.log('Events fetched from Supabase for case', caseId, ':', data);
+    console.log('Events fetched for case', caseId, ':', data);
     return data || [];
   },
 
   async getAllEvents(): Promise<Event[]> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return [];
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return [];
     
-    const { data, error } = await supabase
-      .from('events')
+    const db = getDatabaseService();
+    const { data, error } = await db
+      .from<Event>('events')
       .select('*')
-      .eq('user_id', user.user.id)
-      .order('date', { ascending: false });
+      .eq('user_id', user.id)
+      .order('date', { ascending: false })
+      .execute();
       
     if (error) {
       console.error('Error fetching all events:', error);
@@ -42,44 +47,49 @@ export const eventModel = {
   },
   
   async createEvent(eventData: CreateEventInput): Promise<Event | null> {
-  const { data: user } = await supabase.auth.getUser();
-  if (!user?.user) return null;
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return null;
 
-  // Validate UUID format (optional but helpful)
-const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-if (!isValidUUID.test(eventData.case_id)) {
-  console.error("Invalid case_id UUID:", eventData.case_id);
-  return null;
-}
-  const eventWithUser = {
-    ...eventData,
-    user_id: user.user.id
-  };
+    // Validate UUID format (optional but helpful)
+    const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!isValidUUID.test(eventData.case_id)) {
+      console.error("Invalid case_id UUID:", eventData.case_id);
+      return null;
+    }
 
-  const { data, error } = await supabase
-    .from('events')
-    .insert(eventWithUser)
-    .select()
-    .single();
+    const eventWithUser = {
+      ...eventData,
+      user_id: user.id
+    };
 
-  if (error) {
-    console.error('Error creating event:', error.message, error.details);
-    return null;
-  }
+    const db = getDatabaseService();
+    const { data, error } = await db
+      .from<Event>('events')
+      .insert(eventWithUser)
+      .select()
+      .single();
 
-  return data;
-}
-,
+    if (error) {
+      console.error('Error creating event:', error.message);
+      return null;
+    }
+
+    return data;
+  },
 
   async deleteEvent(eventId: string): Promise<boolean> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return false;
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return false;
     
-    const { error } = await supabase
+    const db = getDatabaseService();
+    const { error } = await db
       .from('events')
       .delete()
       .eq('id', eventId)
-      .eq('user_id', user.user.id);
+      .eq('user_id', user.id)
+      .execute();
       
     if (error) {
       console.error('Error deleting event:', error);

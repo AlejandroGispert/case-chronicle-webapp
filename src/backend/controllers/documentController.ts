@@ -1,5 +1,5 @@
 import { documentModel, CaseDocument } from "@/backend/models/documentModel";
-import { supabase } from "@/integrations/supabase/client";
+import { getAuthService } from "../services";
 
 export const documentController = {
   async uploadDocumentToCase(
@@ -7,13 +7,14 @@ export const documentController = {
     caseId: string
   ): Promise<CaseDocument | null> {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user?.user) {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      if (!user) {
         console.error("No authenticated user found");
         return null;
       }
 
-      return await documentModel.uploadDocument(file, caseId, user.user.id);
+      return await documentModel.uploadDocument(file, caseId, user.id);
     } catch (error) {
       console.error("Error in uploadDocumentToCase:", error);
       return null;

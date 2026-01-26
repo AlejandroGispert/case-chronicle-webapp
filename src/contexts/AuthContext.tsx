@@ -7,10 +7,9 @@ import {
   ReactNode,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { authController } from "@/backend/controllers/authController";
 import { useToast } from "@/hooks/use-toast";
-import { Session, User } from "@supabase/supabase-js";
+import type { Session, User } from "@/backend/services/auth.types";
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -50,7 +49,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    setUser(session.user);
+    // Map session user to User type
+    setUser(session.user as User);
     setSession(session);
 
     try {
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let mounted = true;
     let sessionChecked = false;
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
+    const authStateChangeResult = authController.onAuthStateChange(
       async (event, session) => {
         console.log("Auth state changed:", event, session);
 
@@ -111,35 +111,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
     );
 
+    const subscription = authStateChangeResult.subscription;
+
     // Fallback: check session if INITIAL_SESSION doesn't fire within 1 second
     const fallbackCheck = setTimeout(async () => {
       if (!mounted || sessionChecked) return;
 
       try {
-        const { data, error } = await supabase.auth.getSession();
+        const session = await authController.getCurrentSession();
         if (!mounted) return;
 
-        if (error) {
-          console.error("Auth check failed:", error);
+        if (!session) {
+          console.error("Auth check failed: No session");
           // Clear any invalid session data from storage
           try {
-            await supabase.auth.signOut();
+            await authController.logout();
           } catch (signOutError) {
             console.error("Error clearing invalid session:", signOutError);
           }
           setUser(null);
           setProfile(null);
           setSession(null);
-        } else if (data.session && data.session.user) {
+        } else if (session.user) {
           // Verify session is still valid
-          const { data: userData, error: userError } = await supabase.auth.getUser();
-          if (userError || !userData.user) {
+          const userData = await authController.getCurrentUser();
+          if (!userData) {
             console.warn("Session expired or invalid, clearing auth state");
             setUser(null);
             setProfile(null);
             setSession(null);
           } else {
-            await handleAuthSuccess(data.session);
+            await handleAuthSuccess(session);
           }
         } else {
           setUser(null);
@@ -150,7 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Auth initialization failed:", error);
         // Clear potentially corrupted session data
         try {
-          await supabase.auth.signOut();
+          await authController.logout();
         } catch (signOutError) {
           // Ignore errors during cleanup
         }
@@ -167,7 +169,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       mounted = false;
       clearTimeout(fallbackCheck);
-      authListener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, [handleAuthSuccess, handleSignOut]);
 
@@ -197,14 +199,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const loginWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) throw error;
+      await authController.loginWithGoogle();
     } catch (error: any) {
       toast({
         title: "Google login failed",

@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Download, Calendar, Mail, Upload } from "lucide-react";
-import { emailModel } from "@/backend/models/emailModel";
+import { emailController } from "@/backend/controllers/emailController";
 import { caseController } from "@/backend/controllers/caseController";
 import { documentController } from "@/backend/controllers/documentController";
 import { Email, EmailAttachment } from "@/backend/models/types";
@@ -51,7 +51,7 @@ const DocumentsList = () => {
       const documentsMap = new Map<string, DocumentsByCase>();
       
       // 1. Fetch documents from email attachments
-      const allEmails = await emailModel.getAllEmails();
+      const allEmails = await emailController.fetchAllEmails();
       
       for (const email of allEmails) {
         // Parse attachments

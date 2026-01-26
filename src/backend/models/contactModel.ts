@@ -1,17 +1,20 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getDatabaseService, getAuthService } from "../services";
 import { Contact, CreateContactInput } from "./types";
 
 export const contactModel = {
   async getContactsByCase(caseId: string): Promise<Contact[]> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return [];
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return [];
 
-    const { data, error } = await supabase
-      .from("contacts")
+    const db = getDatabaseService();
+    const { data, error } = await db
+      .from<Contact>("contacts")
       .select("*")
       .eq("case_id", caseId)
-      .eq("user_id", user.user.id)
-      .order("name", { ascending: true });
+      .eq("user_id", user.id)
+      .order("name", { ascending: true })
+      .execute();
 
     if (error) {
       console.error("Error fetching contacts:", error);
@@ -21,14 +24,17 @@ export const contactModel = {
   },
 
   async getAllContacts(): Promise<Contact[]> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return [];
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return [];
 
-    const { data, error } = await supabase
-      .from("contacts")
+    const db = getDatabaseService();
+    const { data, error } = await db
+      .from<Contact>("contacts")
       .select("*")
-      .eq("user_id", user.user.id)
-      .order("name", { ascending: true });
+      .eq("user_id", user.id)
+      .order("name", { ascending: true })
+      .execute();
 
     if (error) {
       console.error("Error fetching all contacts:", error);
@@ -38,16 +44,18 @@ export const contactModel = {
   },
 
   async createContact(input: CreateContactInput): Promise<Contact | null> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user?.user) return null;
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return null;
 
     const withUser = {
       ...input,
-      user_id: user.user.id,
+      user_id: user.id,
     };
 
-    const { data, error } = await supabase
-      .from("contacts")
+    const db = getDatabaseService();
+    const { data, error } = await db
+      .from<Contact>("contacts")
       .insert(withUser)
       .select()
       .single();
@@ -60,14 +68,17 @@ export const contactModel = {
   },
 
   async deleteContact(contactId: string): Promise<boolean> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return false;
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user) return false;
 
-    const { error } = await supabase
+    const db = getDatabaseService();
+    const { error } = await db
       .from("contacts")
       .delete()
       .eq("id", contactId)
-      .eq("user_id", user.user.id);
+      .eq("user_id", user.id)
+      .execute();
 
     if (error) {
       console.error("Error deleting contact:", error);
