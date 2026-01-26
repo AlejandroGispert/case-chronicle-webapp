@@ -1,0 +1,325 @@
+# Case Chronicles – Project Rules & Requirements (.cursorrules)
+
+## 🏗️ Architecture Pattern: MVC (Model-View-Controller)
+
+**CRITICAL:** This project follows strict MVC architecture. Always maintain this pattern.
+
+- **Models** (`src/backend/models/`)
+  - Data access layer
+  - Uses service abstractions only
+- **Controllers** (`src/backend/controllers/`)
+  - Business logic & authorization
+- **Views** (`src/pages/`, `src/components/`)
+  - React UI components
+
+**RULES:**
+
+- Views MUST call controllers
+- Controllers call models
+- Models NEVER call controllers or views
+- Views MUST NEVER call models directly
+
+---
+
+## 🔌 Service Abstraction Layer (MIGRATION-READY)
+
+**CRITICAL:** Never use Supabase client directly outside service adapters.
+
+### Mandatory Service Factories
+
+- `getDatabaseService()` – all database operations
+- `getStorageService()` – all file storage operations
+- `getAuthService()` – all authentication operations
+
+### Location
+
+src/backend/services/
+├── database.types.ts
+├── storage.types.ts
+├── auth.types.ts
+├── database.supabase.ts
+├── storage.supabase.ts
+├── auth.supabase.ts
+└── index.ts
+
+### Example
+
+```ts
+// ✅ CORRECT
+import { getDatabaseService } from '../services';
+
+const db = getDatabaseService();
+const { data } = await db
+  .from<MyType>('table')
+  .select('*')
+  .execute();
+
+// ❌ FORBIDDEN
+import { supabase } from '@/integrations/supabase/client';
+await supabase.from('table').select('*');
+```
+
+---
+
+## 🧠 Authorization & Access Control (MANDATORY)
+
+**Authentication ≠ Authorization**
+
+- Authorization decisions happen ONLY in controllers
+- Never rely solely on RLS for business logic
+- Every controller must explicitly enforce access control
+
+### Required Helpers
+
+**Location:** `src/backend/auth/authorization.ts`
+
+- `requireAuth(user)`
+- `requireRole(user, 'admin')`
+- `requireOwnership(resourceUserId, user.id)`
+
+Controllers MUST call these helpers before sensitive actions.
+
+🧾 Audit Logging (ISO 27001 / GDPR)
+All sensitive operations MUST be audit-logged.
+
+Log Events
+Login / logout
+
+Data create / update / delete
+
+Permission changes
+
+File upload / download
+
+Data export / deletion (GDPR)
+
+### Rules
+
+- Logs are append-only
+- Logs contain NO PII
+- Logs include:
+  - `user_id`
+  - `action`
+  - `resource_id`
+  - `timestamp`
+  - `request_id` / IP (if available)
+
+**Location:** `src/backend/audit/`
+
+---
+
+## 📝 Code Patterns
+Model Pattern
+import { getDatabaseService, getAuthService } from '../services';
+
+export const myModel = {
+  async getItems() {
+    const auth = getAuthService();
+    const { user } = await auth.getUser();
+    if (!user) return [];
+
+    const db = getDatabaseService();
+    const { data, error } = await db
+      .from<ItemType>('table')
+      .select('*')
+      .eq('user_id', user.id)
+      .execute();
+
+    if (error) {
+      console.error(error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+};
+```
+
+### Controller Pattern
+
+```ts
+import { myModel } from '../models/myModel';
+import { requireAuth } from '../auth/authorization';
+
+export const myController = {
+  async fetchItems(user) {
+    requireAuth(user);
+    return myModel.getItems();
+  }
+};
+```
+
+### View Pattern
+
+```ts
+import { myController } from '@/backend/controllers/myController';
+
+const MyComponent = () => {
+  useEffect(() => {
+    myController.fetchItems();
+  }, []);
+};
+```
+
+---
+
+## 🚫 Forbidden Anti-Patterns
+❌ Direct Supabase imports outside service adapters
+
+❌ Views calling models
+
+❌ Business logic in RLS
+
+❌ Supabase-only APIs without abstraction
+
+❌ Auth logic in UI components
+
+❌ Storing secrets in code
+
+❌ Logging PII
+
+📁 File Organization
+src/
+├── backend/
+│   ├── services/
+│   ├── models/
+│   ├── controllers/
+│   ├── auth/
+│   ├── audit/
+│   └── utils/
+├── components/
+├── pages/
+├── contexts/
+└── integrations/
+🔐 Authentication Rules
+All auth via authController
+
+UI uses useAuth() only
+
+Never call supabase.auth directly
+
+Auth state is centralized
+
+🗄️ Database Rules
+Always filter user-owned data by user_id
+
+Controllers enforce authorization
+
+Models NEVER trust frontend input
+
+Use parameterized queries only
+
+📦 Storage Rules
+Use getStorageService() only
+
+Buckets:
+
+case_document
+
+email_attachments
+
+Verify authentication before access
+
+No direct public URLs
+
+🛡️ GDPR & Data Protection
+Data minimization enforced
+
+User data deletion supported:
+
+Soft delete (default)
+
+Hard delete (on request)
+
+Data export endpoint REQUIRED (GDPR Art. 20)
+
+Controllers MUST log:
+
+Data exports
+
+Data deletions
+
+🔐 Secrets & Configuration
+All secrets via environment variables
+
+Separate configs for dev / staging / prod
+
+.env files never committed
+
+No secrets in frontend bundles
+
+💾 Backups & Disaster Recovery
+Database backups required
+
+Restore procedure documented
+
+Backups must be Postgres-compatible
+
+Restore tested at least quarterly
+
+📊 Monitoring & Logging
+Centralized error logging
+
+No sensitive data in logs
+
+Request IDs preferred
+
+Production errors must be traceable
+
+🌐 Network & Transport Security
+HTTPS enforced
+
+Secure cookies only
+
+SameSite=strict or lax
+
+CORS explicitly configured
+
+🧪 Testing Standards
+Controllers unit-testable
+
+Services mockable
+
+No test depends directly on Supabase
+
+Migration tests preferred for services
+
+📦 Dependency Security
+Lockfile committed
+
+Dependencies reviewed regularly
+
+Avoid unmaintained security/auth libs
+
+🎯 Feature Development Rules
+Create model (services only)
+
+Create controller (authorization enforced)
+
+Create view (controller only)
+
+Never skip layers
+
+## ✅ Pre-Commit Checklist
+
+- [ ] No Supabase imports outside services
+- [ ] Authorization enforced in controllers
+- [ ] Audit logging added for sensitive actions
+- [ ] No PII in logs
+- [ ] Services used everywhere
+- [ ] Types are correct
+- [ ] Errors handled
+- [ ] GDPR rules respected
+
+---
+
+## 🔄 Migration Guarantee
+
+**This codebase MUST remain backend-agnostic.**
+
+To migrate:
+1. Implement new service adapters
+2. Update service factory
+3. No controller, model, or view changes allowed
+
+**This file is authoritative. Violations are bugs.**
