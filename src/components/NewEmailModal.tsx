@@ -97,7 +97,7 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary">Assign Email to Case</Button>
+        <Button variant="secondary">add new email to a case</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>

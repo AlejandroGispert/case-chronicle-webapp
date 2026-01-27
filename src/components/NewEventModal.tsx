@@ -63,13 +63,13 @@ const NewEventModal = ({ cases = [], onAddEvent }: NewEventModalProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary">Register New Event</Button>
+        <Button variant="secondary">Register New Entry</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>Add Event to Case</DialogTitle>
+          <DialogTitle>Add Entry to Case</DialogTitle>
           <DialogDescription>
-            Create a new event and assign it to a case.
+            Create a new entry and assign it to a case.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleAddEvent} className="space-y-4 pt-4">

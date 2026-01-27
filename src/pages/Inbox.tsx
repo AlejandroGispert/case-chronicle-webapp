@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import EmailCard from "../components/EmailCard";
 import AttachDocumentButton from "../components/AttachDocumentButton";
+import NewEmailModal from "../components/NewEmailModal";
 import { emailController } from "@/backend/controllers/emailController";
 import { caseController } from "@/backend/controllers/caseController";
 import { useToast } from "@/hooks/use-toast";
 import { Email, Case } from "@/backend/models/types";
+import { Email as EmailType } from "../types";
 import { Mail, Inbox as InboxIcon } from "lucide-react";
 import {
   Select,
@@ -95,19 +97,62 @@ const Inbox = () => {
     );
   };
 
+  const handleAddEmail = async (newEmail: EmailType, caseId: string) => {
+    try {
+      const createdEmail = await emailController.createNewEmail({
+        id: newEmail.id,
+        case_id: caseId,
+        sender: newEmail.sender,
+        recipient: newEmail.recipient,
+        subject: newEmail.subject,
+        content: newEmail.content,
+        date: newEmail.date,
+        time: newEmail.time,
+        user_id: "",
+        attachments: newEmail.attachments,
+      });
+
+      if (createdEmail) {
+        toast({
+          title: "Email added",
+          description: "The email has been successfully added to the case.",
+        });
+        // Optionally refresh the inbox to show updated state
+        const emailsData = await emailController.fetchUnassignedEmails();
+        setEmails(emailsData);
+      } else {
+        throw new Error("Failed to create email");
+      }
+    } catch (error) {
+      console.error("Error adding email:", error);
+      const errorMessage = error instanceof Error ? error.message : "Could not add the email to the case";
+      toast({
+        title: "Error adding email",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6 mt-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-legal-100 rounded-lg">
-            <InboxIcon className="h-6 w-6 text-legal-600" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-legal-100 rounded-lg">
+              <InboxIcon className="h-6 w-6 text-legal-600" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-serif font-bold mb-1">Inbox</h1>
+              <p className="text-muted-foreground">
+                Review and assign received emails to cases
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-serif font-bold mb-1">Inbox</h1>
-            <p className="text-muted-foreground">
-              Review and assign received emails to cases
-            </p>
-          </div>
+          <NewEmailModal
+            cases={cases.map((c) => ({ id: c.id, title: c.title }))}
+            onAddEmail={handleAddEmail}
+          />
         </div>
 
         {loading ? (
