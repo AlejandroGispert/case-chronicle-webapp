@@ -19,20 +19,23 @@ interface ContactsByCase {
 const ContactsList = () => {
   const [cases, setCases] = useState<Case[]>([]);
   const [contactsByCase, setContactsByCase] = useState<ContactsByCase[]>([]);
+  const [allContacts, setAllContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addModalCaseId, setAddModalCaseId] = useState<string | null>(null);
   const hasSetInitialTab = useRef(false);
+  const ALL_CONTACTS_TAB = "all-contacts";
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [casesData, allContacts] = await Promise.all([
+      const [casesData, allContactsData] = await Promise.all([
         caseController.fetchAllCases(),
         contactController.fetchAllContacts(),
       ]);
       setCases(casesData);
+      setAllContacts(allContactsData);
 
       const map = new Map<string, ContactsByCase>();
       for (const c of casesData) {
@@ -40,15 +43,15 @@ const ContactsList = () => {
           caseId: c.id,
           caseTitle: c.title,
           caseNumber: c.number,
-          contacts: allContacts.filter((ct) => ct.case_id === c.id),
+          contacts: allContactsData.filter((ct) => ct.case_id === c.id),
         });
       }
       const arr = Array.from(map.values()).sort((a, b) =>
         a.caseTitle.localeCompare(b.caseTitle)
       );
       setContactsByCase(arr);
-      if (arr.length > 0 && !hasSetInitialTab.current) {
-        setSelectedCaseId(arr[0].caseId);
+      if (!hasSetInitialTab.current) {
+        setSelectedCaseId(ALL_CONTACTS_TAB);
         hasSetInitialTab.current = true;
       }
     } catch (error) {
@@ -103,7 +106,7 @@ const ContactsList = () => {
   return (
     <div className="space-y-4">
       <Tabs
-        value={selectedCaseId || contactsByCase[0]?.caseId}
+        value={selectedCaseId || ALL_CONTACTS_TAB}
         onValueChange={setSelectedCaseId}
         className="w-full"
       >
@@ -120,6 +123,15 @@ const ContactsList = () => {
               </Badge>
             </TabsTrigger>
           ))}
+          <TabsTrigger
+            value={ALL_CONTACTS_TAB}
+            className="whitespace-nowrap"
+          >
+            All Contacts
+            <Badge variant="secondary" className="ml-2">
+              {allContacts.length}
+            </Badge>
+          </TabsTrigger>
         </TabsList>
 
         {contactsByCase.map((group) => (
@@ -143,7 +155,7 @@ const ContactsList = () => {
                   className="shrink-0"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Add contact
+                  Add contact to this case
                 </Button>
               </div>
 
@@ -174,6 +186,35 @@ const ContactsList = () => {
             </div>
           </TabsContent>
         ))}
+        <TabsContent value={ALL_CONTACTS_TAB} className="mt-4">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+              <div>
+                <h3 className="text-lg font-semibold">All Contacts</h3>
+                <p className="text-sm text-muted-foreground">
+                  {allContacts.length} contact{allContacts.length !== 1 ? "s" : ""} across all cases
+                </p>
+              </div>
+            </div>
+
+            {allContacts.length === 0 ? (
+              <Card>
+                <CardContent className="py-8">
+                  <div className="text-center text-muted-foreground">
+                    <UserPlus className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                    <p>No contacts found.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-3">
+                {allContacts.map((contact) => (
+                  <ContactCard key={contact.id} contact={contact} />
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
       </Tabs>
 
       {addModalCaseId && (

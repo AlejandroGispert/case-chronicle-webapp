@@ -28,7 +28,9 @@ import EventCard from "./EventCard";
 import DocumentCard from "./DocumentCard";
 import { eventController } from "@/backend/controllers/eventController";
 import { documentController } from "@/backend/controllers/documentController";
+import { contactController } from "@/backend/controllers/contactController";
 import { CaseDocument } from "@/backend/models/documentModel";
+import { Contact } from "@/backend/models/types";
 import { Attachment } from "../types";
 
 interface CaseDetailProps {
@@ -40,6 +42,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [documents, setDocuments] = useState<(CaseDocument & { date: string; time: string })[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [filterType, setFilterType] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [groupBy, setGroupBy] = useState<string>("date");
@@ -90,12 +93,22 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     }
   }, [caseData.id]);
 
+  const fetchContacts = useCallback(async () => {
+    try {
+      const fetchedContacts = await contactController.fetchContactsByCase(caseData.id);
+      setContacts(fetchedContacts || []);
+    } catch (error) {
+      console.error("Error fetching contacts:", error);
+    }
+  }, [caseData.id]);
+
   useEffect(() => {
     console.log("CaseData:", caseData);
     fetchEmails();
     fetchDocuments();
+    fetchContacts();
     setEvents(caseData.events || []);
-  }, [caseData, fetchEmails, fetchDocuments]);
+  }, [caseData, fetchEmails, fetchDocuments, fetchContacts]);
 
   const handleAddEmail = async (newEmail: Email, caseId: string) => {
     if (caseId === caseData.id) {
@@ -137,6 +150,17 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     }
   };
 
+  const handleEmailContactAssign = async (emailId: string, contactId: string | null) => {
+    try {
+      const success = await emailController.assignContactToEmail(emailId, contactId);
+      if (success) {
+        await fetchEmails();
+      }
+    } catch (error) {
+      console.error("Error assigning contact to email:", error);
+    }
+  };
+
   const handleEventUpdate = async (updatedEvent: Event) => {
     try {
       const result = await eventController.updateEvent(updatedEvent);
@@ -145,6 +169,19 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
       }
     } catch (error) {
       console.error("Error updating event:", error);
+    }
+  };
+
+  const handleEventContactAssign = async (eventId: string, contactId: string | null) => {
+    try {
+      const success = await eventController.assignContactToEvent(eventId, contactId);
+      if (success) {
+        // Refresh events to get updated contact_id
+        const fetchedEvents = await eventController.fetchEventsByCase(caseData.id);
+        setEvents(fetchedEvents || []);
+      }
+    } catch (error) {
+      console.error("Error assigning contact to event:", error);
     }
   };
 
@@ -435,12 +472,16 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                       {item.event_type === "Email" ? (
                         <EmailCard 
                           email={item as Email} 
-                          onUpdate={handleEmailUpdate} 
+                          onUpdate={handleEmailUpdate}
+                          contacts={contacts}
+                          onContactAssign={handleEmailContactAssign}
                         />
                       ) : item.event_type === "Event" ? (
                         <EventCard 
                           event={item as Event} 
-                          onUpdate={handleEventUpdate} 
+                          onUpdate={handleEventUpdate}
+                          contacts={contacts}
+                          onContactAssign={handleEventContactAssign}
                         />
                       ) : (
                         <DocumentCard 

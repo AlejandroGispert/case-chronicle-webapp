@@ -299,4 +299,34 @@ export const emailModel = {
       return false;
     }
   },
+
+  // Assign contact to an email
+  async assignContactToEmail(emailId: string, contactId: string | null): Promise<boolean> {
+    try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      if (!user) {
+        console.error("No authenticated user found");
+        return false;
+      }
+
+      const db = getDatabaseService();
+      const { error } = await db
+        .from("emails")
+        .update({ contact_id: contactId })
+        .eq("id", emailId)
+        .eq("user_id", user.id)
+        .execute();
+
+      if (error) {
+        console.error("Error assigning contact to email:", error.message);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in assignContactToEmail:", error);
+      return false;
+    }
+  },
 };

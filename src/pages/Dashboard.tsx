@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Header from "../components/Header";
 import Layout from "../components/Layout";
 import CasesList from "../components/CasesList";
 import { useLocation } from "react-router-dom";
@@ -154,14 +153,7 @@ const Dashboard = () => {
   const mappedCases = filteredCases.map(mapDatabaseCaseToAppCase);
 
   return (
-    <Layout>
-      <Header
-        sidebarOpen={false}
-        setSidebarOpen={() => {}}
-        onAddEvent={handleAddEvent}
-        cases={mappedCases.map(({ id, title }) => ({ id, title }))}
-      />
-
+    <Layout onAddEvent={handleAddEvent}>
       <div className="space-y-6 mt-4">
         
         <p className="text-muted-foreground mb-4">

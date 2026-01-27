@@ -1,24 +1,36 @@
 import { useState, useEffect } from "react";
 import { Event } from "@/types";
-import { CalendarDays, Clock, Mail, Edit2, Check, X } from "lucide-react";
+import { CalendarDays, Clock, Mail, Edit2, Check, X, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format, isValid, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Contact } from "@/backend/models/types";
 
 interface EventCardProps {
   event: Event;
   onUpdate?: (updatedEvent: Event) => void;
+  contacts?: Contact[];
+  onContactAssign?: (eventId: string, contactId: string | null) => void;
 }
 
-const EventCard = ({ event, onUpdate }: EventCardProps) => {
+const EventCard = ({ event, onUpdate, contacts = [], onContactAssign }: EventCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(event);
   const [isEditing, setIsEditing] = useState(false);
   const [editedDate, setEditedDate] = useState(event.date);
   const [editedTime, setEditedTime] = useState(event.time);
+  
+  const assignedContact = contacts.find(c => c.id === event.contact_id);
 
   useEffect(() => {
     setCurrentEvent(event);
@@ -120,6 +132,35 @@ const EventCard = ({ event, onUpdate }: EventCardProps) => {
               <p className="text-sm whitespace-pre-line">
                 {currentEvent.description?.trim() || "(No description provided)"}
               </p>
+            </div>
+
+            <div className="flex items-center gap-2 mt-2">
+              <User className="h-3.5 w-3.5 text-muted-foreground" />
+              <Select
+                value={currentEvent.contact_id || "none"}
+                onValueChange={(value) => {
+                  if (onContactAssign) {
+                    onContactAssign(currentEvent.id, value === "none" ? null : value);
+                  }
+                }}
+              >
+                <SelectTrigger className="h-7 text-xs w-[200px]">
+                  <SelectValue placeholder="Assign contact" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No contact assigned</SelectItem>
+                  {contacts.map((contact) => (
+                    <SelectItem key={contact.id} value={contact.id}>
+                      {contact.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {assignedContact && (
+                <Badge variant="outline" className="text-xs">
+                  {assignedContact.name}
+                </Badge>
+              )}
             </div>
 
             {currentEvent.description && currentEvent.description.length > 100 && (

@@ -54,6 +54,7 @@ export type Database = {
         Row: {
           attachments: Json | null
           case_id: string
+          contact_id: string | null
           content: string
           created_at: string
           date: string
@@ -67,6 +68,7 @@ export type Database = {
         Insert: {
           attachments?: Json | null
           case_id: string
+          contact_id?: string | null
           content: string
           created_at?: string
           date: string
@@ -80,6 +82,7 @@ export type Database = {
         Update: {
           attachments?: Json | null
           case_id?: string
+          contact_id?: string | null
           content?: string
           created_at?: string
           date?: string
@@ -104,12 +107,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emails_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
           }
         ]
       }
       events: {
         Row: {
           case_id: string
+          contact_id: string | null
           created_at: string
           date: string
           description: string
@@ -121,6 +132,7 @@ export type Database = {
         }
         Insert: {
           case_id: string
+          contact_id?: string | null
           created_at?: string
           date: string
           description: string
@@ -132,6 +144,7 @@ export type Database = {
         }
         Update: {
           case_id?: string
+          contact_id?: string | null
           created_at?: string
           date?: string
           description?: string
@@ -154,6 +167,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           }
         ]

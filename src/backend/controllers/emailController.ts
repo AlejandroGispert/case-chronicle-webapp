@@ -109,4 +109,13 @@ export const emailController = {
       return null;
     }
   },
+
+  async assignContactToEmail(emailId: string, contactId: string | null) {
+    try {
+      return await emailModel.assignContactToEmail(emailId, contactId);
+    } catch (error) {
+      console.error("Error in assignContactToEmail:", error);
+      return false;
+    }
+  },
 };

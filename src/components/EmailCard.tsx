@@ -8,14 +8,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FileImage, File, Mail, Edit2, Check, X, Highlighter } from "lucide-react";
+import { FileImage, File, Mail, Edit2, Check, X, Highlighter, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Contact } from "@/backend/models/types";
 
 interface EmailCardProps {
   email: Email;
   onUpdate?: (updatedEmail: Email) => void;
+  contacts?: Contact[];
+  onContactAssign?: (emailId: string, contactId: string | null) => void;
 }
 
 interface Attachment {
@@ -25,7 +35,7 @@ interface Attachment {
   type?: string;
 }
 
-const EmailCard = ({ email, onUpdate }: EmailCardProps) => {
+const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign }: EmailCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -33,6 +43,8 @@ const EmailCard = ({ email, onUpdate }: EmailCardProps) => {
   const [editedTime, setEditedTime] = useState(email.time);
   const [highlightMode, setHighlightMode] = useState(false);
   const [highlightedContent, setHighlightedContent] = useState(email.content);
+  
+  const assignedContact = contacts.find(c => c.id === email.contact_id);
 
   const hasAttachments = Array.isArray(email.attachments) && email.attachments.length > 0;
 
@@ -95,6 +107,35 @@ const EmailCard = ({ email, onUpdate }: EmailCardProps) => {
                 <span className="truncate">{email.sender}</span>
                 <span>→</span>
                 <span className="truncate">{email.recipient}</span>
+              </div>
+
+              <div className="flex items-center gap-2 mb-2">
+                <User className="h-3.5 w-3.5 text-muted-foreground" />
+                <Select
+                  value={email.contact_id || "none"}
+                  onValueChange={(value) => {
+                    if (onContactAssign) {
+                      onContactAssign(email.id, value === "none" ? null : value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-7 text-xs w-[200px]">
+                    <SelectValue placeholder="Assign contact" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No contact assigned</SelectItem>
+                    {contacts.map((contact) => (
+                      <SelectItem key={contact.id} value={contact.id}>
+                        {contact.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {assignedContact && (
+                  <Badge variant="outline" className="text-xs">
+                    {assignedContact.name}
+                  </Badge>
+                )}
               </div>
 
               <div className={cn("transition-all duration-200 overflow-hidden", {

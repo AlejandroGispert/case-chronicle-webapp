@@ -44,4 +44,13 @@ export const eventController = {
       return null;
     }
   },
+
+  async assignContactToEvent(eventId: string, contactId: string | null) {
+    try {
+      return await eventModel.assignContactToEvent(eventId, contactId);
+    } catch (error) {
+      console.error("Error in assignContactToEvent:", error);
+      return false;
+    }
+  },
 };
