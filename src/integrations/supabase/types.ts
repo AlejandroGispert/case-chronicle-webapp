@@ -54,6 +54,7 @@ export type Database = {
         Row: {
           attachments: Json | null
           case_id: string
+          category_id: string | null
           contact_id: string | null
           content: string
           created_at: string
@@ -68,6 +69,7 @@ export type Database = {
         Insert: {
           attachments?: Json | null
           case_id: string
+          category_id?: string | null
           contact_id?: string | null
           content: string
           created_at?: string
@@ -82,6 +84,7 @@ export type Database = {
         Update: {
           attachments?: Json | null
           case_id?: string
+          category_id?: string | null
           contact_id?: string | null
           content?: string
           created_at?: string
@@ -114,12 +117,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emails_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
           }
         ]
       }
       events: {
         Row: {
           case_id: string
+          category_id: string | null
           contact_id: string | null
           created_at: string
           date: string
@@ -132,6 +143,7 @@ export type Database = {
         }
         Insert: {
           case_id: string
+          category_id?: string | null
           contact_id?: string | null
           created_at?: string
           date: string
@@ -144,6 +156,7 @@ export type Database = {
         }
         Update: {
           case_id?: string
+          category_id?: string | null
           contact_id?: string | null
           created_at?: string
           date?: string
@@ -174,6 +187,13 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           }
         ]
@@ -285,6 +305,38 @@ export type Database = {
           },
           {
             foreignKeyName: "contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      categories: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          color: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          color?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          color?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

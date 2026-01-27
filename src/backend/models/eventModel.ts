@@ -126,5 +126,34 @@ export const eventModel = {
       console.error("Error in assignContactToEvent:", error);
       return false;
     }
+  },
+
+  async assignCategoryToEvent(eventId: string, categoryId: string | null): Promise<boolean> {
+    try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      if (!user) {
+        console.error("No authenticated user found");
+        return false;
+      }
+
+      const db = getDatabaseService();
+      const { error } = await db
+        .from("events")
+        .update({ category_id: categoryId })
+        .eq("id", eventId)
+        .eq("user_id", user.id)
+        .execute();
+
+      if (error) {
+        console.error("Error assigning category to event:", error.message);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in assignCategoryToEvent:", error);
+      return false;
+    }
   }
 };

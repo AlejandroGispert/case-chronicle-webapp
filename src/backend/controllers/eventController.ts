@@ -53,4 +53,13 @@ export const eventController = {
       return false;
     }
   },
+
+  async assignCategoryToEvent(eventId: string, categoryId: string | null) {
+    try {
+      return await eventModel.assignCategoryToEvent(eventId, categoryId);
+    } catch (error) {
+      console.error("Error in assignCategoryToEvent:", error);
+      return false;
+    }
+  },
 };

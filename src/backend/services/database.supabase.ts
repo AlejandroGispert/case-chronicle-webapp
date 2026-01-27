@@ -118,11 +118,20 @@ export class SupabaseQueryBuilder<T = any> implements QueryBuilder<T> {
   async execute(): Promise<{ data: T[] | null; error: Error | null }> {
     try {
       const result = await this.query;
+      if (result.error) {
+        const errorMessage = result.error.message || result.error.details || JSON.stringify(result.error);
+        console.error('[DatabaseService] Query error:', result.error);
+        return {
+          data: null,
+          error: new Error(errorMessage),
+        };
+      }
       return {
         data: result.data || null,
-        error: result.error ? new Error(result.error.message) : null,
+        error: null,
       };
     } catch (error) {
+      console.error('[DatabaseService] Exception in execute:', error);
       return {
         data: null,
         error: error instanceof Error ? error : new Error('Unknown query error'),

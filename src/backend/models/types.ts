@@ -6,6 +6,7 @@ export type Case = Database["public"]["Tables"]["cases"]["Row"];
 export type EmailDb = Database["public"]["Tables"]["emails"]["Row"];
 export type Event = Database["public"]["Tables"]["events"]["Row"];
 export type Contact = Database["public"]["Tables"]["contacts"]["Row"];
+export type Category = Database["public"]["Tables"]["categories"]["Row"];
 
 // Enhanced Email type with optional attachments field
 export type Email = EmailDb & {
@@ -71,4 +72,10 @@ export interface CreateContactInput {
   email?: string | null;
   phone?: string | null;
   role?: string | null;
+}
+
+// CreateCategoryInput represents the structure to create a category (user_id set by backend from auth)
+export interface CreateCategoryInput {
+  name: string;
+  color?: string | null;
 }

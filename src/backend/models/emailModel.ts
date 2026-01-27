@@ -329,4 +329,34 @@ export const emailModel = {
       return false;
     }
   },
+
+  // Assign category to an email
+  async assignCategoryToEmail(emailId: string, categoryId: string | null): Promise<boolean> {
+    try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      if (!user) {
+        console.error("No authenticated user found");
+        return false;
+      }
+
+      const db = getDatabaseService();
+      const { error } = await db
+        .from("emails")
+        .update({ category_id: categoryId })
+        .eq("id", emailId)
+        .eq("user_id", user.id)
+        .execute();
+
+      if (error) {
+        console.error("Error assigning category to email:", error.message);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in assignCategoryToEmail:", error);
+      return false;
+    }
+  },
 };

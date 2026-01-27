@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FileImage, File, Mail, Edit2, Check, X, Highlighter, User } from "lucide-react";
+import { FileImage, File, Mail, Edit2, Check, X, Highlighter, User, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -19,13 +19,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Contact } from "@/backend/models/types";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Contact, Category } from "@/backend/models/types";
 
 interface EmailCardProps {
   email: Email;
   onUpdate?: (updatedEmail: Email) => void;
   contacts?: Contact[];
   onContactAssign?: (emailId: string, contactId: string | null) => void;
+  categories?: Category[];
+  onCategoryAssign?: (emailId: string, categoryId: string | null) => void;
 }
 
 interface Attachment {
@@ -35,7 +42,7 @@ interface Attachment {
   type?: string;
 }
 
-const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign }: EmailCardProps) => {
+const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories = [], onCategoryAssign }: EmailCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -43,8 +50,11 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign }: EmailCar
   const [editedTime, setEditedTime] = useState(email.time);
   const [highlightMode, setHighlightMode] = useState(false);
   const [highlightedContent, setHighlightedContent] = useState(email.content);
+  const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
+  const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   
   const assignedContact = contacts.find(c => c.id === email.contact_id);
+  const assignedCategory = categories.find(c => c.id === email.category_id);
 
   const hasAttachments = Array.isArray(email.attachments) && email.attachments.length > 0;
 
@@ -109,33 +119,95 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign }: EmailCar
                 <span className="truncate">{email.recipient}</span>
               </div>
 
-              <div className="flex items-center gap-2 mb-2">
-                <User className="h-3.5 w-3.5 text-muted-foreground" />
-                <Select
-                  value={email.contact_id || "none"}
-                  onValueChange={(value) => {
-                    if (onContactAssign) {
-                      onContactAssign(email.id, value === "none" ? null : value);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="h-7 text-xs w-[200px]">
-                    <SelectValue placeholder="Assign contact" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No contact assigned</SelectItem>
-                    {contacts.map((contact) => (
-                      <SelectItem key={contact.id} value={contact.id}>
-                        {contact.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {assignedContact && (
-                  <Badge variant="outline" className="text-xs">
-                    {assignedContact.name}
-                  </Badge>
-                )}
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Popover open={contactPopoverOpen} onOpenChange={setContactPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        title="Assign contact"
+                      >
+                        <User className="h-3.5 w-3.5 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-2" align="start">
+                      <Select
+                        value={email.contact_id || "none"}
+                        onValueChange={(value) => {
+                          if (onContactAssign) {
+                            onContactAssign(email.id, value === "none" ? null : value);
+                            setContactPopoverOpen(false);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Assign contact" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No contact assigned</SelectItem>
+                          {contacts.map((contact) => (
+                            <SelectItem key={contact.id} value={contact.id}>
+                              {contact.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </PopoverContent>
+                  </Popover>
+                  {assignedContact && (
+                    <Badge variant="outline" className="text-xs">
+                      {assignedContact.name}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Popover open={categoryPopoverOpen} onOpenChange={setCategoryPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        title="Assign category"
+                      >
+                        <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-2" align="start">
+                      <Select
+                        value={email.category_id || "none"}
+                        onValueChange={(value) => {
+                          if (onCategoryAssign) {
+                            onCategoryAssign(email.id, value === "none" ? null : value);
+                            setCategoryPopoverOpen(false);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Assign category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No category</SelectItem>
+                          {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </PopoverContent>
+                  </Popover>
+                  {assignedCategory && (
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs"
+                      style={assignedCategory.color ? { borderColor: assignedCategory.color, color: assignedCategory.color } : {}}
+                    >
+                      {assignedCategory.name}
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               <div className={cn("transition-all duration-200 overflow-hidden", {

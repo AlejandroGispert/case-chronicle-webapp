@@ -29,9 +29,11 @@ import DocumentCard from "./DocumentCard";
 import { eventController } from "@/backend/controllers/eventController";
 import { documentController } from "@/backend/controllers/documentController";
 import { contactController } from "@/backend/controllers/contactController";
+import { categoryController } from "@/backend/controllers/categoryController";
 import { CaseDocument } from "@/backend/models/documentModel";
-import { Contact } from "@/backend/models/types";
+import { Contact, Category } from "@/backend/models/types";
 import { Attachment } from "../types";
+import NewCategoryModal from "./NewCategoryModal";
 
 interface CaseDetailProps {
   caseData: Case;
@@ -43,10 +45,13 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [documents, setDocuments] = useState<(CaseDocument & { date: string; time: string })[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [filterType, setFilterType] = useState<string>("all");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [groupBy, setGroupBy] = useState<string>("date");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const fetchEmails = useCallback(async () => {
@@ -102,13 +107,38 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     }
   }, [caseData.id]);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      console.log("[CaseDetail] Starting to fetch categories...");
+      const fetchedCategories = await categoryController.fetchAllCategories();
+      console.log("[CaseDetail] Fetched categories result:", fetchedCategories);
+      console.log("[CaseDetail] Categories array length:", fetchedCategories?.length || 0);
+      if (fetchedCategories && fetchedCategories.length > 0) {
+        console.log("[CaseDetail] Category names:", fetchedCategories.map(c => c.name));
+      }
+      setCategories(fetchedCategories || []);
+    } catch (error) {
+      console.error("[CaseDetail] Error fetching categories:", error);
+      if (error instanceof Error) {
+        console.error("[CaseDetail] Error message:", error.message);
+        console.error("[CaseDetail] Error stack:", error.stack);
+      }
+      setCategories([]);
+    }
+  }, []);
+
   useEffect(() => {
     console.log("CaseData:", caseData);
     fetchEmails();
     fetchDocuments();
     fetchContacts();
+    fetchCategories();
     setEvents(caseData.events || []);
-  }, [caseData, fetchEmails, fetchDocuments, fetchContacts]);
+  }, [caseData, fetchEmails, fetchDocuments, fetchContacts, fetchCategories]);
+
+  useEffect(() => {
+    console.log("Categories state updated:", categories);
+  }, [categories]);
 
   const handleAddEmail = async (newEmail: Email, caseId: string) => {
     if (caseId === caseData.id) {
@@ -182,6 +212,29 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
       }
     } catch (error) {
       console.error("Error assigning contact to event:", error);
+    }
+  };
+
+  const handleEmailCategoryAssign = async (emailId: string, categoryId: string | null) => {
+    try {
+      const success = await emailController.assignCategoryToEmail(emailId, categoryId);
+      if (success) {
+        await fetchEmails();
+      }
+    } catch (error) {
+      console.error("Error assigning category to email:", error);
+    }
+  };
+
+  const handleEventCategoryAssign = async (eventId: string, categoryId: string | null) => {
+    try {
+      const success = await eventController.assignCategoryToEvent(eventId, categoryId);
+      if (success) {
+        const fetchedEvents = await eventController.fetchEventsByCase(caseData.id);
+        setEvents(fetchedEvents || []);
+      }
+    } catch (error) {
+      console.error("Error assigning category to event:", error);
     }
   };
 
@@ -275,6 +328,11 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
       (filterType === "event" && item.event_type !== "Email" && item.event_type !== "Document") ||
       (filterType === "document" && item.event_type === "Document");
     
+    const matchesCategory = filterCategory === "all" || 
+      (item.event_type === "Email" && (item as Email).category_id === filterCategory) ||
+      (item.event_type === "Event" && (item as Event).category_id === filterCategory) ||
+      (item.event_type === "Document" && filterCategory === "all"); // Documents don't have categories yet
+    
     const matchesSearch = searchQuery === "" || 
       (item.event_type === "Document" && (item as CaseDocument & { date: string; time: string }).filename.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (isEmail(item)
@@ -283,7 +341,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
         : item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.description?.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    return matchesType && matchesSearch;
+    return matchesType && matchesCategory && matchesSearch;
   });
 
   const groupedItems = filteredItems.reduce((acc, item) => {
@@ -394,7 +452,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
 
           <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <CollapsibleContent className="space-y-4 p-4 bg-muted/50 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Filter by Type</label>
                   <Select value={filterType} onValueChange={setFilterType}>
@@ -406,6 +464,38 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                       <SelectItem value="email">Emails</SelectItem>
                       <SelectItem value="event">Events</SelectItem>
                       <SelectItem value="document">Documents</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Filter by Category</label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsCategoryModalOpen(true)}
+                      className="h-6 text-xs"
+                    >
+                      + New
+                    </Button>
+                  </div>
+                  <Select value={filterCategory} onValueChange={setFilterCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categories.length > 0 ? (
+                        categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="none" disabled>No categories available</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -497,6 +587,11 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
           </div>
         </div>
       </div>
+      <NewCategoryModal
+        open={isCategoryModalOpen}
+        onOpenChange={setIsCategoryModalOpen}
+        onCategoryAdded={fetchCategories}
+      />
     </div>
   );
 };

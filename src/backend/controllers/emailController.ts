@@ -118,4 +118,13 @@ export const emailController = {
       return false;
     }
   },
+
+  async assignCategoryToEmail(emailId: string, categoryId: string | null) {
+    try {
+      return await emailModel.assignCategoryToEmail(emailId, categoryId);
+    } catch (error) {
+      console.error("Error in assignCategoryToEmail:", error);
+      return false;
+    }
+  },
 };

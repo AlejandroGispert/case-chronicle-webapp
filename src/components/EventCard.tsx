@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Event } from "@/types";
-import { CalendarDays, Clock, Mail, Edit2, Check, X, User } from "lucide-react";
+import { CalendarDays, Clock, Mail, Edit2, Check, X, User, Tag } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format, isValid, parse } from "date-fns";
@@ -14,23 +14,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Contact } from "@/backend/models/types";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Contact, Category } from "@/backend/models/types";
 
 interface EventCardProps {
   event: Event;
   onUpdate?: (updatedEvent: Event) => void;
   contacts?: Contact[];
   onContactAssign?: (eventId: string, contactId: string | null) => void;
+  categories?: Category[];
+  onCategoryAssign?: (eventId: string, categoryId: string | null) => void;
 }
 
-const EventCard = ({ event, onUpdate, contacts = [], onContactAssign }: EventCardProps) => {
+const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories = [], onCategoryAssign }: EventCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(event);
   const [isEditing, setIsEditing] = useState(false);
   const [editedDate, setEditedDate] = useState(event.date);
   const [editedTime, setEditedTime] = useState(event.time);
+  const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
+  const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   
   const assignedContact = contacts.find(c => c.id === event.contact_id);
+  const assignedCategory = categories.find(c => c.id === event.category_id);
 
   useEffect(() => {
     setCurrentEvent(event);
@@ -134,33 +144,95 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign }: EventCar
               </p>
             </div>
 
-            <div className="flex items-center gap-2 mt-2">
-              <User className="h-3.5 w-3.5 text-muted-foreground" />
-              <Select
-                value={currentEvent.contact_id || "none"}
-                onValueChange={(value) => {
-                  if (onContactAssign) {
-                    onContactAssign(currentEvent.id, value === "none" ? null : value);
-                  }
-                }}
-              >
-                <SelectTrigger className="h-7 text-xs w-[200px]">
-                  <SelectValue placeholder="Assign contact" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No contact assigned</SelectItem>
-                  {contacts.map((contact) => (
-                    <SelectItem key={contact.id} value={contact.id}>
-                      {contact.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {assignedContact && (
-                <Badge variant="outline" className="text-xs">
-                  {assignedContact.name}
-                </Badge>
-              )}
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Popover open={contactPopoverOpen} onOpenChange={setContactPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0"
+                      title="Assign contact"
+                    >
+                      <User className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-2" align="start">
+                    <Select
+                      value={currentEvent.contact_id || "none"}
+                      onValueChange={(value) => {
+                        if (onContactAssign) {
+                          onContactAssign(currentEvent.id, value === "none" ? null : value);
+                          setContactPopoverOpen(false);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Assign contact" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No contact assigned</SelectItem>
+                        {contacts.map((contact) => (
+                          <SelectItem key={contact.id} value={contact.id}>
+                            {contact.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </PopoverContent>
+                </Popover>
+                {assignedContact && (
+                  <Badge variant="outline" className="text-xs">
+                    {assignedContact.name}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Popover open={categoryPopoverOpen} onOpenChange={setCategoryPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0"
+                      title="Assign category"
+                    >
+                      <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-2" align="start">
+                    <Select
+                      value={currentEvent.category_id || "none"}
+                      onValueChange={(value) => {
+                        if (onCategoryAssign) {
+                          onCategoryAssign(currentEvent.id, value === "none" ? null : value);
+                          setCategoryPopoverOpen(false);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Assign category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No category</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </PopoverContent>
+                </Popover>
+                {assignedCategory && (
+                  <Badge 
+                    variant="outline" 
+                    className="text-xs"
+                    style={assignedCategory.color ? { borderColor: assignedCategory.color, color: assignedCategory.color } : {}}
+                  >
+                    {assignedCategory.name}
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {currentEvent.description && currentEvent.description.length > 100 && (
