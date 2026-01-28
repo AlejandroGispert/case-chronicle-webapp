@@ -47,7 +47,7 @@ const ContactsList = () => {
         });
       }
       const arr = Array.from(map.values()).sort((a, b) =>
-        a.caseTitle.localeCompare(b.caseTitle)
+        a.caseTitle.localeCompare(b.caseTitle),
       );
       setContactsByCase(arr);
       if (!hasSetInitialTab.current) {
@@ -123,10 +123,7 @@ const ContactsList = () => {
               </Badge>
             </TabsTrigger>
           ))}
-          <TabsTrigger
-            value={ALL_CONTACTS_TAB}
-            className="whitespace-nowrap"
-          >
+          <TabsTrigger value={ALL_CONTACTS_TAB} className="whitespace-nowrap">
             All Contacts
             <Badge variant="secondary" className="ml-2">
               {allContacts.length}
@@ -135,16 +132,14 @@ const ContactsList = () => {
         </TabsList>
 
         {contactsByCase.map((group) => (
-          <TabsContent
-            key={group.caseId}
-            value={group.caseId}
-            className="mt-4"
-          >
+          <TabsContent key={group.caseId} value={group.caseId} className="mt-4">
             <div className="space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold">{group.caseTitle}</h3>
-                  <p className="text-sm text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-semibold truncate">
+                    {group.caseTitle}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Case #{group.caseNumber} • {group.contacts.length} contact
                     {group.contacts.length !== 1 ? "s" : ""}
                   </p>
@@ -152,10 +147,13 @@ const ContactsList = () => {
                 <Button
                   variant="default"
                   onClick={() => openAddModal(group.caseId)}
-                  className="shrink-0"
+                  className="shrink-0 w-full sm:w-auto"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Add contact to this case
+                  <span className="hidden sm:inline">
+                    Add contact to this case
+                  </span>
+                  <span className="sm:hidden">Add Contact</span>
                 </Button>
               </div>
 
@@ -188,11 +186,14 @@ const ContactsList = () => {
         ))}
         <TabsContent value={ALL_CONTACTS_TAB} className="mt-4">
           <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-              <div>
-                <h3 className="text-lg font-semibold">All Contacts</h3>
-                <p className="text-sm text-muted-foreground">
-                  {allContacts.length} contact{allContacts.length !== 1 ? "s" : ""} across all cases
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base sm:text-lg font-semibold">
+                  All Contacts
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {allContacts.length} contact
+                  {allContacts.length !== 1 ? "s" : ""} across all cases
                 </p>
               </div>
             </div>
@@ -261,10 +262,7 @@ function ContactCard({ contact }: { contact: Contact }) {
               {contact.phone && (
                 <span className="flex items-center gap-1">
                   <Phone className="h-3 w-3" />
-                  <a
-                    href={`tel:${contact.phone}`}
-                    className="hover:underline"
-                  >
+                  <a href={`tel:${contact.phone}`} className="hover:underline">
                     {contact.phone}
                   </a>
                 </span>

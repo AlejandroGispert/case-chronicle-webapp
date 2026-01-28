@@ -41,11 +41,9 @@ const Layout = ({ children, onAddEvent, onCaseCreated }: LayoutProps) => {
           <Header
             sidebarOpen={sidebarOpen}
             setSidebarOpen={setSidebarOpen}
-            onAddEvent={onAddEvent}
-            cases={cases}
-            onCaseCreated={handleCaseCreated}
+            onCaseCreated={onCaseCreated}
           />
-          <main className="flex-1 overflow-auto p-6 bg-muted/20">
+          <main className="flex-1 overflow-auto p-4 sm:p-6 bg-muted/20">
             {children}
           </main>
         </div>

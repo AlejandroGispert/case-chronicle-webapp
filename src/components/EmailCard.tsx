@@ -8,7 +8,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FileImage, File, Mail, Edit2, Check, X, Highlighter, User, Tag } from "lucide-react";
+import {
+  FileImage,
+  File,
+  Mail,
+  Edit2,
+  Check,
+  X,
+  Highlighter,
+  User,
+  Tag,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -42,7 +52,14 @@ interface Attachment {
   type?: string;
 }
 
-const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories = [], onCategoryAssign }: EmailCardProps) => {
+const EmailCard = ({
+  email,
+  onUpdate,
+  contacts = [],
+  onContactAssign,
+  categories = [],
+  onCategoryAssign,
+}: EmailCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -52,11 +69,12 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
   const [highlightedContent, setHighlightedContent] = useState(email.content);
   const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
-  
-  const assignedContact = contacts.find(c => c.id === email.contact_id);
-  const assignedCategory = categories.find(c => c.id === email.category_id);
 
-  const hasAttachments = Array.isArray(email.attachments) && email.attachments.length > 0;
+  const assignedContact = contacts.find((c) => c.id === email.contact_id);
+  const assignedCategory = categories.find((c) => c.id === email.category_id);
+
+  const hasAttachments =
+    Array.isArray(email.attachments) && email.attachments.length > 0;
 
   const handleSave = () => {
     onUpdate?.({ ...email, date: editedDate, time: editedTime });
@@ -90,7 +108,8 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
   };
 
   const updateContent = () => {
-    const html = document.getElementById("highlightable-content")?.innerHTML || "";
+    const html =
+      document.getElementById("highlightable-content")?.innerHTML || "";
     setHighlightedContent(html);
   };
 
@@ -103,11 +122,13 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
     <>
       <Card className="hover:bg-muted/50 transition-colors">
         <CardContent className="p-4">
-          <div className="flex justify-between items-start gap-4">
-            <div className="flex-1 min-w-0">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+            <div className="flex-1 min-w-0 w-full sm:w-auto">
               <div className="flex items-center gap-2 mb-1">
                 <Mail className="h-4 w-4 text-yellow-600" />
-                <Badge variant="outline" className="text-xs">Email</Badge>
+                <Badge variant="outline" className="text-xs">
+                  Email
+                </Badge>
                 <h3 className="font-medium text-base truncate">
                   {email.subject || "No Subject"}
                 </h3>
@@ -121,7 +142,10 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
 
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <Popover open={contactPopoverOpen} onOpenChange={setContactPopoverOpen}>
+                  <Popover
+                    open={contactPopoverOpen}
+                    onOpenChange={setContactPopoverOpen}
+                  >
                     <PopoverTrigger asChild>
                       <Button
                         variant="ghost"
@@ -137,7 +161,10 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
                         value={email.contact_id || "none"}
                         onValueChange={(value) => {
                           if (onContactAssign) {
-                            onContactAssign(email.id, value === "none" ? null : value);
+                            onContactAssign(
+                              email.id,
+                              value === "none" ? null : value,
+                            );
                             setContactPopoverOpen(false);
                           }
                         }}
@@ -146,7 +173,9 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
                           <SelectValue placeholder="Assign contact" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">No contact assigned</SelectItem>
+                          <SelectItem value="none">
+                            No contact assigned
+                          </SelectItem>
                           {contacts.map((contact) => (
                             <SelectItem key={contact.id} value={contact.id}>
                               {contact.name}
@@ -163,7 +192,10 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Popover open={categoryPopoverOpen} onOpenChange={setCategoryPopoverOpen}>
+                  <Popover
+                    open={categoryPopoverOpen}
+                    onOpenChange={setCategoryPopoverOpen}
+                  >
                     <PopoverTrigger asChild>
                       <Button
                         variant="ghost"
@@ -179,7 +211,10 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
                         value={email.category_id || "none"}
                         onValueChange={(value) => {
                           if (onCategoryAssign) {
-                            onCategoryAssign(email.id, value === "none" ? null : value);
+                            onCategoryAssign(
+                              email.id,
+                              value === "none" ? null : value,
+                            );
                             setCategoryPopoverOpen(false);
                           }
                         }}
@@ -199,10 +234,17 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
                     </PopoverContent>
                   </Popover>
                   {assignedCategory && (
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className="text-xs"
-                      style={assignedCategory.color ? { borderColor: assignedCategory.color, color: assignedCategory.color } : {}}
+                      style={
+                        assignedCategory.color
+                          ? {
+                              borderColor: assignedCategory.color,
+                              color: assignedCategory.color,
+                            }
+                          : {}
+                      }
                     >
                       {assignedCategory.name}
                     </Badge>
@@ -210,17 +252,20 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
                 </div>
               </div>
 
-              <div className={cn("transition-all duration-200 overflow-hidden", {
-                "max-h-16": !expanded,
-                "max-h-full": expanded,
-              })}>
+              <div
+                className={cn("transition-all duration-200 overflow-hidden", {
+                  "max-h-16": !expanded,
+                  "max-h-full": expanded,
+                })}
+              >
                 <div
                   id="highlightable-content"
                   className="text-sm whitespace-pre-line"
                   contentEditable={highlightMode}
                   suppressContentEditableWarning
                   dangerouslySetInnerHTML={{
-                    __html: highlightedContent?.trim() || "(No content provided)",
+                    __html:
+                      highlightedContent?.trim() || "(No content provided)",
                   }}
                 />
 
@@ -241,14 +286,17 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
                         ) : (
                           <File className="h-3 w-3" />
                         )}
-                        <span className="truncate max-w-[150px]">{att.filename}</span>
+                        <span className="truncate max-w-[150px]">
+                          {att.filename}
+                        </span>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              {(email.content && email.content.length > 100) || hasAttachments ? (
+              {(email.content && email.content.length > 100) ||
+              hasAttachments ? (
                 <Button
                   variant="link"
                   size="sm"
@@ -272,16 +320,29 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
 
                 {highlightMode && (
                   <>
-                    <Button size="sm" onClick={() => applyHighlight("bg-yellow-200")}>
+                    <Button
+                      size="sm"
+                      onClick={() => applyHighlight("bg-yellow-200")}
+                    >
                       Yellow
                     </Button>
-                    <Button size="sm" onClick={() => applyHighlight("bg-green-200")}>
+                    <Button
+                      size="sm"
+                      onClick={() => applyHighlight("bg-green-200")}
+                    >
                       Green
                     </Button>
-                    <Button size="sm" onClick={() => applyHighlight("bg-pink-200")}>
+                    <Button
+                      size="sm"
+                      onClick={() => applyHighlight("bg-pink-200")}
+                    >
                       Pink
                     </Button>
-                    <Button variant="outline" size="sm" onClick={handleSaveHighlight}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSaveHighlight}
+                    >
                       <Check className="h-4 w-4 mr-1" />
                       Save Highlight
                     </Button>
@@ -290,39 +351,54 @@ const EmailCard = ({ email, onUpdate, contacts = [], onContactAssign, categories
               </div>
             </div>
 
-            <div className="text-right text-xs text-muted-foreground whitespace-nowrap">
+            <div className="text-left sm:text-right text-xs text-muted-foreground w-full sm:w-auto sm:whitespace-nowrap">
               {isEditing ? (
                 <div className="space-y-2">
                   <Input
                     type="date"
                     value={editedDate}
                     onChange={(e) => setEditedDate(e.target.value)}
-                    className="h-7 text-xs"
+                    className="h-7 text-xs w-full sm:w-auto"
                   />
                   <Input
                     type="time"
                     value={editedTime}
                     onChange={(e) => setEditedTime(e.target.value)}
-                    className="h-7 text-xs"
+                    className="h-7 text-xs w-full sm:w-auto"
                   />
-                  <div className="flex gap-1 justify-end">
-                    <Button variant="ghost" size="sm" onClick={handleSave} className="h-6 w-6 p-0">
+                  <div className="flex gap-1 justify-start sm:justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSave}
+                      className="h-6 w-6 p-0"
+                    >
                       <Check className="h-4 w-4 text-green-600" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={handleCancel} className="h-6 w-6 p-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCancel}
+                      className="h-6 w-6 p-0"
+                    >
                       <X className="h-4 w-4 text-red-600" />
                     </Button>
                   </div>
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-1 justify-end">
-                    <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="h-6 w-6 p-0">
+                  <div className="flex items-center gap-1 justify-start sm:justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditing(true)}
+                      className="h-6 w-6 p-0"
+                    >
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    <p>{email.date}</p>
+                    <p className="break-words sm:break-normal">{email.date}</p>
                   </div>
-                  <p>{email.time}</p>
+                  <p className="break-words sm:break-normal">{email.time}</p>
                 </>
               )}
             </div>

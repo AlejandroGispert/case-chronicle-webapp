@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   Dialog,
@@ -23,13 +23,27 @@ import { useToast } from "@/hooks/use-toast";
 
 interface NewEventModalProps {
   cases?: { id: string; title: string }[];
+  caseId?: string; // Optional: if provided, pre-select this case and hide selector
   onAddEvent: (eventData: any, caseId: string) => void;
 }
 
-const NewEventModal = ({ cases = [], onAddEvent }: NewEventModalProps) => {
+const NewEventModal = ({
+  cases = [],
+  caseId,
+  onAddEvent,
+}: NewEventModalProps) => {
   const [open, setOpen] = useState(false);
-  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(
+    caseId || null,
+  );
   const { toast } = useToast();
+
+  // Update selectedCaseId when caseId prop changes
+  useEffect(() => {
+    if (caseId) {
+      setSelectedCaseId(caseId);
+    }
+  }, [caseId]);
 
   const handleAddEvent = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +77,7 @@ const NewEventModal = ({ cases = [], onAddEvent }: NewEventModalProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary">Register New Entry</Button>
+        <Button variant="secondary">Register New Case Entry</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
@@ -73,27 +87,32 @@ const NewEventModal = ({ cases = [], onAddEvent }: NewEventModalProps) => {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleAddEvent} className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="caseSelect">Select Case</Label>
-            <Select onValueChange={setSelectedCaseId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a case" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.isArray(cases) && cases.length > 0 ? (
-                  cases.map((caseItem) => (
-                    <SelectItem key={caseItem.id} value={caseItem.id}>
-                      {caseItem.title}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <div className="text-muted-foreground text-sm px-2 py-1">
-                    No cases available
-                  </div>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+          {!caseId && (
+            <div className="space-y-2">
+              <Label htmlFor="caseSelect">Select Case</Label>
+              <Select
+                onValueChange={setSelectedCaseId}
+                value={selectedCaseId || undefined}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a case" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.isArray(cases) && cases.length > 0 ? (
+                    cases.map((caseItem) => (
+                      <SelectItem key={caseItem.id} value={caseItem.id}>
+                        {caseItem.title}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="text-muted-foreground text-sm px-2 py-1">
+                      No cases available
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="eventTitle">Event Title</Label>
             <Input id="eventTitle" name="eventTitle" required />

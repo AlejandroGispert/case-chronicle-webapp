@@ -1,11 +1,17 @@
 import Layout from "@/components/Layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Settings as SettingsIcon } from "lucide-react";
 
 const Settings = () => {
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto space-y-6 px-4 sm:px-6">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <SettingsIcon className="h-8 w-8" />

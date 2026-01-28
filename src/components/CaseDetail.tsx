@@ -5,7 +5,15 @@ import { Separator } from "@/components/ui/separator";
 import EmailTimeline from "./EmailTimeline";
 import NewEmailModal from "./NewEmailModal";
 import AttachDocumentButton from "./AttachDocumentButton";
-import { Calendar, Mail, Folder, Filter, ChevronDown, ChevronUp, ArrowUpDown } from "lucide-react";
+import {
+  Calendar,
+  Mail,
+  Folder,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  ArrowUpDown,
+} from "lucide-react";
 import { format, isValid } from "date-fns";
 import EventTimeline from "./EventTimeline";
 import { emailController } from "@/backend/controllers/emailController";
@@ -39,11 +47,16 @@ interface CaseDetailProps {
   caseData: Case;
 }
 
-type TimelineItem = Email & { event_type: "Email" } | Event & { event_type: "Event" } | (CaseDocument & { date: string; time: string; event_type: "Document" });
+type TimelineItem =
+  | (Email & { event_type: "Email" })
+  | (Event & { event_type: "Event" })
+  | (CaseDocument & { date: string; time: string; event_type: "Document" });
 const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [documents, setDocuments] = useState<(CaseDocument & { date: string; time: string })[]>([]);
+  const [documents, setDocuments] = useState<
+    (CaseDocument & { date: string; time: string })[]
+  >([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [filterType, setFilterType] = useState<string>("all");
@@ -56,7 +69,9 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
 
   const fetchEmails = useCallback(async () => {
     try {
-      const fetchedEmails = await emailController.fetchEmailsByCase(caseData.id);
+      const fetchedEmails = await emailController.fetchEmailsByCase(
+        caseData.id,
+      );
       if (fetchedEmails) {
         const enrichedEmails: Email[] = fetchedEmails.map((email) => ({
           ...email,
@@ -69,11 +84,12 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
       console.error("Error fetching emails:", error);
     }
   }, [caseData.id]);
-  
 
   const fetchDocuments = useCallback(async () => {
     try {
-      const fetchedDocuments = await documentController.fetchDocumentsByCase(caseData.id);
+      const fetchedDocuments = await documentController.fetchDocumentsByCase(
+        caseData.id,
+      );
       // Parse date and time from uploaded_at
       const documentsWithDateTime = fetchedDocuments.map((doc) => {
         try {
@@ -100,7 +116,9 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
 
   const fetchContacts = useCallback(async () => {
     try {
-      const fetchedContacts = await contactController.fetchContactsByCase(caseData.id);
+      const fetchedContacts = await contactController.fetchContactsByCase(
+        caseData.id,
+      );
       setContacts(fetchedContacts || []);
     } catch (error) {
       console.error("Error fetching contacts:", error);
@@ -112,9 +130,15 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
       console.log("[CaseDetail] Starting to fetch categories...");
       const fetchedCategories = await categoryController.fetchAllCategories();
       console.log("[CaseDetail] Fetched categories result:", fetchedCategories);
-      console.log("[CaseDetail] Categories array length:", fetchedCategories?.length || 0);
+      console.log(
+        "[CaseDetail] Categories array length:",
+        fetchedCategories?.length || 0,
+      );
       if (fetchedCategories && fetchedCategories.length > 0) {
-        console.log("[CaseDetail] Category names:", fetchedCategories.map(c => c.name));
+        console.log(
+          "[CaseDetail] Category names:",
+          fetchedCategories.map((c) => c.name),
+        );
       }
       setCategories(fetchedCategories || []);
     } catch (error) {
@@ -180,9 +204,15 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     }
   };
 
-  const handleEmailContactAssign = async (emailId: string, contactId: string | null) => {
+  const handleEmailContactAssign = async (
+    emailId: string,
+    contactId: string | null,
+  ) => {
     try {
-      const success = await emailController.assignContactToEmail(emailId, contactId);
+      const success = await emailController.assignContactToEmail(
+        emailId,
+        contactId,
+      );
       if (success) {
         await fetchEmails();
       }
@@ -195,19 +225,29 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     try {
       const result = await eventController.updateEvent(updatedEvent);
       if (result) {
-        setEvents(events.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+        setEvents(
+          events.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)),
+        );
       }
     } catch (error) {
       console.error("Error updating event:", error);
     }
   };
 
-  const handleEventContactAssign = async (eventId: string, contactId: string | null) => {
+  const handleEventContactAssign = async (
+    eventId: string,
+    contactId: string | null,
+  ) => {
     try {
-      const success = await eventController.assignContactToEvent(eventId, contactId);
+      const success = await eventController.assignContactToEvent(
+        eventId,
+        contactId,
+      );
       if (success) {
         // Refresh events to get updated contact_id
-        const fetchedEvents = await eventController.fetchEventsByCase(caseData.id);
+        const fetchedEvents = await eventController.fetchEventsByCase(
+          caseData.id,
+        );
         setEvents(fetchedEvents || []);
       }
     } catch (error) {
@@ -215,9 +255,15 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     }
   };
 
-  const handleEmailCategoryAssign = async (emailId: string, categoryId: string | null) => {
+  const handleEmailCategoryAssign = async (
+    emailId: string,
+    categoryId: string | null,
+  ) => {
     try {
-      const success = await emailController.assignCategoryToEmail(emailId, categoryId);
+      const success = await emailController.assignCategoryToEmail(
+        emailId,
+        categoryId,
+      );
       if (success) {
         await fetchEmails();
       }
@@ -226,11 +272,19 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     }
   };
 
-  const handleEventCategoryAssign = async (eventId: string, categoryId: string | null) => {
+  const handleEventCategoryAssign = async (
+    eventId: string,
+    categoryId: string | null,
+  ) => {
     try {
-      const success = await eventController.assignCategoryToEvent(eventId, categoryId);
+      const success = await eventController.assignCategoryToEvent(
+        eventId,
+        categoryId,
+      );
       if (success) {
-        const fetchedEvents = await eventController.fetchEventsByCase(caseData.id);
+        const fetchedEvents = await eventController.fetchEventsByCase(
+          caseData.id,
+        );
         setEvents(fetchedEvents || []);
       }
     } catch (error) {
@@ -238,16 +292,20 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     }
   };
 
-  const handleDocumentUpdate = async (updatedDocument: CaseDocument & { date: string; time: string }) => {
+  const handleDocumentUpdate = async (
+    updatedDocument: CaseDocument & { date: string; time: string },
+  ) => {
     try {
       // Update the document's date/time in state
       // Note: We're storing this in local state for now since documents don't have date/time fields in the database
       // In the future, you might want to store this in document metadata or a separate table
-      setDocuments(documents.map(doc => 
-        doc.id === updatedDocument.id 
-          ? { ...doc, date: updatedDocument.date, time: updatedDocument.time }
-          : doc
-      ));
+      setDocuments(
+        documents.map((doc) =>
+          doc.id === updatedDocument.id
+            ? { ...doc, date: updatedDocument.date, time: updatedDocument.time }
+            : doc,
+        ),
+      );
     } catch (error) {
       console.error("Error updating document:", error);
     }
@@ -280,7 +338,8 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     }
   };
 
-  const totalCommunications = (emails.length || 0) + (events.length || 0) + (documents.length || 0);
+  const totalCommunications =
+    (emails.length || 0) + (events.length || 0) + (documents.length || 0);
 
   const getCombinedTimeline = () => {
     const emailEvents = emails.map((email) => ({
@@ -290,7 +349,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
 
     const caseEvents = events.map((event) => ({
       ...event,
-      event_type: event.event_type || "Event" as const,
+      event_type: event.event_type || ("Event" as const),
     }));
 
     const documentEvents = documents.map((doc) => ({
@@ -301,7 +360,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     return [...emailEvents, ...caseEvents, ...documentEvents].sort((a, b) => {
       const aDate = new Date(`${a.date}T${a.time || "00:00"}`);
       const bDate = new Date(`${b.date}T${b.time || "00:00"}`);
-      return sortDirection === "asc" 
+      return sortDirection === "asc"
         ? aDate.getTime() - bDate.getTime()
         : bDate.getTime() - aDate.getTime();
     });
@@ -319,22 +378,32 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     time: string;
     user_id: string;
     event_type: string;
-}
+  };
   const isEmail = (item: Email): item is Email => item.event_type === "Email";
 
   const filteredItems = getCombinedTimeline().filter((item) => {
-    const matchesType = filterType === "all" || 
+    const matchesType =
+      filterType === "all" ||
       (filterType === "email" && item.event_type === "Email") ||
-      (filterType === "event" && item.event_type !== "Email" && item.event_type !== "Document") ||
+      (filterType === "event" &&
+        item.event_type !== "Email" &&
+        item.event_type !== "Document") ||
       (filterType === "document" && item.event_type === "Document");
-    
-    const matchesCategory = filterCategory === "all" || 
-      (item.event_type === "Email" && (item as Email).category_id === filterCategory) ||
-      (item.event_type === "Event" && (item as Event).category_id === filterCategory) ||
+
+    const matchesCategory =
+      filterCategory === "all" ||
+      (item.event_type === "Email" &&
+        (item as Email).category_id === filterCategory) ||
+      (item.event_type === "Event" &&
+        (item as Event).category_id === filterCategory) ||
       (item.event_type === "Document" && filterCategory === "all"); // Documents don't have categories yet
-    
-    const matchesSearch = searchQuery === "" || 
-      (item.event_type === "Document" && (item as CaseDocument & { date: string; time: string }).filename.toLowerCase().includes(searchQuery.toLowerCase())) ||
+
+    const matchesSearch =
+      searchQuery === "" ||
+      (item.event_type === "Document" &&
+        (item as CaseDocument & { date: string; time: string }).filename
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())) ||
       (isEmail(item)
         ? item.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.content?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -344,35 +413,41 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     return matchesType && matchesCategory && matchesSearch;
   });
 
-  const groupedItems = filteredItems.reduce((acc, item) => {
-    const key = groupBy === "date" 
-      ? item.date 
-      : groupBy === "type" 
-        ? item.event_type 
-        : "all";
-    
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(item);
-    return acc;
-  }, {} as Record<string, typeof filteredItems>);
+  const groupedItems = filteredItems.reduce(
+    (acc, item) => {
+      const key =
+        groupBy === "date"
+          ? item.date
+          : groupBy === "type"
+            ? item.event_type
+            : "all";
+
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof filteredItems>,
+  );
 
   return (
     <div className="bg-white rounded-lg border shadow-sm">
       <div className="p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2 sm:gap-0">
-          <div>
-            <h2 className="text-2xl font-serif font-semibold">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl sm:text-2xl font-serif font-semibold truncate">
               {caseData.title}
             </h2>
-            <p className="text-muted-foreground">{caseData.number}</p>
+            <p className="text-sm sm:text-base text-muted-foreground truncate">
+              {caseData.number}
+            </p>
           </div>
           <Badge
             variant="outline"
             className={`${getStatusColor(
-              caseData.status
-            )} text-white px-3 py-1`}
+              caseData.status,
+            )} text-white px-3 py-1 shrink-0`}
           >
             {caseData.status.charAt(0).toUpperCase() + caseData.status.slice(1)}
           </Badge>
@@ -436,7 +511,13 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                 onAddEmail={handleAddEmail}
               />
               <AttachDocumentButton
-                cases={[{ id: caseData.id, title: caseData.title, number: caseData.number || undefined }]}
+                cases={[
+                  {
+                    id: caseData.id,
+                    title: caseData.title,
+                    number: caseData.number || undefined,
+                  },
+                ]}
                 defaultCaseId={caseData.id}
                 onDocumentAttached={() => {
                   // Refresh documents in timeline
@@ -452,7 +533,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
 
           <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <CollapsibleContent className="space-y-4 p-4 bg-muted/50 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Filter by Type</label>
                   <Select value={filterType} onValueChange={setFilterType}>
@@ -470,7 +551,9 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium">Filter by Category</label>
+                    <label className="text-sm font-medium">
+                      Filter by Category
+                    </label>
                     <Button
                       type="button"
                       variant="ghost"
@@ -481,7 +564,10 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                       + New
                     </Button>
                   </div>
-                  <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <Select
+                    value={filterCategory}
+                    onValueChange={setFilterCategory}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -494,7 +580,9 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="none" disabled>No categories available</SelectItem>
+                        <SelectItem value="none" disabled>
+                          No categories available
+                        </SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -528,7 +616,9 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setSortDirection(sortDirection === "asc" ? "desc" : "asc")}
+                    onClick={() =>
+                      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+                    }
                     className="w-full"
                   >
                     <ArrowUpDown className="h-4 w-4 mr-2" />
@@ -545,7 +635,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                 {groupBy !== "none" && (
                   <div className="flex items-center gap-2">
                     <h4 className="text-sm font-medium text-muted-foreground">
-                      {groupBy === "date" 
+                      {groupBy === "date"
                         ? format(new Date(group), "MMMM d, yyyy")
                         : group}
                     </h4>
@@ -555,27 +645,32 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                     </span>
                   </div>
                 )}
-                
+
                 <div className="space-y-4">
                   {items.map((item) => (
                     <div key={item.id} className="relative">
                       {item.event_type === "Email" ? (
-                        <EmailCard 
-                          email={item as Email} 
+                        <EmailCard
+                          email={item as Email}
                           onUpdate={handleEmailUpdate}
                           contacts={contacts}
                           onContactAssign={handleEmailContactAssign}
                         />
                       ) : item.event_type === "Event" ? (
-                        <EventCard 
-                          event={item as Event} 
+                        <EventCard
+                          event={item as Event}
                           onUpdate={handleEventUpdate}
                           contacts={contacts}
                           onContactAssign={handleEventContactAssign}
                         />
                       ) : (
-                        <DocumentCard 
-                          document={item as CaseDocument & { date: string; time: string }}
+                        <DocumentCard
+                          document={
+                            item as CaseDocument & {
+                              date: string;
+                              time: string;
+                            }
+                          }
                           onUpdate={handleDocumentUpdate}
                         />
                       )}

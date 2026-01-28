@@ -183,7 +183,7 @@ const Dashboard = () => {
   return (
     <Layout onAddEvent={handleAddEvent} onCaseCreated={handleRefreshCases}>
       <div className="space-y-6 mt-4">
-        <p className="text-muted-foreground mb-4">
+        <p className="text-sm sm:text-base text-muted-foreground mb-4">
           Manage and view all your cases in one place
         </p>
 
@@ -197,7 +197,11 @@ const Dashboard = () => {
             </div>
           </div>
         ) : (
-          <CasesList cases={mappedCases} onRefresh={handleRefreshCases} />
+          <CasesList
+            cases={mappedCases}
+            onRefresh={handleRefreshCases}
+            onAddEvent={handleAddEvent}
+          />
         )}
       </div>
     </Layout>

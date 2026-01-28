@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import { Event } from "@/types";
-import { CalendarDays, Clock, Mail, Edit2, Check, X, User, Tag } from "lucide-react";
+import {
+  CalendarDays,
+  Clock,
+  Mail,
+  Edit2,
+  Check,
+  X,
+  User,
+  Tag,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format, isValid, parse } from "date-fns";
@@ -30,7 +39,14 @@ interface EventCardProps {
   onCategoryAssign?: (eventId: string, categoryId: string | null) => void;
 }
 
-const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories = [], onCategoryAssign }: EventCardProps) => {
+const EventCard = ({
+  event,
+  onUpdate,
+  contacts = [],
+  onContactAssign,
+  categories = [],
+  onCategoryAssign,
+}: EventCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(event);
   const [isEditing, setIsEditing] = useState(false);
@@ -38,9 +54,9 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories
   const [editedTime, setEditedTime] = useState(event.time);
   const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
-  
-  const assignedContact = contacts.find(c => c.id === event.contact_id);
-  const assignedCategory = categories.find(c => c.id === event.category_id);
+
+  const assignedContact = contacts.find((c) => c.id === event.contact_id);
+  const assignedCategory = categories.find((c) => c.id === event.category_id);
 
   useEffect(() => {
     setCurrentEvent(event);
@@ -110,8 +126,8 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories
   return (
     <Card className="hover:bg-muted/50 transition-colors">
       <CardContent className="p-4">
-        <div className="flex justify-between items-start gap-4">
-          <div className="flex-1 min-w-0">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="flex-1 min-w-0 w-full sm:w-auto">
             <div className="flex items-center gap-2 mb-1">
               <div
                 className={cn("p-1.5 rounded-full", {
@@ -140,13 +156,17 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories
               })}
             >
               <p className="text-sm whitespace-pre-line">
-                {currentEvent.description?.trim() || "(No description provided)"}
+                {currentEvent.description?.trim() ||
+                  "(No description provided)"}
               </p>
             </div>
 
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <div className="flex items-center gap-2">
-                <Popover open={contactPopoverOpen} onOpenChange={setContactPopoverOpen}>
+                <Popover
+                  open={contactPopoverOpen}
+                  onOpenChange={setContactPopoverOpen}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
@@ -162,7 +182,10 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories
                       value={currentEvent.contact_id || "none"}
                       onValueChange={(value) => {
                         if (onContactAssign) {
-                          onContactAssign(currentEvent.id, value === "none" ? null : value);
+                          onContactAssign(
+                            currentEvent.id,
+                            value === "none" ? null : value,
+                          );
                           setContactPopoverOpen(false);
                         }
                       }}
@@ -171,7 +194,9 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories
                         <SelectValue placeholder="Assign contact" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">No contact assigned</SelectItem>
+                        <SelectItem value="none">
+                          No contact assigned
+                        </SelectItem>
                         {contacts.map((contact) => (
                           <SelectItem key={contact.id} value={contact.id}>
                             {contact.name}
@@ -188,7 +213,10 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Popover open={categoryPopoverOpen} onOpenChange={setCategoryPopoverOpen}>
+                <Popover
+                  open={categoryPopoverOpen}
+                  onOpenChange={setCategoryPopoverOpen}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
@@ -204,7 +232,10 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories
                       value={currentEvent.category_id || "none"}
                       onValueChange={(value) => {
                         if (onCategoryAssign) {
-                          onCategoryAssign(currentEvent.id, value === "none" ? null : value);
+                          onCategoryAssign(
+                            currentEvent.id,
+                            value === "none" ? null : value,
+                          );
                           setCategoryPopoverOpen(false);
                         }
                       }}
@@ -224,10 +255,17 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories
                   </PopoverContent>
                 </Popover>
                 {assignedCategory && (
-                  <Badge 
-                    variant="outline" 
+                  <Badge
+                    variant="outline"
                     className="text-xs"
-                    style={assignedCategory.color ? { borderColor: assignedCategory.color, color: assignedCategory.color } : {}}
+                    style={
+                      assignedCategory.color
+                        ? {
+                            borderColor: assignedCategory.color,
+                            color: assignedCategory.color,
+                          }
+                        : {}
+                    }
                   >
                     {assignedCategory.name}
                   </Badge>
@@ -235,34 +273,35 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories
               </div>
             </div>
 
-            {currentEvent.description && currentEvent.description.length > 100 && (
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="p-0 h-auto mt-2 text-legal-500 hover:text-legal-600"
-              >
-                {isExpanded ? "Show Less" : "Show More"}
-              </Button>
-            )}
+            {currentEvent.description &&
+              currentEvent.description.length > 100 && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="p-0 h-auto mt-2 text-legal-500 hover:text-legal-600"
+                >
+                  {isExpanded ? "Show Less" : "Show More"}
+                </Button>
+              )}
           </div>
 
-          <div className="text-right text-xs text-muted-foreground whitespace-nowrap">
+          <div className="text-left sm:text-right text-xs text-muted-foreground w-full sm:w-auto sm:whitespace-nowrap">
             {isEditing ? (
               <div className="space-y-2">
                 <Input
                   type="date"
                   value={editedDate}
                   onChange={(e) => setEditedDate(e.target.value)}
-                  className="h-7 text-xs"
+                  className="h-7 text-xs w-full sm:w-auto"
                 />
                 <Input
                   type="time"
                   value={editedTime}
                   onChange={(e) => setEditedTime(e.target.value)}
-                  className="h-7 text-xs"
+                  className="h-7 text-xs w-full sm:w-auto"
                 />
-                <div className="flex gap-1 justify-end">
+                <div className="flex gap-1 justify-start sm:justify-end">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -283,7 +322,7 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories
               </div>
             ) : (
               <>
-                <div className="flex items-center gap-1 justify-end">
+                <div className="flex items-center gap-1 justify-start sm:justify-end">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -294,12 +333,16 @@ const EventCard = ({ event, onUpdate, contacts = [], onContactAssign, categories
                   </Button>
                   <div className="flex items-center gap-1">
                     <CalendarDays className="h-3.5 w-3.5" />
-                    <span>{formatDate(currentEvent.date)}</span>
+                    <span className="break-words sm:break-normal">
+                      {formatDate(currentEvent.date)}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>{formatTime(currentEvent.time)}</span>
+                  <span className="break-words sm:break-normal">
+                    {formatTime(currentEvent.time)}
+                  </span>
                 </div>
               </>
             )}

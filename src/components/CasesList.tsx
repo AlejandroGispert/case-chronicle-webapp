@@ -16,14 +16,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner"; // You might need to create or import this
 import NewCaseModal from "./NewCaseModal";
+import NewEventModal from "./NewEventModal";
 import { FileText } from "lucide-react";
 
 interface CasesListProps {
   cases: Case[];
   onRefresh?: () => void;
+  onAddEvent?: (eventData: any, caseId: string) => void;
 }
 
-const CasesList = ({ cases, onRefresh }: CasesListProps) => {
+const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -143,14 +145,14 @@ const CasesList = ({ cases, onRefresh }: CasesListProps) => {
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Select
               value={sortBy}
               onValueChange={(value: "date" | "title" | "client") =>
                 setSortBy(value)
               }
             >
-              <SelectTrigger className="w-[130px]">
+              <SelectTrigger className="w-full sm:w-[130px]">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -166,7 +168,7 @@ const CasesList = ({ cases, onRefresh }: CasesListProps) => {
               onClick={() =>
                 setSortDirection(sortDirection === "asc" ? "desc" : "asc")
               }
-              className="w-[130px]"
+              className="w-full sm:w-[130px]"
             >
               <ArrowUpDown className="h-4 w-4 mr-2" />
               {sortDirection === "asc" ? "Ascending" : "Descending"}
@@ -210,6 +212,14 @@ const CasesList = ({ cases, onRefresh }: CasesListProps) => {
                     {formatDate(caseItem.dateCreated)}
                   </p>
                 </div>
+                {onAddEvent && (
+                  <div className="mt-3 pt-3 border-t">
+                    <NewEventModal
+                      caseId={caseItem.id}
+                      onAddEvent={onAddEvent}
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

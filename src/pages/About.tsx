@@ -1,15 +1,22 @@
 import Layout from "@/components/Layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Mail, Forward, Filter, Reply, Shield, Zap } from "lucide-react";
 
 const About = () => {
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">How Email Integration Works</h1>
           <p className="text-muted-foreground">
-            Add emails to your cases seamlessly — no OAuth, no inbox access, just simple forwarding.
+            Add emails to your cases seamlessly — no OAuth, no inbox access,
+            just simple forwarding.
           </p>
         </div>
 
@@ -20,7 +27,8 @@ const About = () => {
               The Core Idea
             </CardTitle>
             <CardDescription>
-              Each case gets a unique email address that automatically routes emails to the right place.
+              Each case gets a unique email address that automatically routes
+              emails to the right place.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -28,8 +36,9 @@ const About = () => {
               case+X8F3K2@inbound.yourapp.com
             </div>
             <p className="text-sm text-muted-foreground">
-              Anything sent to this address automatically lands in your app and gets attached to the correct case.
-              No magic, no OAuth — just simple email forwarding.
+              Anything sent to this address automatically lands in your app and
+              gets attached to the correct case. No magic, no OAuth — just
+              simple email forwarding.
             </p>
           </CardContent>
         </Card>
@@ -44,10 +53,12 @@ const About = () => {
             </CardHeader>
             <CardContent className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                The most common way — simply forward an email or CC the case address when replying.
+                The most common way — simply forward an email or CC the case
+                address when replying.
               </p>
               <div className="bg-muted p-3 rounded text-xs font-mono">
-                To: client@example.com<br />
+                To: client@example.com
+                <br />
                 CC: case+X8F3K2@inbound.yourapp.com
               </div>
               <p className="text-xs text-muted-foreground italic">
@@ -65,7 +76,8 @@ const About = () => {
             </CardHeader>
             <CardContent className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                Set up Gmail filters to automatically forward emails based on rules.
+                Set up Gmail filters to automatically forward emails based on
+                rules.
               </p>
               <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
                 <li>If subject contains "Invoice"</li>
@@ -87,7 +99,8 @@ const About = () => {
             </CardHeader>
             <CardContent className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                When your app sends emails, set the Reply-To header to the case address.
+                When your app sends emails, set the Reply-To header to the case
+                address.
               </p>
               <div className="bg-muted p-3 rounded text-xs font-mono">
                 Reply-To: case+X8F3K2@inbound.yourapp.com
@@ -118,8 +131,12 @@ const About = () => {
                 <div>
                   <h4 className="font-semibold mb-1">Domain Setup</h4>
                   <p className="text-sm text-muted-foreground">
-                    Configure <code className="bg-muted px-1 rounded">inbound.yourapp.com</code> with MX records pointing to Amazon SES.
-                    One-time setup with domain verification and DKIM signing.
+                    Configure{" "}
+                    <code className="bg-muted px-1 rounded">
+                      inbound.yourapp.com
+                    </code>{" "}
+                    with MX records pointing to Amazon SES. One-time setup with
+                    domain verification and DKIM signing.
                   </p>
                 </div>
               </div>
@@ -131,8 +148,13 @@ const About = () => {
                 <div>
                   <h4 className="font-semibold mb-1">SES Receipt Rule</h4>
                   <p className="text-sm text-muted-foreground">
-                    SES matches all recipients at <code className="bg-muted px-1 rounded">*@inbound.yourapp.com</code> and triggers
-                    your Lambda function or webhook. SES doesn't care where the email came from — Gmail, Outlook, or anywhere else.
+                    SES matches all recipients at{" "}
+                    <code className="bg-muted px-1 rounded">
+                      *@inbound.yourapp.com
+                    </code>{" "}
+                    and triggers your Lambda function or webhook. SES doesn't
+                    care where the email came from — Gmail, Outlook, or anywhere
+                    else.
                   </p>
                 </div>
               </div>
@@ -144,8 +166,10 @@ const About = () => {
                 <div>
                   <h4 className="font-semibold mb-1">Your App Logic</h4>
                   <p className="text-sm text-muted-foreground">
-                    Your backend extracts the token from the recipient address, finds the matching case and user,
-                    parses the email content and attachments, then stores everything and links it to the case.
+                    Your backend extracts the token from the recipient address,
+                    finds the matching case and user, parses the email content
+                    and attachments, then stores everything and links it to the
+                    case.
                   </p>
                 </div>
               </div>
@@ -167,23 +191,37 @@ const About = () => {
             <ul className="space-y-2 text-sm">
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">•</span>
-                <span><strong>Long, random tokens</strong> — Each case address uses an unguessable token (e.g., X8F3K2)</span>
+                <span>
+                  <strong>Long, random tokens</strong> — Each case address uses
+                  an unguessable token (e.g., X8F3K2)
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">•</span>
-                <span><strong>Case validation</strong> — Only active cases can receive emails</span>
+                <span>
+                  <strong>Case validation</strong> — Only active cases can
+                  receive emails
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">•</span>
-                <span><strong>Optional restrictions</strong> — Limit emails to known participants only</span>
+                <span>
+                  <strong>Optional restrictions</strong> — Limit emails to known
+                  participants only
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">•</span>
-                <span><strong>Rate limiting</strong> — Prevent abuse per address</span>
+                <span>
+                  <strong>Rate limiting</strong> — Prevent abuse per address
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">•</span>
-                <span><strong>Spam filtering</strong> — SES provides basic spam verdicts</span>
+                <span>
+                  <strong>Spam filtering</strong> — SES provides basic spam
+                  verdicts
+                </span>
               </li>
             </ul>
           </CardContent>
@@ -192,8 +230,10 @@ const About = () => {
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">
-              <strong>Note:</strong> Users already forward emails to tools like Jira, Zendesk, Linear, and Notion.
-              If the value is clear, they don't mind. Just make it easy: <em>"CC this address to add the email to the case."</em>
+              <strong>Note:</strong> Users already forward emails to tools like
+              Jira, Zendesk, Linear, and Notion. If the value is clear, they
+              don't mind. Just make it easy:{" "}
+              <em>"CC this address to add the email to the case."</em>
             </p>
           </CardContent>
         </Card>

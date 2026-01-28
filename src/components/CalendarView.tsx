@@ -20,7 +20,9 @@ const CalendarView = ({ className }: CalendarViewProps) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    new Date(),
+  );
   const { toast } = useToast();
 
   useEffect(() => {
@@ -63,7 +65,7 @@ const CalendarView = ({ className }: CalendarViewProps) => {
     // Process emails
     emails.forEach((email) => {
       if (!email.date) return;
-      
+
       let dateKey: string;
       try {
         // Try to parse the date
@@ -92,7 +94,7 @@ const CalendarView = ({ className }: CalendarViewProps) => {
     // Process events
     events.forEach((event) => {
       if (!event.date) return;
-      
+
       let dateKey: string;
       try {
         if (event.date.includes("T")) {
@@ -123,7 +125,7 @@ const CalendarView = ({ className }: CalendarViewProps) => {
   // Get items for selected date
   const selectedDateItems = useMemo(() => {
     if (!selectedDate) return { emails: [], events: [] };
-    
+
     const dateKey = format(selectedDate, "yyyy-MM-dd");
     return itemsByDate[dateKey] || { emails: [], events: [] };
   }, [selectedDate, itemsByDate]);
@@ -133,7 +135,7 @@ const CalendarView = ({ className }: CalendarViewProps) => {
     const datesWithEmails: Date[] = [];
     const datesWithEvents: Date[] = [];
     const datesWithItems: Date[] = [];
-    
+
     Object.keys(itemsByDate).forEach((dateKey) => {
       try {
         const date = parse(dateKey, "yyyy-MM-dd", new Date());
@@ -170,7 +172,9 @@ const CalendarView = ({ className }: CalendarViewProps) => {
       <div className="flex justify-center items-center h-64">
         <div className="animate-pulse flex flex-col items-center">
           <div className="h-8 w-8 bg-legal-200 rounded-full"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Loading calendar...</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Loading calendar...
+          </p>
         </div>
       </div>
     );
@@ -179,12 +183,14 @@ const CalendarView = ({ className }: CalendarViewProps) => {
   return (
     <div className={cn("space-y-6", className)}>
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-legal-100 rounded-lg">
-          <CalendarIcon className="h-6 w-6 text-legal-600" />
+        <div className="p-2 bg-legal-100 rounded-lg shrink-0">
+          <CalendarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-legal-600" />
         </div>
-        <div>
-          <h1 className="text-3xl font-serif font-bold mb-1">Calendar</h1>
-          <p className="text-muted-foreground">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold mb-1">
+            Calendar
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             View all events and emails organized by date
           </p>
         </div>
@@ -194,7 +200,7 @@ const CalendarView = ({ className }: CalendarViewProps) => {
         {/* Calendar */}
         <div className="lg:col-span-2">
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="relative [&_.rdp-day]:relative">
                 <style>{`
                   /* Email indicator (yellow) */
