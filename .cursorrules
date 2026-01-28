@@ -46,17 +46,14 @@ src/backend/services/
 
 ```ts
 // ✅ CORRECT
-import { getDatabaseService } from '../services';
+import { getDatabaseService } from "../services";
 
 const db = getDatabaseService();
-const { data } = await db
-  .from<MyType>('table')
-  .select('*')
-  .execute();
+const { data } = await db.from<MyType>("table").select("*").execute();
 
 // ❌ FORBIDDEN
-import { supabase } from '@/integrations/supabase/client';
-await supabase.from('table').select('*');
+import { supabase } from "@/integrations/supabase/client";
+await supabase.from("table").select("*");
 ```
 
 ---
@@ -109,14 +106,15 @@ Data export / deletion (GDPR)
 ---
 
 ## 📝 Code Patterns
+
 Model Pattern
 import { getDatabaseService, getAuthService } from '../services';
 
 export const myModel = {
-  async getItems() {
-    const auth = getAuthService();
-    const { user } = await auth.getUser();
-    if (!user) return [];
+async getItems() {
+const auth = getAuthService();
+const { user } = await auth.getUser();
+if (!user) return [];
 
     const db = getDatabaseService();
     const { data, error } = await db
@@ -131,9 +129,11 @@ export const myModel = {
     }
 
     return data ?? [];
-  }
+
+}
 };
-```
+
+````
 
 ### Controller Pattern
 
@@ -147,12 +147,12 @@ export const myController = {
     return myModel.getItems();
   }
 };
-```
+````
 
 ### View Pattern
 
 ```ts
-import { myController } from '@/backend/controllers/myController';
+import { myController } from "@/backend/controllers/myController";
 
 const MyComponent = () => {
   useEffect(() => {
@@ -164,6 +164,7 @@ const MyComponent = () => {
 ---
 
 ## 🚫 Forbidden Anti-Patterns
+
 ❌ Direct Supabase imports outside service adapters
 
 ❌ Views calling models
@@ -181,12 +182,12 @@ const MyComponent = () => {
 📁 File Organization
 src/
 ├── backend/
-│   ├── services/
-│   ├── models/
-│   ├── controllers/
-│   ├── auth/
-│   ├── audit/
-│   └── utils/
+│ ├── services/
+│ ├── models/
+│ ├── controllers/
+│ ├── auth/
+│ ├── audit/
+│ └── utils/
 ├── components/
 ├── pages/
 ├── contexts/
@@ -318,8 +319,38 @@ Never skip layers
 **This codebase MUST remain backend-agnostic.**
 
 To migrate:
+
 1. Implement new service adapters
 2. Update service factory
 3. No controller, model, or view changes allowed
 
 **This file is authoritative. Violations are bugs.**
+
+---
+
+## 🧾 Notion Feature & Work Tracking (Cursor Agent)
+
+The Cursor agent MUST keep the following Notion pages in sync with ongoing work on this app:
+
+- `FEATURES` – high-level product features for this case management app
+- `ROADMAP` – upcoming milestones and planned work
+- `TECH_DEBT` – known technical debt items
+- `BUG_BACKLOG` – bugs and regressions
+
+**Rules for the agent:**
+
+- **Automatic capture from conversation**
+  - When the user describes a new feature, roadmap item, tech-debt item, or bug in chat, the agent should:
+    - Interpret the item (Title, Description, Status, Area)
+    - Create or update a row in the corresponding Notion table
+    - Use the canonical table shape: `Title | Status | Area | Description`
+    - Confirm the change back to the user in a short summary.
+
+- **Keep Notion as source of truth**
+  - When asked about features, roadmap, tech debt, or bugs, the agent should:
+    - Read from the corresponding Notion page first
+    - Present concise summaries (bullets or markdown tables) based on those pages
+    - Update Notion whenever the conversation materially changes the plan or status.
+
+- **Non-intrusive reorganization**
+  - Only perform large-scale normalization or restructuring of those pages (moving legacy bullets into tables, etc.) when the user explicitly asks (e.g. “reorganize the FEATURES page into the clean table format”).

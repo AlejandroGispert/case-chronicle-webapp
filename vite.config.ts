@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -12,10 +11,7 @@ export default defineConfig(({ mode }) => ({
     // Avoid adding custom Content-Type in headers—Vite sets it per file. Forcing
     // "application/javascript" for all responses breaks index.html (raw HTML in browser).
   },
-  plugins: [
-    react(),
-    mode === "development" && componentTagger(),
-  ].filter(Boolean),
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
