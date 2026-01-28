@@ -3,24 +3,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Lock, User, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  Tabs, TabsContent, TabsList, TabsTrigger
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import CaseHandlerAccess from "@/components/caseHandler/CaseHandlerAccess";
-
 
 const Login = () => {
   // Login state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // Signup state
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
@@ -28,7 +30,7 @@ const Login = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [showSignupPassword, setShowSignupPassword] = useState(false);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { login, signup, loginWithGoogle } = useAuth();
@@ -37,7 +39,7 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       await login(email, password);
     } catch (error) {
@@ -57,7 +59,7 @@ const Login = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (signupPassword !== confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -66,7 +68,7 @@ const Login = () => {
       });
       return;
     }
-    
+
     setIsLoading(true);
     try {
       await signup(signupEmail, signupPassword, firstName, lastName);
@@ -82,22 +84,30 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md px-4">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-serif font-bold text-legal-500 mb-2">Case Chronicle</h1>
-          <p className="text-gray-600">Case management for legal professionals</p>
+          <h1 className="text-4xl font-serif font-bold text-legal-500 mb-2">
+            Case Chronicle
+          </h1>
+          <p className="text-gray-600">Case management system for the public</p>
         </div>
-        
+
         <Card>
-          <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            defaultValue="login"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
               <TabsTrigger value="case">View Case</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="login">
               <CardHeader>
                 <CardTitle className="text-2xl">Sign In</CardTitle>
-                <CardDescription>Enter your credentials to access your cases</CardDescription>
+                <CardDescription>
+                  Enter your credentials to access your cases
+                </CardDescription>
               </CardHeader>
               <form onSubmit={handleLogin}>
                 <CardContent className="space-y-4">
@@ -118,7 +128,7 @@ const Login = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
                     <div className="relative">
@@ -149,7 +159,7 @@ const Login = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center">
                       <input
@@ -158,7 +168,10 @@ const Login = () => {
                         type="checkbox"
                         className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                       />
-                      <label htmlFor="remember-me" className="ml-2 block text-gray-600">
+                      <label
+                        htmlFor="remember-me"
+                        className="ml-2 block text-gray-600"
+                      >
                         Remember me
                       </label>
                     </div>
@@ -167,12 +180,12 @@ const Login = () => {
                     </a>
                   </div>
                 </CardContent>
-                
+
                 <CardFooter className="flex flex-col space-y-4">
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Signing in..." : "Sign in"}
                   </Button>
-                  
+
                   <div className="relative w-full">
                     <div className="absolute inset-0 flex items-center">
                       <Separator />
@@ -183,20 +196,32 @@ const Login = () => {
                       </span>
                     </div>
                   </div>
-                  
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+
+                  <Button
+                    type="button"
+                    variant="outline"
                     className="w-full"
                     onClick={handleGoogleLogin}
                   >
                     <div className="mr-2">
                       <svg viewBox="0 0 24 24" width="16" height="16">
                         <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
-                          <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
-                          <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
-                          <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
-                          <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
+                          <path
+                            fill="#4285F4"
+                            d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"
+                          />
+                          <path
+                            fill="#34A853"
+                            d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"
+                          />
+                          <path
+                            fill="#FBBC05"
+                            d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"
+                          />
+                          <path
+                            fill="#EA4335"
+                            d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"
+                          />
                         </g>
                       </svg>
                     </div>
@@ -205,11 +230,13 @@ const Login = () => {
                 </CardFooter>
               </form>
             </TabsContent>
-            
+
             <TabsContent value="signup">
               <CardHeader>
                 <CardTitle className="text-2xl">Create an Account</CardTitle>
-                <CardDescription>Sign up to start managing your cases</CardDescription>
+                <CardDescription>
+                  Sign up to start managing your cases
+                </CardDescription>
               </CardHeader>
               <form onSubmit={handleSignup}>
                 <CardContent className="space-y-4">
@@ -237,7 +264,7 @@ const Login = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="signupEmail">Email</Label>
                     <div className="relative">
@@ -255,7 +282,7 @@ const Login = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="signupPassword">Password</Label>
                     <div className="relative">
@@ -274,7 +301,9 @@ const Login = () => {
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                         <button
                           type="button"
-                          onClick={() => setShowSignupPassword(!showSignupPassword)}
+                          onClick={() =>
+                            setShowSignupPassword(!showSignupPassword)
+                          }
                           className="text-gray-400 hover:text-gray-500 focus:outline-none"
                         >
                           {showSignupPassword ? (
@@ -286,7 +315,7 @@ const Login = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirm Password</Label>
                     <Input
@@ -299,12 +328,12 @@ const Login = () => {
                     />
                   </div>
                 </CardContent>
-                
+
                 <CardFooter className="flex flex-col space-y-4">
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Creating account..." : "Create account"}
                   </Button>
-                  
+
                   <div className="relative w-full">
                     <div className="absolute inset-0 flex items-center">
                       <Separator />
@@ -315,10 +344,10 @@ const Login = () => {
                       </span>
                     </div>
                   </div>
-                  
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+
+                  <Button
+                    type="button"
+                    variant="outline"
                     className="w-full"
                     onClick={handleGoogleLogin}
                     disabled={isLoading}
@@ -326,10 +355,22 @@ const Login = () => {
                     <div className="mr-2">
                       <svg viewBox="0 0 24 24" width="16" height="16">
                         <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
-                          <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
-                          <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
-                          <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
-                          <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
+                          <path
+                            fill="#4285F4"
+                            d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"
+                          />
+                          <path
+                            fill="#34A853"
+                            d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"
+                          />
+                          <path
+                            fill="#FBBC05"
+                            d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"
+                          />
+                          <path
+                            fill="#EA4335"
+                            d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"
+                          />
                         </g>
                       </svg>
                     </div>
@@ -340,12 +381,15 @@ const Login = () => {
             </TabsContent>
             <TabsContent value="case">
               <CardHeader>
-                <CardTitle className="text-2xl">Access a Case (External)</CardTitle>
-                <CardDescription>Enter your case access code below</CardDescription>
+                <CardTitle className="text-2xl">
+                  Access a Case (External)
+                </CardTitle>
+                <CardDescription>
+                  Enter your case access code below
+                </CardDescription>
               </CardHeader>
               <CardContent>
-              <CaseHandlerAccess />
-
+                <CaseHandlerAccess />
               </CardContent>
             </TabsContent>
           </Tabs>

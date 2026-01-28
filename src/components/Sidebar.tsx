@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Sidebar as SidebarComponent,
   SidebarContent,
@@ -87,26 +86,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Link
+                    to="/dashboard?status=active"
+                    className="flex items-center w-full"
+                  >
                     <div className="h-2 w-2 rounded-full bg-green-500 mr-2" />
                     Active Cases
-                  </Button>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <div className="h-2 w-2 rounded-full bg-yellow-500 mr-2" />
-                    Pending Cases
-                  </Button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Link
+                    to="/dashboard?status=closed"
+                    className="flex items-center w-full"
+                  >
                     <div className="h-2 w-2 rounded-full bg-gray-500 mr-2" />
                     Closed Cases
-                  </Button>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

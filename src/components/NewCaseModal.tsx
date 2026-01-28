@@ -68,7 +68,7 @@ const NewCaseModal = () => {
         setCaseNumber("");
         setClient("");
         setStatus("active");
-        
+
         toast({
           title: "Case Created",
           description: "Your new case has been created successfully",
@@ -97,7 +97,7 @@ const NewCaseModal = () => {
         <DialogHeader>
           <DialogTitle>Create New Case</DialogTitle>
           <DialogDescription>
-            Enter the details for your new legal case.
+            Enter the details for your new case.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleCreateCase} className="space-y-4 pt-4">
@@ -133,7 +133,10 @@ const NewCaseModal = () => {
           </div>
           <div className="space-y-2">
             <Label htmlFor="status">Case Status</Label>
-            <Select value={status} onValueChange={(value) => setStatus(value as CaseStatus)}>
+            <Select
+              value={status}
+              onValueChange={(value) => setStatus(value as CaseStatus)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
