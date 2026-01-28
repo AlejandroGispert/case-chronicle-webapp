@@ -277,13 +277,58 @@ SameSite=strict or lax
 CORS explicitly configured
 
 🧪 Testing Standards
-Controllers unit-testable
 
-Services mockable
+**CRITICAL:** All new features, buttons, and important user flows MUST have E2E tests.
 
-No test depends directly on Supabase
+### E2E Test Requirements (Playwright)
 
-Migration tests preferred for services
+- **Location:** `tests/e2e/`
+- **Framework:** Playwright (already configured)
+- **When to create tests:**
+  - ✅ New page/route → create `tests/e2e/<page-name>.spec.ts`
+  - ✅ New component with buttons/forms → add test cases to relevant spec
+  - ✅ New user flow (create/edit/delete) → add test cases
+  - ✅ Critical business logic (auth, payments, data export) → MUST have tests
+
+### Test Generation Rules
+
+When adding new functionality, the agent MUST:
+
+1. **Identify testable elements:**
+   - All buttons (`getByRole('button')`)
+   - All forms (`getByRole('textbox')`, `getByRole('combobox')`)
+   - Navigation links (`getByRole('link')`)
+   - Critical UI state changes (modals, toasts, loading states)
+
+2. **Create/update test file:**
+   - Match test file structure to component/page structure
+   - Example: `src/pages/Contacts.tsx` → `tests/e2e/contacts.spec.ts`
+   - Example: `src/components/EmailCard.tsx` → add to `tests/e2e/email.spec.ts`
+
+3. **Test patterns:**
+
+   ```ts
+   // ✅ CORRECT: Test user interactions
+   test("user can create new case", async ({ page }) => {
+     await page.goto("/cases");
+     await page.getByRole("button", { name: /new case/i }).click();
+     await page.getByRole("textbox", { name: /title/i }).fill("Test Case");
+     await page.getByRole("button", { name: /save/i }).click();
+     await expect(page.getByText(/test case/i)).toBeVisible();
+   });
+   ```
+
+4. **GDPR/Privacy compliance:**
+   - Tests MUST use synthetic/fake data only
+   - Never use real user emails, names, or PII in tests
+   - Test data should be clearly marked as test fixtures
+
+### Unit Testing
+
+- Controllers unit-testable
+- Services mockable
+- No test depends directly on Supabase
+- Migration tests preferred for services
 
 📦 Dependency Security
 Lockfile committed
@@ -299,6 +344,8 @@ Create controller (authorization enforced)
 
 Create view (controller only)
 
+Create E2E tests (for all user-facing features)
+
 Never skip layers
 
 ## ✅ Pre-Commit Checklist
@@ -311,6 +358,8 @@ Never skip layers
 - [ ] Types are correct
 - [ ] Errors handled
 - [ ] GDPR rules respected
+- [ ] E2E tests added for new features/buttons/flows
+- [ ] Tests use synthetic data only (no PII)
 
 ---
 
