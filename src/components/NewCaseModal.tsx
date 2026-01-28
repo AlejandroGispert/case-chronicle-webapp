@@ -25,7 +25,11 @@ import { caseController } from "@/backend/controllers/caseController";
 // Add this type at the top with other imports
 type CaseStatus = "active" | "pending" | "closed";
 
-const NewCaseModal = () => {
+interface NewCaseModalProps {
+  onCaseCreated?: () => void;
+}
+
+const NewCaseModal = ({ onCaseCreated }: NewCaseModalProps = {}) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
@@ -73,6 +77,11 @@ const NewCaseModal = () => {
           title: "Case Created",
           description: "Your new case has been created successfully",
         });
+
+        // Call the callback to refresh cases list
+        if (onCaseCreated) {
+          onCaseCreated();
+        }
       } else {
         throw new Error("Failed to create case");
       }
@@ -89,7 +98,7 @@ const NewCaseModal = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full bg-legal-300 hover:bg-legal-400 text-white">
+        <Button className="bg-legal-300 hover:bg-legal-400 text-white">
           New Case
         </Button>
       </DialogTrigger>

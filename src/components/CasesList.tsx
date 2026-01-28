@@ -6,21 +6,32 @@ import CaseDetail from "./CaseDetail";
 import { Input } from "@/components/ui/input";
 import { Search, ArrowUpDown, WifiOff } from "lucide-react";
 import { format, isValid, parse } from "date-fns";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner"; // You might need to create or import this
+import NewCaseModal from "./NewCaseModal";
+import { FileText } from "lucide-react";
 
 interface CasesListProps {
   cases: Case[];
+  onRefresh?: () => void;
 }
 
-const CasesList = ({ cases }: CasesListProps) => {
+const CasesList = ({ cases, onRefresh }: CasesListProps) => {
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [sortBy, setSortBy] = useState<"date" | "title" | "client">("date");
   const [isLoading, setIsLoading] = useState(true);
-  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== "undefined" ? navigator.onLine : true,
+  );
 
   useEffect(() => {
     // Simulate loading delay
@@ -41,10 +52,11 @@ const CasesList = ({ cases }: CasesListProps) => {
   }, []);
 
   const filteredAndSortedCases = cases
-    .filter((c) =>
-      c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.number.toLowerCase().includes(searchTerm.toLowerCase())
+    .filter(
+      (c) =>
+        c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.number.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     .sort((a, b) => {
       if (sortBy === "date") {
@@ -64,14 +76,14 @@ const CasesList = ({ cases }: CasesListProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-500';
-      case 'pending':
-        return 'bg-yellow-500';
-      case 'closed':
-        return 'bg-gray-500';
+      case "active":
+        return "bg-green-500";
+      case "pending":
+        return "bg-yellow-500";
+      case "closed":
+        return "bg-gray-500";
       default:
-        return 'bg-blue-500';
+        return "bg-blue-500";
     }
   };
 
@@ -84,7 +96,9 @@ const CasesList = ({ cases }: CasesListProps) => {
       <div className="flex flex-col items-center justify-center h-full text-center py-12">
         <WifiOff className="w-12 h-12 text-red-500 mb-4" />
         <h2 className="text-xl font-semibold mb-2">No Internet Connection</h2>
-        <p className="text-muted-foreground">Please check your connection and try again.</p>
+        <p className="text-muted-foreground">
+          Please check your connection and try again.
+        </p>
       </div>
     );
   }
@@ -94,6 +108,21 @@ const CasesList = ({ cases }: CasesListProps) => {
       <div className="flex items-center justify-center h-full py-12">
         <Spinner /> {/* Replace with your spinner component */}
         <span className="ml-2 text-muted-foreground">Loading cases...</span>
+      </div>
+    );
+  }
+
+  // Show empty state when there are no cases at all
+  if (cases.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+        <FileText className="w-16 h-16 text-muted-foreground mb-4" />
+        <h2 className="text-2xl font-serif font-semibold mb-2">No Cases Yet</h2>
+        <p className="text-muted-foreground mb-6 max-w-md">
+          Get started by creating your first case. You can track all your legal
+          matters, documents, and communications in one place.
+        </p>
+        <NewCaseModal onCaseCreated={onRefresh} />
       </div>
     );
   }
@@ -115,7 +144,12 @@ const CasesList = ({ cases }: CasesListProps) => {
           </div>
 
           <div className="flex gap-2">
-            <Select value={sortBy} onValueChange={(value: "date" | "title" | "client") => setSortBy(value)}>
+            <Select
+              value={sortBy}
+              onValueChange={(value: "date" | "title" | "client") =>
+                setSortBy(value)
+              }
+            >
               <SelectTrigger className="w-[130px]">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
@@ -129,7 +163,9 @@ const CasesList = ({ cases }: CasesListProps) => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setSortDirection(sortDirection === "asc" ? "desc" : "asc")}
+              onClick={() =>
+                setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+              }
               className="w-[130px]"
             >
               <ArrowUpDown className="h-4 w-4 mr-2" />
@@ -144,23 +180,35 @@ const CasesList = ({ cases }: CasesListProps) => {
             <Card
               key={caseItem.id}
               className={`cursor-pointer hover:shadow-md transition-shadow ${
-                selectedCase?.id === caseItem.id ? 'border-legal-300 ring-1 ring-legal-300' : ''
+                selectedCase?.id === caseItem.id
+                  ? "border-legal-300 ring-1 ring-legal-300"
+                  : ""
               }`}
               onClick={() => handleCaseSelect(caseItem)}
             >
               <CardContent className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1 min-w-0 mr-2">
-                    <h3 className="font-medium text-base truncate">{caseItem.title}</h3>
-                    <p className="text-sm text-muted-foreground">{caseItem.number}</p>
+                    <h3 className="font-medium text-base truncate">
+                      {caseItem.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {caseItem.number}
+                    </p>
                   </div>
-                  <Badge variant="outline" className={`${getStatusColor(caseItem.status)} text-white shrink-0`}>
-                    {caseItem.status.charAt(0).toUpperCase() + caseItem.status.slice(1)}
+                  <Badge
+                    variant="outline"
+                    className={`${getStatusColor(caseItem.status)} text-white shrink-0`}
+                  >
+                    {caseItem.status.charAt(0).toUpperCase() +
+                      caseItem.status.slice(1)}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center mt-3">
                   <p className="text-sm">{caseItem.client}</p>
-                  <p className="text-xs text-muted-foreground">{formatDate(caseItem.dateCreated)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(caseItem.dateCreated)}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -168,7 +216,9 @@ const CasesList = ({ cases }: CasesListProps) => {
 
           {filteredAndSortedCases.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No cases found matching your search.</p>
+              <p className="text-muted-foreground">
+                No cases found matching your search.
+              </p>
             </div>
           )}
         </div>
@@ -181,9 +231,12 @@ const CasesList = ({ cases }: CasesListProps) => {
         ) : (
           <div className="h-full flex items-center justify-center border rounded-lg p-8">
             <div className="text-center">
-              <h2 className="text-2xl font-serif font-semibold mb-2">Select a Case</h2>
+              <h2 className="text-2xl font-serif font-semibold mb-2">
+                Select a Case
+              </h2>
               <p className="text-muted-foreground">
-                Choose a case from the list to view details and communication timeline.
+                Choose a case from the list to view details and communication
+                timeline.
               </p>
             </div>
           </div>
@@ -195,20 +248,20 @@ const CasesList = ({ cases }: CasesListProps) => {
 
 // Format date to a more readable format
 const formatDate = (dateString: string) => {
-  if (!dateString) return '';
+  if (!dateString) return "";
 
   try {
-    if (dateString.includes('T')) {
+    if (dateString.includes("T")) {
       const date = new Date(dateString);
       if (isValid(date)) {
-        return format(date, 'MMM d, yyyy');
+        return format(date, "MMM d, yyyy");
       }
     }
 
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      const parsedDate = parse(dateString, 'yyyy-MM-dd', new Date());
+      const parsedDate = parse(dateString, "yyyy-MM-dd", new Date());
       if (isValid(parsedDate)) {
-        return format(parsedDate, 'MMM d, yyyy');
+        return format(parsedDate, "MMM d, yyyy");
       }
     }
 

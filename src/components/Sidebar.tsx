@@ -18,7 +18,6 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import NewCaseModal from "./NewCaseModal";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -29,9 +28,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   return (
     <SidebarComponent className={`border-r h-full`}>
       <SidebarContent>
-        <div className="p-4">
-          <NewCaseModal />
-        </div>
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>

@@ -7,12 +7,14 @@ import { useToast } from "@/hooks/use-toast";
 
 import { useAuth } from "@/contexts/AuthContext";
 import NewEventModal from "@/components/NewEventModal";
+import NewCaseModal from "@/components/NewCaseModal";
 
 interface HeaderProps {
   sidebarOpen?: boolean;
   setSidebarOpen?: (open: boolean) => void;
   onAddEvent?: (eventData: any, caseId: string) => void;
   cases?: { id: string; title: string }[];
+  onCaseCreated?: () => void;
 }
 
 const Header = ({
@@ -20,6 +22,7 @@ const Header = ({
   setSidebarOpen,
   onAddEvent,
   cases = [],
+  onCaseCreated,
 }: HeaderProps) => {
   const { toast } = useToast();
   const { logout } = useAuth();
@@ -57,6 +60,9 @@ const Header = ({
         </div>
 
         <div className="flex items-center gap-4">
+          {/* New Case Modal */}
+          <NewCaseModal onCaseCreated={onCaseCreated} />
+
           {/* New Event Modal */}
           <NewEventModal
             cases={cases}

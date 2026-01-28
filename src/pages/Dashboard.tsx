@@ -27,7 +27,7 @@ const mapDatabaseCaseToAppCase = (dbCase: any): Case => {
           description: event.description,
           date: event.date,
           time: event.time,
-          type: 'event',
+          type: "event",
           case_id: event.case_id,
           created_at: event.created_at,
           event_type: event.event_type,
@@ -57,7 +57,7 @@ const Dashboard = () => {
               ...c,
               events: events || [],
             };
-          })
+          }),
         );
         setCases(casesWithEvents);
       } catch (error: any) {
@@ -108,15 +108,16 @@ const Dashboard = () => {
 
     try {
       const formattedDate = format(new Date(eventData.date), "yyyy-MM-dd");
-      const formattedTime = typeof eventData.time === "string" ? eventData.time : "12:00";
+      const formattedTime =
+        typeof eventData.time === "string" ? eventData.time : "12:00";
 
-    const newEventData: CreateEventInput = {
-  ...eventData,
-  case_id: caseId,
-  user_id: user.id,
-  date: formattedDate,
-  time: formattedTime,
-};
+      const newEventData: CreateEventInput = {
+        ...eventData,
+        case_id: caseId,
+        user_id: user.id,
+        date: formattedDate,
+        time: formattedTime,
+      };
 
       const newEvent = await eventController.createNewEvent(newEventData);
 
@@ -126,13 +127,14 @@ const Dashboard = () => {
             c.id === caseId
               ? {
                   ...c,
-                  events: [...(c.events || []), newEvent].sort((a, b) =>
-                    new Date(`${a.date}T${a.time}`).getTime() -
-                    new Date(`${b.date}T${b.time}`).getTime()
+                  events: [...(c.events || []), newEvent].sort(
+                    (a, b) =>
+                      new Date(`${a.date}T${a.time}`).getTime() -
+                      new Date(`${b.date}T${b.time}`).getTime(),
                   ),
                 }
-              : c
-          )
+              : c,
+          ),
         );
 
         toast({
@@ -152,10 +154,35 @@ const Dashboard = () => {
 
   const mappedCases = filteredCases.map(mapDatabaseCaseToAppCase);
 
+  const handleRefreshCases = async () => {
+    try {
+      setLoading(true);
+      const casesData = await caseController.fetchAllCases();
+      const casesWithEvents = await Promise.all(
+        casesData.map(async (c: any) => {
+          const events = await eventController.fetchEventsByCase(c.id);
+          return {
+            ...c,
+            events: events || [],
+          };
+        }),
+      );
+      setCases(casesWithEvents);
+    } catch (error: any) {
+      console.error("Error refreshing cases:", error);
+      toast({
+        title: "Error refreshing cases",
+        description: error.message || "Could not refresh cases",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Layout onAddEvent={handleAddEvent}>
+    <Layout onAddEvent={handleAddEvent} onCaseCreated={handleRefreshCases}>
       <div className="space-y-6 mt-4">
-        
         <p className="text-muted-foreground mb-4">
           Manage and view all your cases in one place
         </p>
@@ -164,11 +191,13 @@ const Dashboard = () => {
           <div className="flex justify-center items-center h-64">
             <div className="animate-pulse flex flex-col items-center">
               <div className="h-8 w-8 bg-legal-200 rounded-full"></div>
-              <p className="mt-2 text-sm text-muted-foreground">Loading cases...</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Loading cases...
+              </p>
             </div>
           </div>
         ) : (
-          <CasesList cases={mappedCases} />
+          <CasesList cases={mappedCases} onRefresh={handleRefreshCases} />
         )}
       </div>
     </Layout>
