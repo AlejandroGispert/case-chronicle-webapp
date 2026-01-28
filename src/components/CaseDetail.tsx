@@ -528,22 +528,23 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
         <Separator className="my-6" />
 
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <h3 className="text-lg font-medium font-serif">
               Communication Timeline
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="flex-shrink-0"
               >
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
+                <Filter className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Filters</span>
                 {isFilterOpen ? (
-                  <ChevronUp className="h-4 w-4 ml-2" />
+                  <ChevronUp className="h-4 w-4 sm:ml-2" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 ml-2" />
+                  <ChevronDown className="h-4 w-4 sm:ml-2" />
                 )}
               </Button>
               <NewEmailModal
@@ -673,14 +674,14 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
             {Object.entries(groupedItems).map(([group, items]) => (
               <div key={group} className="space-y-4">
                 {groupBy !== "none" && (
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <h4 className="text-sm font-medium text-muted-foreground min-w-0 break-words">
                       {groupBy === "date"
                         ? format(new Date(group), "MMMM d, yyyy")
                         : group}
                     </h4>
-                    <Separator className="flex-1" />
-                    <span className="text-sm text-muted-foreground">
+                    <Separator className="flex-1 hidden sm:block" />
+                    <span className="text-sm text-muted-foreground flex-shrink-0">
                       {items.length} items
                     </span>
                   </div>

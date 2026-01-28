@@ -147,16 +147,19 @@ const AttachDocumentButton = ({
         disabled={!selectedCaseId || selectedCaseId === "none" || isUploading}
         size="sm"
         variant="outline"
+        className="flex-shrink-0"
       >
         {isUploading ? (
           <>
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Uploading...
+            <span className="hidden sm:inline">Uploading...</span>
+            <span className="sm:hidden">Upload...</span>
           </>
         ) : (
           <>
             <Upload className="h-4 w-4 mr-2" />
-            {isCompactMode ? "Upload Document" : "Upload Document"}
+            <span className="hidden sm:inline">Upload Document</span>
+            <span className="sm:hidden">Upload</span>
           </>
         )}
       </Button>

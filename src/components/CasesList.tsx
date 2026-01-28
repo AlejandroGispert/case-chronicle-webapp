@@ -214,7 +214,7 @@ const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {
                   </p>
                 </div>
                 {onAddEvent && (
-                  <div className="mt-3 pt-3 border-t flex gap-2">
+                  <div className="mt-3 pt-3 border-t flex flex-wrap gap-2">
                     <NewEventModal
                       caseId={caseItem.id}
                       onAddEvent={onAddEvent}

@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Calendar } from "lucide-react";
 
 interface NewEventModalProps {
   cases?: { id: string; title: string }[];
@@ -77,7 +78,11 @@ const NewEventModal = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary">Register New Case Entry</Button>
+        <Button variant="secondary" size="sm" className="flex-shrink-0">
+          <Calendar className="h-4 w-4 mr-2" />
+          <span className="hidden sm:inline">Register New Case Entry</span>
+          <span className="sm:hidden">New Entry</span>
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Email } from "../types";
+import { Mail } from "lucide-react";
 
 interface NewEmailModalProps {
   cases?: { id: string; title: string }[];
@@ -38,7 +39,7 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
       hour12: false,
       hour: "2-digit",
       minute: "2-digit",
-    })
+    }),
   );
 
   const resetForm = () => {
@@ -49,7 +50,7 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
         hour12: false,
         hour: "2-digit",
         minute: "2-digit",
-      })
+      }),
     );
   };
 
@@ -97,7 +98,11 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary">add new email to a case</Button>
+        <Button variant="secondary" size="sm" className="flex-shrink-0">
+          <Mail className="h-4 w-4 mr-2" />
+          <span className="hidden sm:inline">add new email to a case</span>
+          <span className="sm:hidden">New Email</span>
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>

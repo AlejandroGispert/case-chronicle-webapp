@@ -130,9 +130,9 @@ const ShareCaseModal = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Share2 className="h-4 w-4 mr-2" />
-          Share Case
+        <Button variant="outline" size="sm" className="flex-shrink-0">
+          <Share2 className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Share Case</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
