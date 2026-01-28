@@ -24,10 +24,23 @@ export type CaseWithRelations = Case & {
 // CreateCaseInput represents the structure to create a case
 export interface CreateCaseInput {
   title: string;
-  number: string;
-  client: string;
+  /**
+   * Optional case number provided by the user.
+   * If omitted, the backend will generate a case number.
+   */
+  number?: string;
+  /**
+   * Optional client name.
+   * For non-professional users this may be omitted.
+   */
+  client?: string;
   status: "active" | "pending" | "closed";
   user_id: string;
+  /**
+   * Optional creation date override.
+   * Defaults to the current timestamp when not provided.
+   */
+  date_created?: string;
 }
 
 // EmailAttachment represents the metadata of an email attachment

@@ -133,9 +133,31 @@ export const caseModel = {
       console.log("Attempting to create a case with data:", caseData);
 
       const db = getDatabaseService();
+
+      // Ensure we always have a case number and client name before inserting.
+      const now = new Date();
+      const datePart = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+      const timePart = `${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}`;
+      const randomPart = Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, "0");
+
+      const generatedNumber = `C-${datePart}-${timePart}-${randomPart}`;
+
+      const preparedCaseData: CreateCaseInput & {
+        number: string;
+        client: string;
+        date_created: string;
+      } = {
+        ...caseData,
+        number: (caseData.number || "").trim() || generatedNumber,
+        client: (caseData.client || "").trim(),
+        date_created: caseData.date_created || now.toISOString(),
+      };
+
       const { data, error } = await db
         .from<Case>("cases")
-        .insert(caseData)
+        .insert(preparedCaseData)
         .select()
         .single();
 

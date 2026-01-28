@@ -121,23 +121,21 @@ const NewCaseModal = ({ onCaseCreated }: NewCaseModalProps = {}) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="caseNumber">Case Number</Label>
+            <Label htmlFor="caseNumber">Case Number (optional)</Label>
             <Input
               id="caseNumber"
               value={caseNumber}
               onChange={(e) => setCaseNumber(e.target.value)}
-              placeholder="e.g., L-2024-001"
-              required
+              placeholder="Leave blank to auto-generate"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="client">Client Name</Label>
+            <Label htmlFor="client">Client Name (optional)</Label>
             <Input
               id="client"
               value={client}
               onChange={(e) => setClient(e.target.value)}
               placeholder="e.g., John Smith"
-              required
             />
           </div>
           <div className="space-y-2">
