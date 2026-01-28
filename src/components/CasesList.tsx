@@ -18,7 +18,8 @@ import { Spinner } from "@/components/ui/spinner"; // You might need to create o
 import NewCaseModal from "./NewCaseModal";
 import NewEventModal from "./NewEventModal";
 import ShareCaseModal from "./ShareCaseModal";
-import { FileText } from "lucide-react";
+import { FileText, CalendarDays } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface CasesListProps {
   cases: Case[];
@@ -219,6 +220,21 @@ const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {
                       caseId={caseItem.id}
                       onAddEvent={onAddEvent}
                     />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-shrink-0"
+                      asChild
+                    >
+                      <Link
+                        to={`/calendar?caseId=${caseItem.id}&caseTitle=${encodeURIComponent(caseItem.title)}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <CalendarDays className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Calendar</span>
+                        <span className="sm:hidden">Cal.</span>
+                      </Link>
+                    </Button>
                     <ShareCaseModal
                       caseId={caseItem.id}
                       caseTitle={caseItem.title}

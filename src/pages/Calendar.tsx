@@ -1,15 +1,18 @@
-import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import CalendarView from "../components/CalendarView";
 
 const Calendar = () => {
-  useEffect(() => {
-    console.log("Calendar page rendered");
-  }, []);
+  const [searchParams] = useSearchParams();
+  const caseId = searchParams.get("caseId") ?? undefined;
+  const caseTitle = searchParams.get("caseTitle") ?? undefined;
 
   return (
     <Layout>
-      <CalendarView />
+      <CalendarView
+        caseId={caseId}
+        caseTitle={caseTitle ? decodeURIComponent(caseTitle) : undefined}
+      />
     </Layout>
   );
 };
