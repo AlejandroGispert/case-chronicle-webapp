@@ -18,6 +18,7 @@ import {
   Highlighter,
   User,
   Tag,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -34,11 +35,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Contact, Category } from "@/backend/models/types";
 
 interface EmailCardProps {
   email: Email;
   onUpdate?: (updatedEmail: Email) => void;
+  onDelete?: (emailId: string) => void;
   contacts?: Contact[];
   onContactAssign?: (emailId: string, contactId: string | null) => void;
   categories?: Category[];
@@ -55,6 +67,7 @@ interface Attachment {
 const EmailCard = ({
   email,
   onUpdate,
+  onDelete,
   contacts = [],
   onContactAssign,
   categories = [],
@@ -69,6 +82,7 @@ const EmailCard = ({
   const [highlightedContent, setHighlightedContent] = useState(email.content);
   const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const assignedContact = contacts.find((c) => c.id === email.contact_id);
   const assignedCategory = categories.find((c) => c.id === email.category_id);
@@ -271,7 +285,10 @@ const EmailCard = ({
 
                 {hasAttachments && (
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {(email.attachments || []).map((att: Attachment) => (
+                    {(Array.isArray(email.attachments)
+                      ? (email.attachments as unknown as Attachment[])
+                      : []
+                    ).map((att: Attachment) => (
                       <div
                         key={att.id}
                         className="flex items-center gap-2 p-1.5 bg-muted rounded-md hover:bg-muted/80 cursor-pointer text-xs"
@@ -396,6 +413,17 @@ const EmailCard = ({
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
+                    {onDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                        title="Delete email"
+                        onClick={() => setDeleteDialogOpen(true)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                     <p className="break-words sm:break-normal">{email.date}</p>
                   </div>
                   <p className="break-words sm:break-normal">{email.time}</p>
@@ -420,6 +448,32 @@ const EmailCard = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {onDelete && (
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete email</AlertDialogTitle>
+              <AlertDialogDescription>
+                Delete email &quot;{email.subject || "No Subject"}&quot;? This
+                action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  onDelete(email.id);
+                  setDeleteDialogOpen(false);
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 };

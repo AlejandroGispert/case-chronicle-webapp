@@ -88,6 +88,17 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     }
   }, [caseData.id]);
 
+  const fetchEvents = useCallback(async () => {
+    try {
+      const fetchedEvents = await eventController.fetchEventsByCase(
+        caseData.id,
+      );
+      setEvents(fetchedEvents || []);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+  }, [caseData.id]);
+
   const fetchDocuments = useCallback(async () => {
     try {
       const fetchedDocuments = await documentController.fetchDocumentsByCase(
@@ -157,12 +168,19 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   useEffect(() => {
     console.log("CaseData:", caseData);
     fetchEmails();
+    fetchEvents();
     fetchDocuments();
     fetchContacts();
     fetchCategories();
-    setEvents(caseData.events || []);
     fetchSharedUsers();
-  }, [caseData, fetchEmails, fetchDocuments, fetchContacts, fetchCategories]);
+  }, [
+    caseData,
+    fetchEmails,
+    fetchEvents,
+    fetchDocuments,
+    fetchContacts,
+    fetchCategories,
+  ]);
 
   const fetchSharedUsers = async () => {
     try {
@@ -256,13 +274,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
         eventId,
         contactId,
       );
-      if (success) {
-        // Refresh events to get updated contact_id
-        const fetchedEvents = await eventController.fetchEventsByCase(
-          caseData.id,
-        );
-        setEvents(fetchedEvents || []);
-      }
+      if (success) await fetchEvents();
     } catch (error) {
       console.error("Error assigning contact to event:", error);
     }
@@ -295,13 +307,28 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
         categoryId,
       );
       if (success) {
-        const fetchedEvents = await eventController.fetchEventsByCase(
-          caseData.id,
-        );
-        setEvents(fetchedEvents || []);
+        await fetchEvents();
       }
     } catch (error) {
       console.error("Error assigning category to event:", error);
+    }
+  };
+
+  const handleEventDelete = async (eventId: string) => {
+    try {
+      const success = await eventController.removeEvent(eventId);
+      if (success) await fetchEvents();
+    } catch (error) {
+      console.error("Error deleting event:", error);
+    }
+  };
+
+  const handleEmailDelete = async (emailId: string) => {
+    try {
+      const success = await emailController.removeEmail(emailId);
+      if (success) await fetchEmails();
+    } catch (error) {
+      console.error("Error deleting email:", error);
     }
   };
 
@@ -694,15 +721,21 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                         <EmailCard
                           email={item as Email}
                           onUpdate={handleEmailUpdate}
+                          onDelete={handleEmailDelete}
                           contacts={contacts}
                           onContactAssign={handleEmailContactAssign}
+                          categories={categories}
+                          onCategoryAssign={handleEmailCategoryAssign}
                         />
                       ) : item.event_type === "Event" ? (
                         <EventCard
                           event={item as Event}
                           onUpdate={handleEventUpdate}
+                          onDelete={handleEventDelete}
                           contacts={contacts}
                           onContactAssign={handleEventContactAssign}
+                          categories={categories}
+                          onCategoryAssign={handleEventCategoryAssign}
                         />
                       ) : (
                         <DocumentCard

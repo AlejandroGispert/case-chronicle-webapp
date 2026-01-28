@@ -1,5 +1,7 @@
 import { caseModel } from "../models/caseModel";
 import { CreateCaseInput } from "../models/types";
+import { requireAuth } from "../auth/authorization";
+import { getAuthService } from "../services";
 
 export const caseController = {
   async fetchAllCases() {
@@ -23,6 +25,9 @@ export const caseController = {
   },
 
   async removeCase(caseId: string) {
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    requireAuth(user);
     return await caseModel.deleteCase(caseId);
   },
 

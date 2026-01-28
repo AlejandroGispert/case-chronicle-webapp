@@ -276,7 +276,7 @@ SameSite=strict or lax
 
 CORS explicitly configured
 
-🧪 Testing Standards
+🧪 Testing Standards - Controllers unit-testable
 
 **CRITICAL:** All new features, buttons, and important user flows MUST have E2E tests.
 
@@ -323,7 +323,7 @@ When adding new functionality, the agent MUST:
    - Never use real user emails, names, or PII in tests
    - Test data should be clearly marked as test fixtures
 
-### Unit Testing
+### Unit Testing - No test depends directly on Supabase
 
 - Controllers unit-testable
 - Services mockable
