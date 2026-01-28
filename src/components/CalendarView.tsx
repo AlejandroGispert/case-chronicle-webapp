@@ -17,6 +17,22 @@ import { cn } from "@/lib/utils";
 const FROM_YEAR = new Date().getFullYear() - 10;
 const TO_YEAR = new Date().getFullYear() + 10;
 
+function toDateKey(value: string | null | undefined): string | null {
+  if (!value || typeof value !== "string") return null;
+  const s = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  try {
+    if (s.includes("T")) {
+      const d = new Date(s);
+      return isValid(d) ? format(d, "yyyy-MM-dd") : null;
+    }
+    const p = parse(s, "MM/dd/yyyy", new Date());
+    return isValid(p) ? format(p, "yyyy-MM-dd") : null;
+  } catch {
+    return null;
+  }
+}
+
 interface CalendarViewProps {
   className?: string;
   caseId?: string;
@@ -72,60 +88,17 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
   const itemsByDate = useMemo(() => {
     const grouped: Record<string, { emails: Email[]; events: Event[] }> = {};
 
-    // Process emails
     emails.forEach((email) => {
-      if (!email.date) return;
-
-      let dateKey: string;
-      try {
-        // Try to parse the date
-        if (email.date.includes("T")) {
-          dateKey = format(new Date(email.date), "yyyy-MM-dd");
-        } else if (email.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-          dateKey = email.date;
-        } else {
-          const parsed = parse(email.date, "MM/dd/yyyy", new Date());
-          if (isValid(parsed)) {
-            dateKey = format(parsed, "yyyy-MM-dd");
-          } else {
-            return;
-          }
-        }
-      } catch {
-        return;
-      }
-
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = { emails: [], events: [] };
-      }
+      const dateKey = toDateKey(email.date);
+      if (!dateKey) return;
+      if (!grouped[dateKey]) grouped[dateKey] = { emails: [], events: [] };
       grouped[dateKey].emails.push(email);
     });
 
-    // Process events
     events.forEach((event) => {
-      if (!event.date) return;
-
-      let dateKey: string;
-      try {
-        if (event.date.includes("T")) {
-          dateKey = format(new Date(event.date), "yyyy-MM-dd");
-        } else if (event.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-          dateKey = event.date;
-        } else {
-          const parsed = parse(event.date, "MM/dd/yyyy", new Date());
-          if (isValid(parsed)) {
-            dateKey = format(parsed, "yyyy-MM-dd");
-          } else {
-            return;
-          }
-        }
-      } catch {
-        return;
-      }
-
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = { emails: [], events: [] };
-      }
+      const dateKey = toDateKey(event.date);
+      if (!dateKey) return;
+      if (!grouped[dateKey]) grouped[dateKey] = { emails: [], events: [] };
       grouped[dateKey].events.push(event);
     });
 
@@ -143,14 +116,16 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
   // Sort entries by time (events: date+time; emails: date)
   const sortedSelectedDateItems = useMemo(() => {
     const { emails: em, events: ev } = selectedDateItems;
+    const timeStr = (t: string | null | undefined) =>
+      (t ?? "00:00").slice(0, 5);
     const sortEvents = [...ev].sort((a, b) => {
       const tA = parse(
-        `${a.date} ${a.time ?? "00:00"}`,
+        `${a.date} ${timeStr(a.time)}`,
         "yyyy-MM-dd HH:mm",
         new Date(),
       );
       const tB = parse(
-        `${b.date} ${b.time ?? "00:00"}`,
+        `${b.date} ${timeStr(b.time)}`,
         "yyyy-MM-dd HH:mm",
         new Date(),
       );
@@ -263,52 +238,21 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
         <div className="lg:col-span-2">
           <Card>
             <CardContent className="p-3 sm:p-6">
-              <div className="relative [&_.rdp-day]:relative">
+              <div className="relative [&_.rdp-day]:relative calendar-day-dots">
                 <style>{`
-                  /* Email indicator (yellow) */
-                  .rdp-day.has-emails:not(.has-events)::after {
-                    content: '';
-                    position: absolute;
-                    bottom: 2px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 4px;
-                    height: 4px;
-                    border-radius: 50%;
-                    background-color: rgb(234, 179, 8);
+                  /* Days with entries: background color (selected/today keep their style) */
+                  .calendar-day-dots .rdp-day.has-events:not([aria-selected="true"]) {
+                    background-color: #E4E7F0;
                   }
-                  /* Event indicator (blue) */
-                  .rdp-day.has-events:not(.has-emails)::after {
-                    content: '';
-                    position: absolute;
-                    bottom: 2px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 4px;
-                    height: 4px;
-                    border-radius: 50%;
-                    background-color: rgb(59, 130, 246);
+                  .calendar-day-dots .rdp-day.has-emails:not(.has-events):not([aria-selected="true"]) {
+                    background-color: #FEF3C7;
                   }
-                  /* Both indicators */
-                  .rdp-day.has-emails.has-events::after {
-                    content: '';
-                    position: absolute;
-                    bottom: 2px;
-                    left: calc(50% - 3px);
-                    width: 4px;
-                    height: 4px;
-                    border-radius: 50%;
-                    background-color: rgb(234, 179, 8);
+                  .calendar-day-dots .rdp-day.has-emails.has-events:not([aria-selected="true"]) {
+                    background-color: #E4E7F0;
                   }
-                  .rdp-day.has-emails.has-events::before {
-                    content: '';
-                    position: absolute;
-                    bottom: 2px;
-                    left: calc(50% + 3px);
-                    width: 4px;
-                    height: 4px;
-                    border-radius: 50%;
-                    background-color: rgb(59, 130, 246);
+                  .calendar-day-dots .rdp-day.has-events:hover:not([aria-selected="true"]),
+                  .calendar-day-dots .rdp-day.has-emails:hover:not([aria-selected="true"]) {
+                    background-color: #D1D5E4;
                   }
                 `}</style>
                 <Calendar
@@ -319,9 +263,10 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
                   onMonthChange={setMonth}
                   modifiers={modifiers}
                   modifiersClassNames={modifiersClassNames}
-                  captionLayout="dropdown-buttons"
+                  captionLayout="dropdown"
                   fromYear={FROM_YEAR}
                   toYear={TO_YEAR}
+                  numberOfMonths={1}
                   className="rounded-md border"
                 />
               </div>
