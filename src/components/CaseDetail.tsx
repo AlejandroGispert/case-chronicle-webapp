@@ -39,9 +39,11 @@ import { documentController } from "@/backend/controllers/documentController";
 import { contactController } from "@/backend/controllers/contactController";
 import { categoryController } from "@/backend/controllers/categoryController";
 import { CaseDocument } from "@/backend/models/documentModel";
-import { Contact, Category } from "@/backend/models/types";
+import { Contact, Category, Profile } from "@/backend/models/types";
 import { Attachment } from "../types";
 import NewCategoryModal from "./NewCategoryModal";
+import { caseShareController } from "@/backend/controllers/caseShareController";
+import { Share2 } from "lucide-react";
 
 interface CaseDetailProps {
   caseData: Case;
@@ -66,6 +68,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [sharedUsers, setSharedUsers] = useState<Profile[]>([]);
 
   const fetchEmails = useCallback(async () => {
     try {
@@ -158,7 +161,17 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
     fetchContacts();
     fetchCategories();
     setEvents(caseData.events || []);
+    fetchSharedUsers();
   }, [caseData, fetchEmails, fetchDocuments, fetchContacts, fetchCategories]);
+
+  const fetchSharedUsers = async () => {
+    try {
+      const users = await caseShareController.getSharedUsers(caseData.id);
+      setSharedUsers(users);
+    } catch (error) {
+      console.error("Error fetching shared users:", error);
+    }
+  };
 
   useEffect(() => {
     console.log("Categories state updated:", categories);
@@ -484,6 +497,33 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
             </div>
           </div>
         </div>
+
+        {sharedUsers.length > 0 && (
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-start gap-2">
+              <Share2 className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-blue-900 mb-2">
+                  Shared with:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {sharedUsers.map((user) => (
+                    <Badge
+                      key={user.id}
+                      variant="secondary"
+                      className="bg-blue-100 text-blue-800"
+                    >
+                      {user.email}
+                      {user.first_name || user.last_name
+                        ? ` (${user.first_name} ${user.last_name})`
+                        : ""}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Separator className="my-6" />
 

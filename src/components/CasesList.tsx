@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner"; // You might need to create or import this
 import NewCaseModal from "./NewCaseModal";
 import NewEventModal from "./NewEventModal";
+import ShareCaseModal from "./ShareCaseModal";
 import { FileText } from "lucide-react";
 
 interface CasesListProps {
@@ -213,10 +214,14 @@ const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {
                   </p>
                 </div>
                 {onAddEvent && (
-                  <div className="mt-3 pt-3 border-t">
+                  <div className="mt-3 pt-3 border-t flex gap-2">
                     <NewEventModal
                       caseId={caseItem.id}
                       onAddEvent={onAddEvent}
+                    />
+                    <ShareCaseModal
+                      caseId={caseItem.id}
+                      caseTitle={caseItem.title}
                     />
                   </div>
                 )}
