@@ -64,7 +64,6 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const [filterType, setFilterType] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [groupBy, setGroupBy] = useState<string>("date");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -455,13 +454,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
 
   const groupedItems = filteredItems.reduce(
     (acc, item) => {
-      const key =
-        groupBy === "date"
-          ? item.date
-          : groupBy === "type"
-            ? item.event_type
-            : "all";
-
+      const key = item.date;
       if (!acc[key]) {
         acc[key] = [];
       }
@@ -657,20 +650,6 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Group By</label>
-                  <Select value={groupBy} onValueChange={setGroupBy}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Group by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="date">Date</SelectItem>
-                      <SelectItem value="type">Type</SelectItem>
-                      <SelectItem value="none">No Grouping</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
                   <label className="text-sm font-medium">Search</label>
                   <Input
                     placeholder="Search in communications..."
@@ -700,19 +679,15 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
           <div className="space-y-6">
             {Object.entries(groupedItems).map(([group, items]) => (
               <div key={group} className="space-y-4">
-                {groupBy !== "none" && (
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                    <h4 className="text-sm font-medium text-muted-foreground min-w-0 break-words">
-                      {groupBy === "date"
-                        ? format(new Date(group), "MMMM d, yyyy")
-                        : group}
-                    </h4>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <h4 className="text-sm font-medium text-muted-foreground min-w-0 break-words">
+                    {format(new Date(group), "MMMM d, yyyy")}
+                  </h4>
                     <Separator className="flex-1 hidden sm:block" />
-                    <span className="text-sm text-muted-foreground flex-shrink-0">
-                      {items.length} items
-                    </span>
-                  </div>
-                )}
+                  <span className="text-sm text-muted-foreground flex-shrink-0">
+                    {items.length} items
+                  </span>
+                </div>
 
                 <div className="space-y-4">
                   {items.map((item) => (
