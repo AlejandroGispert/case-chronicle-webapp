@@ -1,3 +1,12 @@
+/**
+ * CaseHandlerAccess Component
+ * 
+ * NOTE: This feature has been hidden from the login page but kept separate
+ * for potential removal. The component and related files in src/components/caseHandler/
+ * and src/backend/controllers/caseAccessController.ts can be removed if this
+ * feature is no longer needed.
+ */
+
 import { useState } from "react";
 import {
   Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription

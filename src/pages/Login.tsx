@@ -15,7 +15,7 @@ import { Eye, EyeOff, Lock, User, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import CaseHandlerAccess from "@/components/caseHandler/CaseHandlerAccess";
+// CaseHandlerAccess feature is kept separate in src/components/caseHandler/ for potential removal
 
 const Login = () => {
   // Login state
@@ -96,10 +96,9 @@ const Login = () => {
             value={activeTab}
             onValueChange={setActiveTab}
           >
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              <TabsTrigger value="case">View Case</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">
@@ -378,19 +377,6 @@ const Login = () => {
                   </Button>
                 </CardFooter>
               </form>
-            </TabsContent>
-            <TabsContent value="case">
-              <CardHeader>
-                <CardTitle className="text-2xl">
-                  Access a Case (External)
-                </CardTitle>
-                <CardDescription>
-                  Enter your case access code below
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CaseHandlerAccess />
-              </CardContent>
             </TabsContent>
           </Tabs>
         </Card>
