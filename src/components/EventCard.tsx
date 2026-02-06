@@ -40,6 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface EventCardProps {
   event: Event;
@@ -68,6 +69,7 @@ const EventCard = ({
   const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const assignedContact = contacts.find((c) => c.id === event.contact_id);
   const assignedCategory = categories.find((c) => c.id === event.category_id);
@@ -79,6 +81,22 @@ const EventCard = ({
   }, [event]);
 
   const handleSave = () => {
+    // Validate date is not more than 2 years in the future
+    if (editedDate) {
+      const selectedDate = new Date(editedDate);
+      const maxDate = new Date();
+      maxDate.setFullYear(maxDate.getFullYear() + 2);
+      
+      if (selectedDate > maxDate) {
+        toast({
+          title: "Invalid Date",
+          description: "Date cannot be more than 2 years in the future.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const updatedEvent = {
       ...currentEvent,
       date: editedDate,
@@ -309,6 +327,11 @@ const EventCard = ({
                     value={editedDate}
                     onChange={(e) => setEditedDate(e.target.value)}
                     className="h-7 text-xs w-full sm:w-auto"
+                    max={(() => {
+                      const maxDate = new Date();
+                      maxDate.setFullYear(maxDate.getFullYear() + 2);
+                      return maxDate.toISOString().split('T')[0];
+                    })()}
                   />
                   <Input
                     type="time"

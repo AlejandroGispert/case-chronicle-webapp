@@ -107,6 +107,20 @@ const Dashboard = () => {
     }
 
     try {
+      // Validate date is not more than 2 years in the future
+      const selectedDate = new Date(eventData.date);
+      const maxDate = new Date();
+      maxDate.setFullYear(maxDate.getFullYear() + 2);
+      
+      if (selectedDate > maxDate) {
+        toast({
+          title: "Invalid Date",
+          description: "Date cannot be more than 2 years in the future.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const formattedDate = format(new Date(eventData.date), "yyyy-MM-dd");
       const formattedTime =
         typeof eventData.time === "string" ? eventData.time : "12:00";

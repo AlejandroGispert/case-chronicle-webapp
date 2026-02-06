@@ -50,10 +50,28 @@ const NewEventModal = ({
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
 
+    const eventDate = formData.get("eventDate") as string;
+    
+    // Validate date is not more than 2 years in the future
+    if (eventDate) {
+      const selectedDate = new Date(eventDate);
+      const maxDate = new Date();
+      maxDate.setFullYear(maxDate.getFullYear() + 2);
+      
+      if (selectedDate > maxDate) {
+        toast({
+          title: "Invalid Date",
+          description: "Date cannot be more than 2 years in the future.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const eventData = {
       id: uuidv4(),
       title: formData.get("eventTitle"),
-      date: formData.get("eventDate"),
+      date: eventDate,
       time: formData.get("eventTime"),
       description: formData.get("eventDescription"),
       event_type: "event",
@@ -124,7 +142,17 @@ const NewEventModal = ({
           </div>
           <div className="space-y-2">
             <Label htmlFor="eventDate">Date</Label>
-            <Input id="eventDate" name="eventDate" type="date" required />
+            <Input 
+              id="eventDate" 
+              name="eventDate" 
+              type="date" 
+              required
+              max={(() => {
+                const maxDate = new Date();
+                maxDate.setFullYear(maxDate.getFullYear() + 2);
+                return maxDate.toISOString().split('T')[0];
+              })()}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="eventTime">Time</Label>

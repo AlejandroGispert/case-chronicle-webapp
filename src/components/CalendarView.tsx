@@ -55,6 +55,19 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
         setLoading(true);
         if (caseId) {
           const eventsData = await eventController.fetchEventsByCase(caseId);
+          console.log(`[CalendarView] Fetched ${eventsData?.length ?? 0} events for case ${caseId}:`, eventsData);
+          // Log each event's date to debug
+          if (eventsData && eventsData.length > 0) {
+            eventsData.forEach((event, idx) => {
+              console.log(`[CalendarView] Event ${idx}:`, {
+                id: event.id,
+                date: event.date,
+                dateType: typeof event.date,
+                dateKey: toDateKey(event.date),
+                fullEvent: event
+              });
+            });
+          }
           setEvents(eventsData ?? []);
           setEmails([]);
         } else {
@@ -90,18 +103,35 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
 
     emails.forEach((email) => {
       const dateKey = toDateKey(email.date);
-      if (!dateKey) return;
+      if (!dateKey) {
+        console.warn("[CalendarView] Skipping email with invalid date:", email.date, email);
+        return;
+      }
       if (!grouped[dateKey]) grouped[dateKey] = { emails: [], events: [] };
       grouped[dateKey].emails.push(email);
     });
 
     events.forEach((event) => {
+      console.log("[CalendarView] Processing event:", {
+        id: event.id,
+        date: event.date,
+        dateType: typeof event.date,
+        dateValue: event.date,
+        fullEvent: event
+      });
       const dateKey = toDateKey(event.date);
-      if (!dateKey) return;
+      console.log("[CalendarView] Date key result:", dateKey);
+      if (!dateKey) {
+        console.warn("[CalendarView] Skipping event with invalid date:", event.date, event);
+        return;
+      }
       if (!grouped[dateKey]) grouped[dateKey] = { emails: [], events: [] };
       grouped[dateKey].events.push(event);
+      console.log("[CalendarView] Added event to date:", dateKey);
     });
 
+    console.log("[CalendarView] Grouped items by date:", grouped);
+    console.log("[CalendarView] Total dates with items:", Object.keys(grouped).length);
     return grouped;
   }, [emails, events]);
 
@@ -168,10 +198,19 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
           if (dayItems.events.length > 0) {
             datesWithEvents.push(date);
           }
+        } else {
+          console.warn("[CalendarView] Invalid date parsed from key:", dateKey);
         }
-      } catch {
-        // Skip invalid dates
+      } catch (error) {
+        console.warn("[CalendarView] Error parsing date key:", dateKey, error);
       }
+    });
+
+    console.log("[CalendarView] Modifiers calculated:", {
+      hasEvents: datesWithEvents.length,
+      hasEmails: datesWithEmails.length,
+      hasItems: datesWithItems.length,
+      eventDates: datesWithEvents.map(d => format(d, "yyyy-MM-dd")),
     });
 
     return {
@@ -182,7 +221,7 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
   }, [itemsByDate]);
 
   const modifiersClassNames = {
-    hasItems: "relative",
+    hasItems: "relative has-items",
     hasEmails: "has-emails",
     hasEvents: "has-events",
   };
@@ -342,22 +381,37 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
                   }
 
                   /* Days with entries: background color (selected/today keep their style) */
-                  .calendar-day-dots button.day.has-events:not(.day_selected):not(.day_today) {
+                  /* Target multiple possible class combinations for react-day-picker compatibility */
+                  .calendar-day-dots button.day.has-events:not(.day_selected):not(.day_today),
+                  .calendar-day-dots .day.has-events:not(.day_selected):not(.day_today),
+                  .calendar-day-dots [role="gridcell"] button.has-events:not(.day_selected):not(.day_today),
+                  .calendar-day-dots button.has-events:not(.day_selected):not(.day_today) {
                     background-color: #E4E7F0 !important;
                   }
-                  .calendar-day-dots button.day.has-emails:not(.has-events):not(.day_selected):not(.day_today) {
+                  .calendar-day-dots button.day.has-emails:not(.has-events):not(.day_selected):not(.day_today),
+                  .calendar-day-dots .day.has-emails:not(.has-events):not(.day_selected):not(.day_today),
+                  .calendar-day-dots [role="gridcell"] button.has-emails:not(.has-events):not(.day_selected):not(.day_today),
+                  .calendar-day-dots button.has-emails:not(.has-events):not(.day_selected):not(.day_today) {
                     background-color: #FEF3C7 !important;
                   }
-                  .calendar-day-dots button.day.has-emails.has-events:not(.day_selected):not(.day_today) {
+                  .calendar-day-dots button.day.has-emails.has-events:not(.day_selected):not(.day_today),
+                  .calendar-day-dots .day.has-emails.has-events:not(.day_selected):not(.day_today),
+                  .calendar-day-dots button.has-emails.has-events:not(.day_selected):not(.day_today) {
                     background-color: #E4E7F0 !important;
                   }
                   .calendar-day-dots button.day.has-events:hover:not(.day_selected):not(.day_today),
-                  .calendar-day-dots button.day.has-emails:hover:not(.day_selected):not(.day_today) {
+                  .calendar-day-dots button.day.has-emails:hover:not(.day_selected):not(.day_today),
+                  .calendar-day-dots .day.has-events:hover:not(.day_selected):not(.day_today),
+                  .calendar-day-dots .day.has-emails:hover:not(.day_selected):not(.day_today),
+                  .calendar-day-dots button.has-events:hover:not(.day_selected):not(.day_today),
+                  .calendar-day-dots button.has-emails:hover:not(.day_selected):not(.day_today) {
                     background-color: #D1D5E4 !important;
                   }
 
                   /* Explicit indicator dot for days that have events */
-                  .calendar-day-dots button.day.has-events::after {
+                  .calendar-day-dots button.day.has-events::after,
+                  .calendar-day-dots .day.has-events::after,
+                  .calendar-day-dots button.has-events::after {
                     content: "" !important;
                     position: absolute !important;
                     bottom: 0.25rem !important;
@@ -372,7 +426,11 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
 
                   /* Ensure selected/today days still show properly */
                   .calendar-day-dots button.day.day_selected.has-events::after,
-                  .calendar-day-dots button.day.day_today.has-events::after {
+                  .calendar-day-dots button.day.day_today.has-events::after,
+                  .calendar-day-dots .day.day_selected.has-events::after,
+                  .calendar-day-dots .day.day_today.has-events::after,
+                  .calendar-day-dots button.day_selected.has-events::after,
+                  .calendar-day-dots button.day_today.has-events::after {
                     background-color: rgba(255, 255, 255, 0.9) !important;
                   }
 
@@ -423,6 +481,12 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
                     display: flex !important;
                     width: 100% !important;
                     justify-content: space-between !important;
+                  }
+
+                  /* Debug: Add border to see if modifier classes are applied */
+                  .calendar-day-dots button.has-events,
+                  .calendar-day-dots .day.has-events {
+                    border: 2px solid #4B6BFB !important;
                   }
                 `}</style>
                 <Calendar

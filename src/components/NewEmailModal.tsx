@@ -72,6 +72,22 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
       return;
     }
 
+    // Validate date is not more than 2 years in the future
+    if (date) {
+      const selectedDate = new Date(date);
+      const maxDate = new Date();
+      maxDate.setFullYear(maxDate.getFullYear() + 2);
+      
+      if (selectedDate > maxDate) {
+        toast({
+          title: "Invalid Date",
+          description: "Date cannot be more than 2 years in the future.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const emailData: Email = {
       id: uuidv4(),
       case_id: selectedCaseId,
@@ -165,6 +181,11 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
+                max={(() => {
+                  const maxDate = new Date();
+                  maxDate.setFullYear(maxDate.getFullYear() + 2);
+                  return maxDate.toISOString().split('T')[0];
+                })()}
               />
             </div>
             <div className="space-y-2">
