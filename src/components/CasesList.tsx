@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner"; // You might need to create or import this
 import NewCaseModal from "./NewCaseModal";
 import NewEventModal from "./NewEventModal";
-import ShareCaseModal from "./ShareCaseModal";
 import { FileText, CalendarDays } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -231,14 +230,12 @@ const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <CalendarDays className="h-4 w-4 mr-2" />
-                        <span className="hidden sm:inline">Calendar</span>
+                        <span className="hidden sm:inline">
+                          Show in Calendar
+                        </span>
                         <span className="sm:hidden">Cal.</span>
                       </Link>
                     </Button>
-                    <ShareCaseModal
-                      caseId={caseItem.id}
-                      caseTitle={caseItem.title}
-                    />
                   </div>
                 )}
               </CardContent>

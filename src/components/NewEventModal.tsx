@@ -51,13 +51,13 @@ const NewEventModal = ({
     const formData = new FormData(e.currentTarget as HTMLFormElement);
 
     const eventDate = formData.get("eventDate") as string;
-    
+
     // Validate date is not more than 2 years in the future
     if (eventDate) {
       const selectedDate = new Date(eventDate);
       const maxDate = new Date();
       maxDate.setFullYear(maxDate.getFullYear() + 2);
-      
+
       if (selectedDate > maxDate) {
         toast({
           title: "Invalid Date",
@@ -98,7 +98,7 @@ const NewEventModal = ({
       <DialogTrigger asChild>
         <Button variant="secondary" size="sm" className="flex-shrink-0">
           <Calendar className="h-4 w-4 mr-2" />
-          <span className="hidden sm:inline">Register New Case Entry</span>
+          <span className="hidden sm:inline">New Entry</span>
           <span className="sm:hidden">New Entry</span>
         </Button>
       </DialogTrigger>
@@ -142,15 +142,15 @@ const NewEventModal = ({
           </div>
           <div className="space-y-2">
             <Label htmlFor="eventDate">Date</Label>
-            <Input 
-              id="eventDate" 
-              name="eventDate" 
-              type="date" 
+            <Input
+              id="eventDate"
+              name="eventDate"
+              type="date"
               required
               max={(() => {
                 const maxDate = new Date();
                 maxDate.setFullYear(maxDate.getFullYear() + 2);
-                return maxDate.toISOString().split('T')[0];
+                return maxDate.toISOString().split("T")[0];
               })()}
             />
           </div>
