@@ -67,7 +67,9 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [sharedUsers, setSharedUsers] = useState<Profile[]>([]);
+  const [sharedUsers, setSharedUsers] = useState<
+    import("@/backend/models/caseShareModel").SharedUserWithPermissions[]
+  >([]);
 
   const fetchEmails = useCallback(async () => {
     try {
@@ -537,6 +539,8 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                       {user.first_name || user.last_name
                         ? ` (${user.first_name} ${user.last_name})`
                         : ""}
+                      {" · "}
+                      {user.can_edit ? "Edit" : user.can_view ? "View" : "No access"}
                     </Badge>
                   ))}
                 </div>

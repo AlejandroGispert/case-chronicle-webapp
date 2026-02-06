@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +33,8 @@ const Login = () => {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") ?? undefined;
   const { toast } = useToast();
   const { login, signup, loginWithGoogle } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
@@ -41,7 +44,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(email, password, redirectTo);
     } catch (error) {
       // Error is handled in the auth context
     } finally {
@@ -51,7 +54,7 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      await loginWithGoogle();
+      await loginWithGoogle(redirectTo);
     } catch (error) {
       // Error is handled in the auth context
     }
@@ -71,7 +74,7 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      await signup(signupEmail, signupPassword, firstName, lastName);
+      await signup(signupEmail, signupPassword, firstName, lastName, redirectTo);
       setActiveTab("login");
     } catch (error) {
       // Error is handled in the auth context

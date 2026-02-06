@@ -13,13 +13,14 @@ import type { Session, User } from "@/backend/services/auth.types";
 
 type AuthContextType = {
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
+  login: (email: string, password: string, redirectTo?: string) => Promise<void>;
+  loginWithGoogle: (redirectTo?: string) => Promise<void>;
   signup: (
     email: string,
     password: string,
     firstName: string,
     lastName: string,
+    redirectTo?: string,
   ) => Promise<void>;
   logout: () => Promise<void>;
   user: User | null;
@@ -173,7 +174,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [handleAuthSuccess, handleSignOut]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, redirectTo?: string) => {
     setLoading(true);
     try {
       const { user } = await authController.login(email, password);
@@ -183,7 +184,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           title: "Login successful",
           description: "Welcome to Case Chronicle",
         });
-        navigate("/dashboard");
+        navigate(redirectTo || "/dashboard", { replace: true });
       }
     } catch (error: any) {
       toast({
@@ -197,9 +198,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = async (redirectTo?: string) => {
     try {
-      await authController.loginWithGoogle();
+      await authController.loginWithGoogle(redirectTo);
     } catch (error: any) {
       toast({
         title: "Google login failed",
@@ -215,6 +216,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     password: string,
     firstName: string,
     lastName: string,
+    redirectTo?: string,
   ) => {
     setLoading(true);
     try {
@@ -230,7 +232,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           title: "Account created",
           description: "Please check your email to verify your account",
         });
-        navigate("/login");
+        navigate(redirectTo || "/login", { replace: true });
       }
     } catch (error: any) {
       toast({

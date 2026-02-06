@@ -1,18 +1,49 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Layout from "../components/Layout";
 import ShareCaseModal from "../components/ShareCaseModal";
 import { caseController } from "@/backend/controllers/caseController";
+import { caseShareController } from "@/backend/controllers/caseShareController";
+import { caseShareInviteController } from "@/backend/controllers/caseShareInviteController";
 import { useToast } from "@/hooks/use-toast";
 import { Case } from "@/backend/models/types";
+import type { SharedUserWithPermissions } from "@/backend/models/caseShareModel";
+import type { PendingInvite } from "@/backend/models/caseShareInviteModel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, FileText } from "lucide-react";
+import { Share2, FileText, Eye, Pencil, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
 const ShareCase = () => {
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sharedUsersByCase, setSharedUsersByCase] = useState<
+    Record<string, SharedUserWithPermissions[]>
+  >({});
+  const [pendingInvitesByCase, setPendingInvitesByCase] = useState<
+    Record<string, PendingInvite[]>
+  >({});
   const { toast } = useToast();
+
+  const fetchSharedAndPending = useCallback(async (caseIds: string[]) => {
+    if (caseIds.length === 0) return { shared: {}, pending: {} };
+    const results = await Promise.all(
+      caseIds.map(async (id) => {
+        try {
+          const [users, invites] = await Promise.all([
+            caseShareController.getSharedUsers(id),
+            caseShareInviteController.getPendingInvites(id),
+          ]);
+          return { caseId: id, users, invites };
+        } catch {
+          return { caseId: id, users: [], invites: [] };
+        }
+      }),
+    );
+    return {
+      shared: Object.fromEntries(results.map((r) => [r.caseId, r.users])),
+      pending: Object.fromEntries(results.map((r) => [r.caseId, r.invites])),
+    };
+  }, []);
 
   useEffect(() => {
     const fetchCases = async () => {
@@ -20,6 +51,9 @@ const ShareCase = () => {
         setLoading(true);
         const casesData = await caseController.fetchAllCases();
         setCases(casesData);
+        const { shared, pending } = await fetchSharedAndPending(casesData.map((c) => c.id));
+        setSharedUsersByCase(shared);
+        setPendingInvitesByCase(pending);
       } catch (error: any) {
         console.error("Error fetching cases:", error);
         toast({
@@ -33,12 +67,14 @@ const ShareCase = () => {
     };
 
     fetchCases();
-  }, [toast]);
+  }, [toast, fetchSharedAndPending]);
 
-  const handleShareSuccess = () => {
-    // Optionally refresh the cases list if needed
-    // For now, we'll just let the modal handle the success state
-  };
+  const handleShareSuccess = useCallback(async () => {
+    const ids = cases.map((c) => c.id);
+    const { shared, pending } = await fetchSharedAndPending(ids);
+    setSharedUsersByCase(shared);
+    setPendingInvitesByCase(pending);
+  }, [cases, fetchSharedAndPending]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -132,7 +168,7 @@ const ShareCase = () => {
                     </p>
                   )}
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <div className="flex justify-end">
                     <ShareCaseModal
                       caseId={caseItem.id}
@@ -140,6 +176,58 @@ const ShareCase = () => {
                       onShareSuccess={handleShareSuccess}
                     />
                   </div>
+                  {(() => {
+                    const shared = sharedUsersByCase[caseItem.id] ?? [];
+                    const pending = pendingInvitesByCase[caseItem.id] ?? [];
+                    if (shared.length === 0 && pending.length === 0) return null;
+                    return (
+                      <div className="pt-3 border-t">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">
+                          Shared with
+                        </p>
+                        <ul className="space-y-1.5">
+                          {shared.map((u) => (
+                            <li
+                              key={u.id}
+                              className="flex items-center justify-between text-sm gap-2"
+                            >
+                              <span className="truncate">{u.email}</span>
+                              <Badge
+                                variant="outline"
+                                className="text-xs shrink-0"
+                              >
+                                {u.can_edit ? (
+                                  <>
+                                    <Pencil className="h-3 w-3 mr-1" /> Edit
+                                  </>
+                                ) : u.can_view ? (
+                                  <>
+                                    <Eye className="h-3 w-3 mr-1" /> View
+                                  </>
+                                ) : (
+                                  "No access"
+                                )}
+                              </Badge>
+                            </li>
+                          ))}
+                          {pending.map((inv) => (
+                            <li
+                              key={inv.id}
+                              className="flex items-center justify-between text-sm gap-2"
+                            >
+                              <span className="truncate">{inv.email}</span>
+                              <Badge
+                                variant="outline"
+                                className="text-xs shrink-0 border-amber-300 text-amber-700"
+                              >
+                                <Clock className="h-3 w-3 mr-1" /> Invited
+                              </Badge>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })()}
                 </CardContent>
               </Card>
             ))}

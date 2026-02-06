@@ -14,7 +14,13 @@ export default function AuthCallback() {
         console.error("OAuth callback error: No session");
         navigate("/login");
       } else {
-        navigate("/dashboard");
+        const redirect = sessionStorage.getItem("auth_redirect_after");
+        if (redirect) {
+          sessionStorage.removeItem("auth_redirect_after");
+          navigate(redirect, { replace: true });
+        } else {
+          navigate("/dashboard", { replace: true });
+        }
       }
     };
 

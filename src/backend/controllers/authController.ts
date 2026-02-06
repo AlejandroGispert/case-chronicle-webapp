@@ -77,16 +77,19 @@ export const authController = {
     }
   },
   
-  async loginWithGoogle(redirectTo?: string) {
+  async loginWithGoogle(postAuthRedirect?: string) {
     try {
+      if (postAuthRedirect) {
+        sessionStorage.setItem("auth_redirect_after", postAuthRedirect);
+      }
       const authService = getAuthService();
-      const { error } = await authService.signInWithOAuth('google', {
-        redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
+      const { error } = await authService.signInWithOAuth("google", {
+        redirectTo: `${window.location.origin}/auth/callback`,
       });
       if (error) throw error;
       return true;
     } catch (error) {
-      console.error('Google login error:', error);
+      console.error("Google login error:", error);
       throw error;
     }
   },

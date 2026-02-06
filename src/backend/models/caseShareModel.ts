@@ -7,7 +7,15 @@ type CaseShare = {
   case_id: string;
   shared_with_user_id: string;
   shared_by_user_id: string;
+  can_view: boolean;
+  can_edit: boolean;
   created_at: string;
+};
+
+export type SharedUserWithPermissions = Profile & {
+  share_id: string;
+  can_view: boolean;
+  can_edit: boolean;
 };
 
 export const caseShareModel = {
@@ -17,6 +25,7 @@ export const caseShareModel = {
   async shareCaseWithUser(
     caseId: string,
     userEmail: string,
+    permissions?: { can_view?: boolean; can_edit?: boolean },
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const authService = getAuthService();
@@ -40,7 +49,7 @@ export const caseShareModel = {
       }
 
       if (!profile) {
-        return { success: false, error: "User not found with this email" };
+        return { success: false, error: "USER_NOT_FOUND" };
       }
 
       if (profile.id === currentUser.id) {
@@ -80,12 +89,17 @@ export const caseShareModel = {
       }
 
       // Create share record
+      const canView = permissions?.can_view ?? true;
+      const canEdit = permissions?.can_edit ?? false;
+
       const { error: insertError } = await db
         .from<CaseShare>("case_shares")
         .insert({
           case_id: caseId,
           shared_with_user_id: profile.id,
           shared_by_user_id: currentUser.id,
+          can_view: canView,
+          can_edit: canEdit,
           created_at: new Date().toISOString(),
         })
         .execute();
@@ -103,9 +117,9 @@ export const caseShareModel = {
   },
 
   /**
-   * Get all users a case is shared with
+   * Get all users a case is shared with, including their permissions
    */
-  async getSharedUsers(caseId: string): Promise<Profile[]> {
+  async getSharedUsers(caseId: string): Promise<SharedUserWithPermissions[]> {
     try {
       const authService = getAuthService();
       const { user } = await authService.getUser();
@@ -125,10 +139,10 @@ export const caseShareModel = {
         return [];
       }
 
-      // Get all shares for this case
+      // Get all shares for this case with permissions
       const { data: shares, error: sharesError } = await db
         .from<CaseShare>("case_shares")
-        .select("shared_with_user_id")
+        .select("id, shared_with_user_id, can_view, can_edit")
         .eq("case_id", caseId)
         .execute();
 
@@ -149,7 +163,17 @@ export const caseShareModel = {
         return [];
       }
 
-      return profiles || [];
+      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+      return shares.map((s) => {
+        const profile = profileMap.get(s.shared_with_user_id);
+        if (!profile) return null;
+        return {
+          ...profile,
+          share_id: s.id,
+          can_view: s.can_view ?? true,
+          can_edit: s.can_edit ?? false,
+        };
+      }).filter((u): u is SharedUserWithPermissions => u !== null);
     } catch (error) {
       console.error("Unexpected error getting shared users:", error);
       return [];
@@ -199,6 +223,55 @@ export const caseShareModel = {
     } catch (error) {
       console.error("Unexpected error unsharing case:", error);
       return false;
+    }
+  },
+
+  /**
+   * Update permissions for a shared user
+   */
+  async updatePermissions(
+    caseId: string,
+    sharedWithUserId: string,
+    permissions: { can_view: boolean; can_edit: boolean },
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      if (!user) return { success: false, error: "Not authenticated" };
+
+      const db = getDatabaseService();
+
+      // Verify case belongs to current user
+      const { data: caseData, error: caseError } = await db
+        .from("cases")
+        .select("*")
+        .eq("id", caseId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (caseError || !caseData) {
+        return { success: false, error: "Case not found or you do not have permission" };
+      }
+
+      const { error } = await db
+        .from<CaseShare>("case_shares")
+        .update({
+          can_view: permissions.can_view,
+          can_edit: permissions.can_edit,
+        })
+        .eq("case_id", caseId)
+        .eq("shared_with_user_id", sharedWithUserId)
+        .execute();
+
+      if (error) {
+        console.error("Error updating permissions:", error);
+        return { success: false, error: "Failed to update permissions" };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Unexpected error updating permissions:", error);
+      return { success: false, error: "Unexpected error occurred" };
     }
   },
 };

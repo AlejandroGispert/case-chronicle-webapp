@@ -17,6 +17,7 @@ import Settings from "./pages/Settings";
 import Index from "./pages/Index";
 import Contacts from "./pages/Contacts";
 import ShareCase from "./pages/ShareCase";
+import InviteRedeem from "./pages/InviteRedeem";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -31,6 +32,7 @@ const App = () => {
             <Routes>
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
+              <Route path="/invite/:token" element={<InviteRedeem />} />
               
               {/* Redirect root to dashboard if authenticated, otherwise to login */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
