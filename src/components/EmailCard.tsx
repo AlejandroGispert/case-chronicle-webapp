@@ -36,6 +36,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -155,21 +160,42 @@ const EmailCard = ({
               </div>
 
               <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setHighlightMode(!highlightMode)}
+                      className="h-7 w-7 p-0"
+                    >
+                      <Highlighter className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Highlight text</p>
+                  </TooltipContent>
+                </Tooltip>
                 <div className="flex items-center gap-2">
                   <Popover
                     open={contactPopoverOpen}
                     onOpenChange={setContactPopoverOpen}
                   >
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0"
-                        title="Assign contact"
-                      >
-                        <User className="h-3.5 w-3.5 text-muted-foreground" />
-                      </Button>
-                    </PopoverTrigger>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                          >
+                            <User className="h-3.5 w-3.5 text-muted-foreground" />
+                          </Button>
+                        </PopoverTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Assign contact</p>
+                      </TooltipContent>
+                    </Tooltip>
                     <PopoverContent className="w-64 p-2" align="start">
                       <Select
                         value={email.contact_id || "none"}
@@ -210,16 +236,22 @@ const EmailCard = ({
                     open={categoryPopoverOpen}
                     onOpenChange={setCategoryPopoverOpen}
                   >
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0"
-                        title="Assign category"
-                      >
-                        <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                      </Button>
-                    </PopoverTrigger>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                          >
+                            <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                          </Button>
+                        </PopoverTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Assign category</p>
+                      </TooltipContent>
+                    </Tooltip>
                     <PopoverContent className="w-64 p-2" align="start">
                       <Select
                         value={email.category_id || "none"}
@@ -324,48 +356,36 @@ const EmailCard = ({
                 </Button>
               ) : null}
 
-              <div className="mt-2 flex flex-wrap gap-2 items-center">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setHighlightMode(!highlightMode)}
-                  className="h-7 text-xs px-2"
-                >
-                  <Highlighter className="h-4 w-4 mr-1" />
-                  {highlightMode ? "Exit Highlight" : "Highlight Text"}
-                </Button>
-
-                {highlightMode && (
-                  <>
-                    <Button
-                      size="sm"
-                      onClick={() => applyHighlight("bg-yellow-200")}
-                    >
-                      Yellow
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => applyHighlight("bg-green-200")}
-                    >
-                      Green
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => applyHighlight("bg-pink-200")}
-                    >
-                      Pink
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSaveHighlight}
-                    >
-                      <Check className="h-4 w-4 mr-1" />
-                      Save Highlight
-                    </Button>
-                  </>
-                )}
-              </div>
+              {highlightMode && (
+                <div className="mt-2 flex flex-wrap gap-2 items-center">
+                  <Button
+                    size="sm"
+                    onClick={() => applyHighlight("bg-yellow-200")}
+                  >
+                    Yellow
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => applyHighlight("bg-green-200")}
+                  >
+                    Green
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => applyHighlight("bg-pink-200")}
+                  >
+                    Pink
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSaveHighlight}
+                  >
+                    <Check className="h-4 w-4 mr-1" />
+                    Save Highlight
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div className="text-left sm:text-right text-xs text-muted-foreground w-full sm:w-auto sm:whitespace-nowrap">

@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   Sidebar as SidebarComponent,
   SidebarContent,
@@ -17,18 +16,9 @@ import {
   Settings,
   Info,
   Users,
-  ChevronDown,
-  ChevronRight,
   Share2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { caseController } from "@/backend/controllers/caseController";
-import { Case } from "@/backend/models/types";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -36,29 +26,8 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
-  const [sharedCases, setSharedCases] = useState<Case[]>([]);
-  const [isSharedCasesOpen, setIsSharedCasesOpen] = useState(false);
-  const [isLoadingSharedCases, setIsLoadingSharedCases] = useState(false);
-
-  useEffect(() => {
-    const fetchSharedCases = async () => {
-      setIsLoadingSharedCases(true);
-      try {
-        const cases = await caseController.fetchSharedCases();
-        setSharedCases(cases);
-      } catch (error) {
-        console.error("Error fetching shared cases:", error);
-        setSharedCases([]);
-      } finally {
-        setIsLoadingSharedCases(false);
-      }
-    };
-
-    fetchSharedCases();
-  }, []);
-
   return (
-    <SidebarComponent className={`border-r h-full`}>
+    <SidebarComponent className="h-full [&>div>div]:border-r-0 [&>div>div]:border-sidebar-border/0">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
@@ -104,6 +73,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/share-case" className="flex items-center">
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share Case
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -136,62 +113,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <Collapsible
-            open={isSharedCasesOpen}
-            onOpenChange={setIsSharedCasesOpen}
-          >
-            <CollapsibleTrigger asChild>
-              <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent rounded-md px-2 py-1 -mx-2">
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center">
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Shared Cases
-                  </div>
-                  {isSharedCasesOpen ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </div>
-              </SidebarGroupLabel>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {isLoadingSharedCases ? (
-                    <SidebarMenuItem>
-                      <div className="px-2 py-1 text-sm text-muted-foreground">
-                        Loading...
-                      </div>
-                    </SidebarMenuItem>
-                  ) : sharedCases.length === 0 ? (
-                    <SidebarMenuItem>
-                      <div className="px-2 py-1 text-sm text-muted-foreground">
-                        No shared cases
-                      </div>
-                    </SidebarMenuItem>
-                  ) : (
-                    sharedCases.map((caseItem) => (
-                      <SidebarMenuItem key={caseItem.id}>
-                        <SidebarMenuButton asChild>
-                          <Link
-                            to={`/case/${caseItem.id}?readonly=true`}
-                            className="flex items-center w-full"
-                          >
-                            <div className="h-2 w-2 rounded-full bg-blue-500 mr-2" />
-                            <span className="truncate">{caseItem.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))
-                  )}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </Collapsible>
         </SidebarGroup>
 
         <SidebarGroup>
