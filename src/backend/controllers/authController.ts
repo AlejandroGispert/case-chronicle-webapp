@@ -1,14 +1,18 @@
 import { getAuthService } from '../services';
 import { profileModel } from '../models/profileModel';
+import { logSuccess } from '../audit';
 
 export const authController = {
   async login(email: string, password: string) {
     try {
       const authService = getAuthService();
       const { user, session, error } = await authService.signInWithPassword(email, password);
-      
+
       if (error) throw error;
-      
+
+      if (user) {
+        await logSuccess(user.id, "login", { resource_type: "session" });
+      }
       return { user, session };
     } catch (error) {
       console.error('Login error:', error);
@@ -36,8 +40,12 @@ export const authController = {
   async logout() {
     try {
       const authService = getAuthService();
+      const { user } = await authService.getUser();
       const { error } = await authService.signOut();
       if (error) throw error;
+      if (user) {
+        await logSuccess(user.id, "logout", { resource_type: "session" });
+      }
       return true;
     } catch (error) {
       console.error('Logout error:', error);

@@ -3,10 +3,15 @@ import { CreateEmailInput, EmailAttachment, Email } from "../models/types";
 import { format } from "date-fns";
 import { getDatabaseService, getAuthService } from "../services";
 import { Email as ModelEmail } from "../models/types";
+import { requireAuth } from "../auth/authorization";
+import { logSuccess } from "../audit";
 
 export const emailController = {
   async fetchEmailsByCase(caseId: string) {
     try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      requireAuth(user);
       const emails = await emailModel.getEmailsByCase(caseId);
       console.log("Fetched emails:", emails);
       return emails;
@@ -18,6 +23,9 @@ export const emailController = {
 
   async fetchAllEmails() {
     try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      requireAuth(user);
       const emails = await emailModel.getAllEmails();
       console.log("Fetched all emails:", emails);
       return emails;
@@ -29,6 +37,9 @@ export const emailController = {
 
   async fetchUnassignedEmails() {
     try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      requireAuth(user);
       const emails = await emailModel.getUnassignedEmails();
       console.log("Fetched unassigned emails:", emails);
       return emails;
@@ -40,6 +51,9 @@ export const emailController = {
 
   async assignEmailToCase(emailId: string, caseId: string) {
     try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      requireAuth(user);
       return await emailModel.assignEmailToCase(emailId, caseId);
     } catch (error) {
       console.error("Error in assignEmailToCase:", error);
@@ -51,10 +65,7 @@ export const emailController = {
     try {
       const authService = getAuthService();
       const { user } = await authService.getUser();
-      if (!user) {
-        console.error("No authenticated user found");
-        return null;
-      }
+      requireAuth(user);
 
       // Use the provided date and time from emailData
       const emailWithAttachments: CreateEmailInput = {
@@ -67,7 +78,12 @@ export const emailController = {
 
       console.log("Creating email with data:", emailWithAttachments);
       const createdEmail = await emailModel.createEmail(emailWithAttachments);
-      console.log("Created email:", createdEmail);
+      if (createdEmail) {
+        await logSuccess(user.id, "data_create", {
+          resource_type: "email",
+          resource_id: createdEmail.id,
+        });
+      }
       return createdEmail;
     } catch (error) {
       console.error("Error in createNewEmail:", error);
@@ -77,7 +93,17 @@ export const emailController = {
 
   async removeEmail(emailId: string) {
     try {
-      return await emailModel.deleteEmail(emailId);
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      requireAuth(user);
+      const success = await emailModel.deleteEmail(emailId);
+      if (success) {
+        await logSuccess(user.id, "data_deletion", {
+          resource_type: "email",
+          resource_id: emailId,
+        });
+      }
+      return success;
     } catch (error) {
       console.error("Error in removeEmail:", error);
       return false;
@@ -88,7 +114,7 @@ export const emailController = {
     try {
       const authService = getAuthService();
       const { user } = await authService.getUser();
-      if (!user) return null;
+      requireAuth(user);
 
       const db = getDatabaseService();
       const { data, error } = await db
@@ -112,6 +138,9 @@ export const emailController = {
 
   async assignContactToEmail(emailId: string, contactId: string | null) {
     try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      requireAuth(user);
       return await emailModel.assignContactToEmail(emailId, contactId);
     } catch (error) {
       console.error("Error in assignContactToEmail:", error);
@@ -121,6 +150,9 @@ export const emailController = {
 
   async assignCategoryToEmail(emailId: string, categoryId: string | null) {
     try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      requireAuth(user);
       return await emailModel.assignCategoryToEmail(emailId, categoryId);
     } catch (error) {
       console.error("Error in assignCategoryToEmail:", error);

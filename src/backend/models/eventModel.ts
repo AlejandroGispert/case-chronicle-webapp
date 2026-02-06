@@ -14,6 +14,7 @@ export const eventModel = {
       .eq('case_id', caseId)
       .eq('user_id', user.id)
       .order('date', { ascending: false })
+      .limit(500)
       .execute();
       
     if (error) {
@@ -36,6 +37,7 @@ export const eventModel = {
       .select('*')
       .eq('user_id', user.id)
       .order('date', { ascending: false })
+      .limit(500)
       .execute();
       
     if (error) {

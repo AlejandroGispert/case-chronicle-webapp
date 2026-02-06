@@ -1,5 +1,7 @@
 import { documentModel, CaseDocument } from "@/backend/models/documentModel";
 import { getAuthService } from "../services";
+import { requireAuth } from "../auth/authorization";
+import { logSuccess } from "../audit";
 
 export const documentController = {
   async uploadDocumentToCase(
@@ -9,12 +11,15 @@ export const documentController = {
     try {
       const authService = getAuthService();
       const { user } = await authService.getUser();
-      if (!user) {
-        console.error("No authenticated user found");
-        return null;
+      requireAuth(user);
+      const result = await documentModel.uploadDocument(file, caseId, user.id);
+      if (result) {
+        await logSuccess(user.id, "file_upload", {
+          resource_type: "document",
+          resource_id: result.id,
+        });
       }
-
-      return await documentModel.uploadDocument(file, caseId, user.id);
+      return result;
     } catch (error) {
       console.error("Error in uploadDocumentToCase:", error);
       return null;
@@ -23,6 +28,9 @@ export const documentController = {
 
   async fetchDocumentsByCase(caseId: string): Promise<CaseDocument[]> {
     try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      requireAuth(user);
       return await documentModel.getDocumentsByCase(caseId);
     } catch (error) {
       console.error("Error in fetchDocumentsByCase:", error);
@@ -32,7 +40,17 @@ export const documentController = {
 
   async removeDocument(documentId: string): Promise<boolean> {
     try {
-      return await documentModel.deleteDocument(documentId);
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      requireAuth(user);
+      const success = await documentModel.deleteDocument(documentId);
+      if (success) {
+        await logSuccess(user.id, "data_deletion", {
+          resource_type: "document",
+          resource_id: documentId,
+        });
+      }
+      return success;
     } catch (error) {
       console.error("Error in removeDocument:", error);
       return false;

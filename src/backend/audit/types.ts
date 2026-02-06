@@ -26,6 +26,7 @@ export type AuditResourceType =
   | 'event'
   | 'contact'
   | 'document'
+  | 'category'
   | 'profile'
   | 'user'
   | 'session';

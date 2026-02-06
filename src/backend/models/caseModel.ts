@@ -13,6 +13,7 @@ export const caseModel = {
       .select("*")
       .eq("user_id", user.id)
       .order("date_created", { ascending: false })
+      .limit(500)
       .execute();
 
     if (error) {
@@ -35,6 +36,7 @@ export const caseModel = {
       .eq("user_id", user.id)
       .eq("status", status)
       .order("date_created", { ascending: false })
+      .limit(500)
       .execute();
 
     if (error) {

@@ -27,8 +27,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Settings as SettingsIcon, AlertTriangle, Trash2 } from "lucide-react";
+import { Settings as SettingsIcon, AlertTriangle, Trash2, Download } from "lucide-react";
 import { caseController } from "@/backend/controllers/caseController";
+import { dataExportController } from "@/backend/controllers/dataExportController";
 import { useToast } from "@/hooks/use-toast";
 
 type CaseOption = { id: string; title: string; number: string };
@@ -38,6 +39,7 @@ const Settings = () => {
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmTitle, setConfirmTitle] = useState("");
+  const [exportLoading, setExportLoading] = useState(false);
   const { toast } = useToast();
 
   const fetchCases = useCallback(async () => {
@@ -97,6 +99,33 @@ const Settings = () => {
     }
   };
 
+  const handleExportData = async () => {
+    setExportLoading(true);
+    try {
+      const json = await dataExportController.exportUserData();
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `case-chronicles-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast({
+        title: "Data exported",
+        description: "Your data has been downloaded as JSON.",
+      });
+    } catch (error) {
+      console.error("Export error:", error);
+      toast({
+        title: "Export failed",
+        description: "Could not export your data.",
+        variant: "destructive",
+      });
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="max-w-3xl mx-auto space-y-6 px-4 sm:px-6">
@@ -117,10 +146,21 @@ const Settings = () => {
               Configure your account preferences and profile information.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Settings options will be available here soon.
-            </p>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">
+                Export all your data as JSON (GDPR Art. 20 - data portability).
+              </p>
+              <Button
+                variant="outline"
+                onClick={handleExportData}
+                disabled={exportLoading}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                {exportLoading ? "Exporting…" : "Export my data"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

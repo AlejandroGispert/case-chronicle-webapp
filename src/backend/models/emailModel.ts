@@ -24,6 +24,7 @@ export const emailModel = {
         .eq("user_id", user.id)
         .order("date", { ascending: false })
         .order("time", { ascending: false })
+        .limit(500)
         .execute();
 
       if (error) {
@@ -57,6 +58,7 @@ export const emailModel = {
         .eq("user_id", user.id)
         .order("date", { ascending: false })
         .order("time", { ascending: false })
+        .limit(500)
         .execute();
 
       if (error) {
@@ -102,6 +104,7 @@ export const emailModel = {
         .eq("user_id", user.id)
         .order("date", { ascending: false })
         .order("time", { ascending: false })
+        .limit(500)
         .execute();
 
       if (error) {

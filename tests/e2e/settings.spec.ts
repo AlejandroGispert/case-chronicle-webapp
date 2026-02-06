@@ -19,6 +19,22 @@ test.describe("Settings - Destructive case deletion", () => {
     ).toBeVisible();
   });
 
+  test("shows Export my data button for GDPR when authenticated", async ({
+    page,
+  }) => {
+    await page.goto("/settings");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/login")) {
+      test.skip();
+      return;
+    }
+
+    await expect(
+      page.getByRole("button", { name: /export my data/i }),
+    ).toBeVisible({ timeout: 10000 });
+  });
+
   test("opens confirmation modal with selected case name", async ({ page }) => {
     await page.goto("/settings");
 

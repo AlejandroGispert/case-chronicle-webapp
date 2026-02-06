@@ -1,29 +1,57 @@
 import { eventModel } from '../models/eventModel';
 import { CreateEventInput, Event } from '../models/types';
 import { getDatabaseService, getAuthService } from '../services';
+import { requireAuth } from '../auth/authorization';
+import { logSuccess } from '../audit';
 
 export const eventController = {
   async fetchEventsByCase(caseId: string): Promise<Event[]> {
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    requireAuth(user);
     return await eventModel.getEventsByCase(caseId);
   },
 
   async fetchAllEvents(): Promise<Event[]> {
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    requireAuth(user);
     return await eventModel.getAllEvents();
   },
-  
+
   async createNewEvent(eventData: CreateEventInput): Promise<Event | null> {
-    return await eventModel.createEvent(eventData);
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    requireAuth(user);
+    const result = await eventModel.createEvent(eventData);
+    if (result) {
+      await logSuccess(user.id, "data_create", {
+        resource_type: "event",
+        resource_id: result.id,
+      });
+    }
+    return result;
   },
-  
+
   async removeEvent(eventId: string): Promise<boolean> {
-    return await eventModel.deleteEvent(eventId);
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    requireAuth(user);
+    const success = await eventModel.deleteEvent(eventId);
+    if (success) {
+      await logSuccess(user.id, "data_deletion", {
+        resource_type: "event",
+        resource_id: eventId,
+      });
+    }
+    return success;
   },
 
   async updateEvent(eventData: Partial<Event>) {
     try {
       const authService = getAuthService();
       const { user } = await authService.getUser();
-      if (!user) return null;
+      requireAuth(user);
 
       const db = getDatabaseService();
       const { data, error } = await db
@@ -47,6 +75,9 @@ export const eventController = {
 
   async assignContactToEvent(eventId: string, contactId: string | null) {
     try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      requireAuth(user);
       return await eventModel.assignContactToEvent(eventId, contactId);
     } catch (error) {
       console.error("Error in assignContactToEvent:", error);
@@ -56,6 +87,9 @@ export const eventController = {
 
   async assignCategoryToEvent(eventId: string, categoryId: string | null) {
     try {
+      const authService = getAuthService();
+      const { user } = await authService.getUser();
+      requireAuth(user);
       return await eventModel.assignCategoryToEvent(eventId, categoryId);
     } catch (error) {
       console.error("Error in assignCategoryToEvent:", error);
