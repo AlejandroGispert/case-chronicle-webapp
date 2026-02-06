@@ -238,21 +238,191 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
         <div className="lg:col-span-2">
           <Card>
             <CardContent className="p-3 sm:p-6">
-              <div className="relative [&_.rdp-day]:relative calendar-day-dots">
+              <div className="relative calendar-day-dots">
                 <style>{`
+                  /* Fix dropdown caption layout - center and align properly */
+                  .calendar-day-dots .rdp-caption {
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    gap: 1rem !important;
+                    margin-bottom: 1rem !important;
+                    flex-wrap: nowrap !important;
+                  }
+
+                  /* Hide the default caption label that shows "February 2026" */
+                  .calendar-day-dots .rdp-caption_label {
+                    display: none !important;
+                  }
+
+                  /* Style the dropdown container - ensure proper layout */
+                  .calendar-day-dots .rdp-dropdown {
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    gap: 0.5rem !important;
+                    margin: 0 !important;
+                  }
+
+                  /* Style the month and year dropdowns */
+                  .calendar-day-dots .rdp-dropdown_year,
+                  .calendar-day-dots .rdp-dropdown_month {
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    gap: 0.5rem !important;
+                    margin: 0 !important;
+                  }
+
+                  /* Style the select elements - clean appearance */
+                  .calendar-day-dots select.rdp-dropdown {
+                    appearance: none !important;
+                    -webkit-appearance: none !important;
+                    -moz-appearance: none !important;
+                    display: inline-block !important;
+                    padding: 0.5rem 2.5rem 0.5rem 0.75rem !important;
+                    border-radius: 0.375rem !important;
+                    border: 1px solid hsl(var(--input)) !important;
+                    background-color: hsl(var(--background)) !important;
+                    font-size: 0.875rem !important;
+                    font-weight: 500 !important;
+                    cursor: pointer !important;
+                    min-width: 120px !important;
+                    text-align: left !important;
+                    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+                    background-position: right 0.5rem center !important;
+                    background-repeat: no-repeat !important;
+                    background-size: 1rem !important;
+                    margin: 0 !important;
+                  }
+
+                  /* Hide any labels or text that appears before/after dropdowns */
+                  .calendar-day-dots .rdp-dropdown_month::before,
+                  .calendar-day-dots .rdp-dropdown_year::before,
+                  .calendar-day-dots .rdp-dropdown_month::after,
+                  .calendar-day-dots .rdp-dropdown_year::after {
+                    content: none !important;
+                  }
+
+                  /* Hide any label elements */
+                  .calendar-day-dots label {
+                    display: none !important;
+                  }
+
+                  /* Hide any text nodes that might be showing "Month:" or "Year:" */
+                  .calendar-day-dots .rdp-caption > *:not(.rdp-dropdown) {
+                    display: none !important;
+                  }
+
+                  /* Ensure dropdowns are the only visible elements in caption */
+                  .calendar-day-dots .rdp-caption > .rdp-dropdown {
+                    display: inline-flex !important;
+                  }
+
+                  /* Base day styling: larger, centered date numbers - target button inside cell */
+                  .calendar-day-dots button.day {
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    height: 2.75rem !important;
+                    width: 2.75rem !important;
+                    margin: 0 auto !important;
+                    border-radius: 9999px !important;
+                    font-size: 1rem !important;
+                    font-weight: 600 !important;
+                    position: relative !important;
+                    min-width: 2.75rem !important;
+                  }
+
+                  @media (min-width: 640px) {
+                    .calendar-day-dots button.day {
+                      height: 3rem !important;
+                      width: 3rem !important;
+                      min-width: 3rem !important;
+                      font-size: 1.1rem !important;
+                    }
+                  }
+
                   /* Days with entries: background color (selected/today keep their style) */
-                  .calendar-day-dots .rdp-day.has-events:not([aria-selected="true"]) {
-                    background-color: #E4E7F0;
+                  .calendar-day-dots button.day.has-events:not(.day_selected):not(.day_today) {
+                    background-color: #E4E7F0 !important;
                   }
-                  .calendar-day-dots .rdp-day.has-emails:not(.has-events):not([aria-selected="true"]) {
-                    background-color: #FEF3C7;
+                  .calendar-day-dots button.day.has-emails:not(.has-events):not(.day_selected):not(.day_today) {
+                    background-color: #FEF3C7 !important;
                   }
-                  .calendar-day-dots .rdp-day.has-emails.has-events:not([aria-selected="true"]) {
-                    background-color: #E4E7F0;
+                  .calendar-day-dots button.day.has-emails.has-events:not(.day_selected):not(.day_today) {
+                    background-color: #E4E7F0 !important;
                   }
-                  .calendar-day-dots .rdp-day.has-events:hover:not([aria-selected="true"]),
-                  .calendar-day-dots .rdp-day.has-emails:hover:not([aria-selected="true"]) {
-                    background-color: #D1D5E4;
+                  .calendar-day-dots button.day.has-events:hover:not(.day_selected):not(.day_today),
+                  .calendar-day-dots button.day.has-emails:hover:not(.day_selected):not(.day_today) {
+                    background-color: #D1D5E4 !important;
+                  }
+
+                  /* Explicit indicator dot for days that have events */
+                  .calendar-day-dots button.day.has-events::after {
+                    content: "" !important;
+                    position: absolute !important;
+                    bottom: 0.25rem !important;
+                    left: 50% !important;
+                    transform: translateX(-50%) !important;
+                    width: 0.4rem !important;
+                    height: 0.4rem !important;
+                    border-radius: 9999px !important;
+                    background-color: #4B6BFB !important;
+                    z-index: 10 !important;
+                  }
+
+                  /* Ensure selected/today days still show properly */
+                  .calendar-day-dots button.day.day_selected.has-events::after,
+                  .calendar-day-dots button.day.day_today.has-events::after {
+                    background-color: rgba(255, 255, 255, 0.9) !important;
+                  }
+
+                  /* Make sure cells accommodate larger buttons */
+                  .calendar-day-dots .cell {
+                    height: auto !important;
+                    width: auto !important;
+                    min-height: 2.75rem !important;
+                    min-width: 2.75rem !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                  }
+
+                  @media (min-width: 640px) {
+                    .calendar-day-dots .cell {
+                      min-height: 3rem !important;
+                      min-width: 3rem !important;
+                    }
+                  }
+
+                  /* Align header cells with day cells */
+                  .calendar-day-dots .head_cell {
+                    width: 2.75rem !important;
+                    min-width: 2.75rem !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    text-align: center !important;
+                  }
+
+                  @media (min-width: 640px) {
+                    .calendar-day-dots .head_cell {
+                      width: 3rem !important;
+                      min-width: 3rem !important;
+                    }
+                  }
+
+                  /* Ensure header row is properly aligned */
+                  .calendar-day-dots .head_row {
+                    display: flex !important;
+                    width: 100% !important;
+                    justify-content: space-between !important;
+                  }
+
+                  /* Ensure table rows align properly */
+                  .calendar-day-dots .row {
+                    display: flex !important;
+                    width: 100% !important;
+                    justify-content: space-between !important;
                   }
                 `}</style>
                 <Calendar
@@ -268,6 +438,13 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
                   toYear={TO_YEAR}
                   numberOfMonths={1}
                   className="rounded-md border"
+                  classNames={{
+                    day: cn(
+                      "h-11 w-11 text-base font-semibold",
+                      "sm:h-12 sm:w-12 sm:text-lg"
+                    ),
+                    cell: "h-11 w-11 sm:h-12 sm:w-12",
+                  }}
                 />
               </div>
             </CardContent>

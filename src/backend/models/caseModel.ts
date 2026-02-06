@@ -155,19 +155,19 @@ export const caseModel = {
         date_created: caseData.date_created || now.toISOString(),
       };
 
-      const { data, error } = await db
+      const result = await db
         .from<Case>("cases")
         .insert(preparedCaseData)
         .select()
         .single();
 
-      if (error) {
-        console.error("Error creating case:", error);
+      if (result.error) {
+        console.error("Error creating case:", result.error);
         return null;
       }
 
-      console.log("Case created successfully:", data);
-      return data;
+      console.log("Case created successfully:", result.data);
+      return result.data;
     } catch (err) {
       console.error("Unexpected error creating case:", err);
       return null;

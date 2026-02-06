@@ -17,7 +17,17 @@ export const caseController = {
   },
 
   async createNewCase(caseData: CreateCaseInput) {
-    return await caseModel.createCase(caseData);
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    requireAuth(user);
+    
+    // Ensure user_id matches authenticated user
+    const caseDataWithUser = {
+      ...caseData,
+      user_id: user.id,
+    };
+    
+    return await caseModel.createCase(caseDataWithUser);
   },
 
   async updateCaseDetails(caseId: string, updates: any) {

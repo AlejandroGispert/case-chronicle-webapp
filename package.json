@@ -1,7 +1,7 @@
 {
   "name": "vite_react_shadcn_ts",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,7 +13,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "test:e2e:codegen": "playwright codegen"
+    "test:e2e:codegen": "playwright codegen",
+    "notion:sync": "node scripts/notion/syncCalendarToNotion.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
