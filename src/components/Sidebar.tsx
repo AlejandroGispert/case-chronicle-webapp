@@ -27,7 +27,7 @@ interface SidebarProps {
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   return (
-    <SidebarComponent className="h-full [&>div>div]:border-r-0 [&>div>div]:border-sidebar-border/0">
+    <SidebarComponent className="h-full !border-r-0 [&>div>div:nth-child(2)]:!border-r-0 [&>div>div[data-sidebar='sidebar']]:!border-r-0">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>

@@ -146,3 +146,17 @@
     transform: translateY(0);
   }
 }
+
+/* Remove sidebar border-right - multiple selectors to ensure it works */
+[data-side="left"] > div:nth-child(2),
+.group[data-side="left"] > div:nth-child(2),
+[data-sidebar="sidebar"] {
+  border-right: none !important;
+}
+
+/* Also target the fixed positioned sidebar container */
+.fixed[data-side="left"],
+.fixed.group[data-side="left"] {
+  border-right: none !important;
+}
+
