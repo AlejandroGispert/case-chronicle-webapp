@@ -9,6 +9,7 @@ Your codebase follows a **clean MVC architecture** with clear separation of conc
 ## 📁 Architecture Layers
 
 ### 1. **Models** (`src/backend/models/`)
+
 **Responsibility:** Data access and business logic
 
 - Handle all database operations
@@ -24,6 +25,7 @@ Your codebase follows a **clean MVC architecture** with clear separation of conc
   - `caseAccessModel.ts` - Case access code operations
 
 **Example:**
+
 ```typescript
 // src/backend/models/caseModel.ts
 export const caseModel = {
@@ -31,13 +33,14 @@ export const caseModel = {
     const authService = getAuthService();
     const { user } = await authService.getUser();
     // ... database operations
-  }
-}
+  },
+};
 ```
 
 ---
 
 ### 2. **Controllers** (`src/backend/controllers/`)
+
 **Responsibility:** Request handling and orchestration
 
 - Act as intermediaries between Views and Models
@@ -54,6 +57,7 @@ export const caseModel = {
   - `caseAccessController.ts` - Case access operations
 
 **Example:**
+
 ```typescript
 // src/backend/controllers/caseController.ts
 export const caseController = {
@@ -62,13 +66,14 @@ export const caseController = {
   },
   async createNewCase(caseData: CreateCaseInput) {
     return await caseModel.createCase(caseData);
-  }
-}
+  },
+};
 ```
 
 ---
 
 ### 3. **Views** (`src/pages/` + `src/components/`)
+
 **Responsibility:** User interface and presentation
 
 - React components that render UI
@@ -77,7 +82,7 @@ export const caseController = {
 - Display data from controllers
 
 **Pages** (`src/pages/`):
-- `Dashboard.tsx` - Main dashboard
+
 - `Inbox.tsx` - Email inbox
 - `Contacts.tsx` - Contacts page
 - `Calendar.tsx` - Calendar view
@@ -85,11 +90,13 @@ export const caseController = {
 - etc.
 
 **Components** (`src/components/`):
+
 - Reusable UI components
 - Feature-specific components
 - UI library components (`ui/` folder)
 
 **Example:**
+
 ```typescript
 // src/pages/Dashboard.tsx
 import { caseController } from "@/backend/controllers/caseController";
@@ -103,7 +110,7 @@ const Dashboard = () => {
     fetchCases();
   }, []);
   // ... render UI
-}
+};
 ```
 
 ---
@@ -166,32 +173,36 @@ const Dashboard = () => {
 
 ## 📊 Architecture Compliance
 
-| MVC Component | Location | Status | Notes |
-|--------------|----------|--------|-------|
-| **Models** | `src/backend/models/` | ✅ Complete | All data operations |
-| **Views** | `src/pages/` + `src/components/` | ✅ Complete | React components |
-| **Controllers** | `src/backend/controllers/` | ✅ Complete | Business logic |
+| MVC Component   | Location                         | Status      | Notes               |
+| --------------- | -------------------------------- | ----------- | ------------------- |
+| **Models**      | `src/backend/models/`            | ✅ Complete | All data operations |
+| **Views**       | `src/pages/` + `src/components/` | ✅ Complete | React components    |
+| **Controllers** | `src/backend/controllers/`       | ✅ Complete | Business logic      |
 
 ---
 
 ## ✅ MVC Principles Followed
 
 ### 1. **Separation of Concerns**
+
 - ✅ Models handle data
 - ✅ Controllers handle business logic
 - ✅ Views handle presentation
 
 ### 2. **Single Responsibility**
+
 - ✅ Each model handles one domain (cases, emails, etc.)
 - ✅ Each controller handles one domain's operations
 - ✅ Components are focused and reusable
 
 ### 3. **Dependency Direction**
+
 - ✅ Views → Controllers → Models → Services
 - ✅ No circular dependencies
 - ✅ Clear data flow
 
 ### 4. **Abstraction**
+
 - ✅ Models use service interfaces (not direct Supabase)
 - ✅ Controllers don't know about database details
 - ✅ Views don't know about data sources
@@ -201,17 +212,22 @@ const Dashboard = () => {
 ## 🎯 Additional Architecture Patterns
 
 ### Service Layer Pattern
+
 Located in `src/backend/services/`:
+
 - Provides abstraction over external services
 - Allows easy backend migration
 - Implements dependency injection
 
 ### Context Pattern (React)
+
 Located in `src/contexts/`:
+
 - `AuthContext.tsx` - Global auth state
 - Provides shared state across components
 
 ### Component Composition
+
 - Reusable UI components in `src/components/ui/`
 - Feature components in `src/components/`
 - Page-level components in `src/pages/`
@@ -234,13 +250,15 @@ Located in `src/contexts/`:
 ### User Creates a Case
 
 1. **View** (`NewCaseModal.tsx`):
+
    ```typescript
    const handleSubmit = async () => {
      await caseController.createNewCase(formData);
-   }
+   };
    ```
 
 2. **Controller** (`caseController.ts`):
+
    ```typescript
    async createNewCase(caseData: CreateCaseInput) {
      return await caseModel.createCase(caseData);
@@ -248,6 +266,7 @@ Located in `src/contexts/`:
    ```
 
 3. **Model** (`caseModel.ts`):
+
    ```typescript
    async createCase(caseData: CreateCaseInput): Promise<Case | null> {
      const db = getDatabaseService();

@@ -604,6 +604,15 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
             <CollapsibleContent className="space-y-4 p-4 bg-muted/50 rounded-lg">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="space-y-2">
+                  <label className="text-sm font-medium">Search</label>
+                  <Input
+                    placeholder="Search in communications..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <label className="text-sm font-medium">Filter by Type</label>
                   <Select value={filterType} onValueChange={setFilterType}>
                     <SelectTrigger>
@@ -657,15 +666,6 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
                       )}
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Search</label>
-                  <Input
-                    placeholder="Search in communications..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
                 </div>
 
                 <div className="space-y-2">

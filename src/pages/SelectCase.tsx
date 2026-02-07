@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSelectedCase } from "@/contexts/SelectedCaseContext";
 import type { Case } from "@/backend/models/types";
 import { format } from "date-fns";
-import { Calendar, FileText, Check } from "lucide-react";
+import { Calendar, FileText, Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -82,11 +82,11 @@ const SelectCase = () => {
         {selectedCase && (
           <Card className="border-primary/50 bg-primary/5">
             <CardContent className="pt-4">
-              <div className="flex items-center gap-2 text-sm">
-                <Check className="h-4 w-4 text-primary" />
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Check className="h-4 w-4 text-primary shrink-0" />
                 <span className="font-medium">Selected:</span>
-                <span>{selectedCase.title}</span>
-                <div className="ml-auto flex gap-2">
+                <span className="min-w-0 truncate">{selectedCase.title}</span>
+                <div className="ml-auto flex flex-wrap items-center gap-2">
                   <Link to="/calendar">
                     <span className="inline-flex items-center gap-1 text-primary hover:underline text-sm">
                       <Calendar className="h-4 w-4" />
@@ -99,6 +99,14 @@ const SelectCase = () => {
                       Case details
                     </span>
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCase(null)}
+                    className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground text-sm"
+                  >
+                    <X className="h-4 w-4" />
+                    Deselect
+                  </button>
                 </div>
               </div>
             </CardContent>

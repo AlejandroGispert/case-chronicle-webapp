@@ -77,7 +77,7 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
       const selectedDate = new Date(date);
       const maxDate = new Date();
       maxDate.setFullYear(maxDate.getFullYear() + 2);
-      
+
       if (selectedDate > maxDate) {
         toast({
           title: "Invalid Date",
@@ -116,7 +116,7 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
       <DialogTrigger asChild>
         <Button variant="secondary" size="sm" className="flex-shrink-0">
           <Mail className="h-4 w-4 mr-2" />
-          <span className="hidden sm:inline">add new email to a case</span>
+          <span className="hidden sm:inline">New Email</span>
           <span className="sm:hidden">New Email</span>
         </Button>
       </DialogTrigger>
@@ -184,7 +184,7 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
                 max={(() => {
                   const maxDate = new Date();
                   maxDate.setFullYear(maxDate.getFullYear() + 2);
-                  return maxDate.toISOString().split('T')[0];
+                  return maxDate.toISOString().split("T")[0];
                 })()}
               />
             </div>
