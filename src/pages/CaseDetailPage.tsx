@@ -3,7 +3,7 @@ import { useParams, useSearchParams, Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import CaseDetail from "@/components/CaseDetail";
 import { caseController } from "@/backend/controllers/caseController";
-import { Event as DbEvent, CaseWithRelations } from "@/backend/models/types";
+import { CaseWithRelations } from "@/backend/models/types";
 import { Case } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -19,20 +19,7 @@ function mapCaseWithRelationsToAppCase(dbCase: CaseWithRelations): Case {
     status: dbCase.status as "active" | "pending" | "closed",
     dateCreated: dbCase.date_created,
     emails: dbCase.emails ?? [],
-    events: Array.isArray(dbCase.events)
-      ? dbCase.events.map((event: DbEvent) => ({
-          id: event.id,
-          title: event.title,
-          description: event.description,
-          date: event.date,
-          time: event.time,
-          type: "event",
-          case_id: event.case_id,
-          created_at: event.created_at,
-          event_type: event.event_type,
-          user_id: event.user_id,
-        }))
-      : [],
+    events: Array.isArray(dbCase.events) ? [...dbCase.events] : [],
   };
 }
 
@@ -64,6 +51,7 @@ const CaseDetailPage = () => {
         if (!data) {
           setNotFound(true);
           setCaseData(null);
+          setSelectedCase(null);
           return;
         }
         setCaseData(mapCaseWithRelationsToAppCase(data));
@@ -72,6 +60,7 @@ const CaseDetailPage = () => {
         if (mounted) {
           setNotFound(true);
           setCaseData(null);
+          setSelectedCase(null);
         }
       } finally {
         if (mounted) setLoading(false);

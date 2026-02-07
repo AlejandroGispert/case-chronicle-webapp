@@ -112,13 +112,22 @@ export const caseModel = {
 
     console.log("Found events:", events);
 
-    // Parse attachments from JSON to EmailAttachment[]
-    const processedEmails = (emails || []).map((email) => ({
-      ...email,
-      attachments: email.attachments
-        ? JSON.parse(email.attachments as string)
-        : [],
-    }));
+    // Parse attachments: Supabase may return JSON as string or already-parsed object
+    const processedEmails = (emails || []).map((email) => {
+      let attachments: unknown[] = [];
+      if (email.attachments != null) {
+        try {
+          attachments = typeof email.attachments === "string"
+            ? (JSON.parse(email.attachments) as unknown[])
+            : Array.isArray(email.attachments)
+              ? email.attachments
+              : [];
+        } catch {
+          attachments = [];
+        }
+      }
+      return { ...email, attachments };
+    });
 
     const processedResult = {
       ...caseData,

@@ -25,7 +25,7 @@ import { Calendar } from "lucide-react";
 interface NewEventModalProps {
   cases?: { id: string; title: string }[];
   caseId?: string; // Optional: if provided, pre-select this case and hide selector
-  onAddEvent: (eventData: import("@/types").NewEventFormData, caseId: string) => void;
+  onAddEvent: (eventData: import("@/types").NewEventFormData, caseId: string) => void | Promise<void>;
   /** When set, control the dialog open state from outside (e.g. Add entry dropdown). */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -54,26 +54,31 @@ const NewEventModal = ({
     }
   }, [caseId]);
 
-  const handleAddEvent = (e: React.FormEvent) => {
+  const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
 
-    const eventDate = formData.get("eventDate") as string;
+    const eventDate = String(formData.get("eventDate") ?? "").trim();
+    if (!eventDate) {
+      toast({
+        title: "Date required",
+        description: "Please select a date for the event.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Validate date is not more than 2 years in the future
-    if (eventDate) {
-      const selectedDate = new Date(eventDate);
-      const maxDate = new Date();
-      maxDate.setFullYear(maxDate.getFullYear() + 2);
-
-      if (selectedDate > maxDate) {
-        toast({
-          title: "Invalid Date",
-          description: "Date cannot be more than 2 years in the future.",
-          variant: "destructive",
-        });
-        return;
-      }
+    const selectedDate = new Date(eventDate);
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() + 2);
+    if (selectedDate > maxDate) {
+      toast({
+        title: "Invalid Date",
+        description: "Date cannot be more than 2 years in the future.",
+        variant: "destructive",
+      });
+      return;
     }
 
     const eventData: import("@/types").NewEventFormData = {
@@ -85,17 +90,26 @@ const NewEventModal = ({
       event_type: "event",
     };
 
-    if (selectedCaseId) {
-      onAddEvent(eventData, selectedCaseId);
-      toast({
-        title: "Event Added",
-        description: "Your event has been added to the case.",
-      });
-      setOpen(false);
-    } else {
+    if (!selectedCaseId) {
       toast({
         title: "No Case Selected",
         description: "Please select a case to assign the event to.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await Promise.resolve(onAddEvent(eventData, selectedCaseId));
+      toast({
+        title: "Event added",
+        description: "Your event has been added to the case.",
+      });
+      setOpen(false);
+    } catch {
+      toast({
+        title: "Could not add event",
+        description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
     }

@@ -118,12 +118,17 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
         caseData.id,
       );
       if (fetchedEmails) {
-        const enrichedEmails: TimelineEmail[] = fetchedEmails.map((email) => ({
-          ...email,
-          event_type: "Email" as const,
-          attachments: (email.attachments as unknown as Attachment[]) ?? undefined,
-        }));
-        setEmails(enrichedEmails);
+        try {
+          const enrichedEmails: TimelineEmail[] = fetchedEmails.map((email) => ({
+            ...email,
+            event_type: "Email" as const,
+            attachments: (email.attachments as unknown as Attachment[]) ?? undefined,
+          }));
+          setEmails(enrichedEmails);
+        } catch (err) {
+          console.error("Error enriching emails:", err);
+          setEmails([]);
+        }
       }
     } catch (error) {
       console.error("Error fetching emails:", error);
@@ -257,29 +262,25 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
 
   const handleAddEvent = async (eventData: NewEventFormData, caseId: string) => {
     if (caseId !== caseData.id || !user) return;
-    try {
-      const input: CreateEventInput = {
-        title: eventData.title,
-        description: eventData.description,
-        date: eventData.date,
-        time: typeof eventData.time === "string" ? eventData.time : "12:00",
-        case_id: caseId,
-        user_id: user.id,
-        event_type: eventData.event_type || "event",
-      };
-      const created = await eventController.createNewEvent(input);
-      if (created) {
-        await fetchEvents();
-        toast({ title: "Event added", description: "The event was added to the timeline." });
-      }
-    } catch (error) {
-      console.error("Error adding event:", error);
+    const input: CreateEventInput = {
+      title: eventData.title,
+      description: eventData.description,
+      date: eventData.date,
+      time: typeof eventData.time === "string" ? eventData.time : "12:00",
+      case_id: caseId,
+      user_id: user.id,
+      event_type: eventData.event_type || "event",
+    };
+    const created = await eventController.createNewEvent(input);
+    if (!created) {
       toast({
         title: "Error",
         description: "Could not add the event.",
         variant: "destructive",
       });
+      throw new Error("Failed to create event");
     }
+    await fetchEvents();
   };
 
   const handleEmailUpdate = async (updatedEmail: Email) => {
