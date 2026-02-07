@@ -38,9 +38,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
           <SidebarGroupLabel>Current case</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                {selectedCase ? (
-                  <>
+              {selectedCase ? (
+                <>
+                  <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <Link
                         to={`/case/${selectedCase.id}`}
@@ -51,17 +51,19 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         <span className="truncate">{selectedCase.title}</span>
                       </Link>
                     </SidebarMenuButton>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => setSelectedCase(null)}
-                        className="text-muted-foreground hover:text-sidebar-foreground"
-                      >
-                        <X className="h-4 w-4 mr-2 shrink-0" />
-                        Deselect case
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </>
-                ) : (
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setSelectedCase(null)}
+                      className="text-muted-foreground hover:text-sidebar-foreground"
+                    >
+                      <X className="h-4 w-4 mr-2 shrink-0" />
+                      Deselect case
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              ) : (
+                <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link
                       to="/select-case"
@@ -71,8 +73,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       Select a case
                     </Link>
                   </SidebarMenuButton>
-                )}
-              </SidebarMenuItem>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
