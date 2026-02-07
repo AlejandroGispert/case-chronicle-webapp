@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FileText, Download, Edit2, Eye, CalendarDays, Clock, ExternalLink, Trash2 } from "lucide-react";
+import { FileText, Download, Edit2, Eye, CalendarDays, Clock, Trash2 } from "lucide-react";
 import EditDocumentModal from "@/components/EditDocumentModal";
 import ViewDocumentModal from "@/components/ViewDocumentModal";
 import { format } from "date-fns";
@@ -53,17 +53,6 @@ const DocumentCard = ({ document, onUpdate, onDelete }: DocumentCardProps) => {
       setImagePreviewOpen(true);
     } else {
       setViewModalOpen(true);
-    }
-  };
-
-  const handleOpen = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!document.url) return;
-    if (isImageDocument(document)) {
-      setImagePreviewOpen(true);
-    } else {
-      window.open(document.url, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -178,16 +167,6 @@ const DocumentCard = ({ document, onUpdate, onDelete }: DocumentCardProps) => {
               )}
               {document.url && (
                 <div className="flex items-center gap-2 mt-2">
-                  <Button
-                    type="button"
-                    variant="default"
-                    size="sm"
-                    onClick={handleOpen}
-                    className="inline-flex items-center gap-2"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Open
-                  </Button>
                   <a
                     href={document.url}
                     target="_blank"

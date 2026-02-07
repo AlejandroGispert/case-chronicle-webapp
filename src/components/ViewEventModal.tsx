@@ -92,13 +92,16 @@ const ViewEventModal = ({
             </span>
           </div>
 
-          {event.description?.trim() && (
-            <div className="rounded-md border bg-muted/30 p-3">
-              <p className="text-sm whitespace-pre-line break-words">
-                {event.description.trim()}
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-muted-foreground">
+              Description
+            </span>
+            <div className="rounded-md border border-border bg-muted/30 p-3">
+              <p className="text-sm text-foreground whitespace-pre-line break-words min-h-[2rem]">
+                {event.description?.trim() || "(No description provided)"}
               </p>
             </div>
-          )}
+          </div>
 
           {(contactName || categoryName) && (
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">

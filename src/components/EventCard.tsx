@@ -61,7 +61,6 @@ const EventCard = ({
   categories = [],
   onCategoryAssign,
 }: EventCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(event);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -211,16 +210,15 @@ const EventCard = ({
                 <h3 className="font-medium text-base truncate">{entryName}</h3>
               </div>
 
-              <div className="text-sm">
-                <p className="whitespace-pre-line break-words">
-                  {currentEvent.description?.trim()
-                    ? isExpanded
-                      ? currentEvent.description.trim()
-                      : currentEvent.description.trim().length > 100
-                        ? `${currentEvent.description.trim().slice(0, 100)}…`
-                        : currentEvent.description.trim()
-                    : "(No description provided)"}
-                </p>
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-muted-foreground">
+                  Description
+                </span>
+                <div className="rounded-md border border-border bg-muted/30 p-3">
+                  <p className="text-sm text-foreground whitespace-pre-line break-words min-h-[2rem]">
+                    {currentEvent.description?.trim() || "(No description provided)"}
+                  </p>
+                </div>
               </div>
 
               <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -335,18 +333,6 @@ const EventCard = ({
                 </div>
               </div>
 
-              {currentEvent.description &&
-                currentEvent.description.trim().length > 100 && (
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="sm"
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="p-0 h-auto mt-2 text-legal-500 hover:text-legal-600"
-                  >
-                    {isExpanded ? "Show less" : "Show more"}
-                  </Button>
-                )}
             </div>
           </div>
         </CardContent>

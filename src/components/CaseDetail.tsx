@@ -103,6 +103,7 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [timelineDisplayCount, setTimelineDisplayCount] = useState(30);
   const [sharedUsers, setSharedUsers] = useState<
     import("@/backend/models/caseShareModel").SharedUserWithPermissions[]
   >([]);
@@ -462,7 +463,7 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
 
     const caseEvents: TimelineEvent[] = events.map((event) => ({
       ...event,
-      event_type: (event.event_type || "Event") as "Event",
+      event_type: "Event" as const,
     }));
 
     const documentEvents: TimelineDocument[] = documents.map((doc) => ({
@@ -511,7 +512,14 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
     return matchesType && matchesCategory && matchesSearch;
   });
 
-  const groupedItems = filteredItems.reduce(
+  const displayItems = filteredItems.slice(0, timelineDisplayCount);
+  const hasMore = displayItems.length < filteredItems.length;
+
+  useEffect(() => {
+    setTimelineDisplayCount(30);
+  }, [filterType, filterCategory, searchQuery]);
+
+  const groupedItems = displayItems.reduce(
     (acc, item) => {
       const key = item.date;
       if (!acc[key]) {
@@ -843,6 +851,19 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
                 </div>
               </div>
             ))}
+          {hasMore && (
+            <div className="flex justify-center pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setTimelineDisplayCount((prev) => Math.min(prev + 30, filteredItems.length))
+                }
+              >
+                Load more
+              </Button>
+            </div>
+          )}
           </div>
         </div>
         </div>

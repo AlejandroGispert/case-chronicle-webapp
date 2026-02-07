@@ -82,7 +82,6 @@ const EmailCard = ({
   categories = [],
   onCategoryAssign,
 }: EmailCardProps) => {
-  const [expanded, setExpanded] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -380,15 +379,10 @@ const EmailCard = ({
                 </div>
               </div>
 
-              <div
-                className={cn("transition-all duration-200 overflow-hidden", {
-                  "max-h-16": !expanded,
-                  "max-h-full": expanded,
-                })}
-              >
+              <div className="rounded-md border bg-muted/30 p-3">
                 <div
                   id="highlightable-content"
-                  className="text-sm whitespace-pre-line"
+                  className="text-sm whitespace-pre-line break-words min-h-[2rem]"
                   contentEditable={highlightMode}
                   suppressContentEditableWarning
                   dangerouslySetInnerHTML={{
@@ -425,18 +419,6 @@ const EmailCard = ({
                   </div>
                 )}
               </div>
-
-              {(email.content && email.content.length > 100) ||
-              hasAttachments ? (
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => setExpanded(!expanded)}
-                  className="p-0 h-auto mt-2 text-legal-500 hover:text-legal-600"
-                >
-                  {expanded ? "Show Less" : "Show More"}
-                </Button>
-              ) : null}
 
               {highlightMode && (
                 <div className="mt-2 flex flex-wrap gap-2 items-center">

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,14 @@ import { FileText, CalendarDays, Clock, ExternalLink } from "lucide-react";
 import type { CaseDocument } from "@/backend/models/documentModel";
 
 type DocumentWithDateTime = CaseDocument & { date: string; time: string };
+
+const TEXT_TYPES = /^text\/|application\/json|application\/xml/;
+const TEXT_EXT = /\.(txt|md|json|xml|log|csv)(\?|$)/i;
+
+function isTextDocument(doc: CaseDocument): boolean {
+  if (doc.type && TEXT_TYPES.test(doc.type)) return true;
+  return TEXT_EXT.test(doc.filename ?? "");
+}
 
 interface ViewDocumentModalProps {
   document: DocumentWithDateTime | null;
@@ -44,6 +53,39 @@ const ViewDocumentModal = ({
   open,
   onOpenChange,
 }: ViewDocumentModalProps) => {
+  const [documentText, setDocumentText] = useState<string | null>(null);
+  const [textLoading, setTextLoading] = useState(false);
+  const [textError, setTextError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open || !document?.url) {
+      setDocumentText(null);
+      setTextError(null);
+      return;
+    }
+    if (!isTextDocument(document)) {
+      setDocumentText(null);
+      setTextError(null);
+      return;
+    }
+    setTextLoading(true);
+    setTextError(null);
+    fetch(document.url)
+      .then((res) => {
+        if (!res.ok) throw new Error("Could not load document");
+        return res.text();
+      })
+      .then((text) => {
+        setDocumentText(text);
+        setTextError(null);
+      })
+      .catch(() => {
+        setDocumentText(null);
+        setTextError("Content could not be loaded (e.g. link expired or CORS). Open in new tab to view.");
+      })
+      .finally(() => setTextLoading(false));
+  }, [open, document]);
+
   if (!document) return null;
 
   const formatDate = (dateString: string) => {
@@ -58,14 +100,14 @@ const ViewDocumentModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="font-serif flex items-center gap-2">
             <FileText className="h-5 w-5 text-muted-foreground" />
             View document
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-2 overflow-y-auto flex-1 min-h-0">
           <div>
             <h4 className="font-medium text-base break-all">
               {document.filename}
@@ -84,6 +126,23 @@ const ViewDocumentModal = ({
               <span>{formatFileSize(document.size)}</span>
             )}
           </div>
+
+          {(isTextDocument(document) && (textLoading || documentText !== null || textError)) && (
+            <div className="rounded-md border bg-muted/30 p-3 min-h-[120px]">
+              {textLoading && (
+                <p className="text-sm text-muted-foreground">Loading content…</p>
+              )}
+              {textError && !textLoading && (
+                <p className="text-sm text-muted-foreground">{textError}</p>
+              )}
+              {documentText !== null && !textLoading && (
+                <pre className="text-sm whitespace-pre-wrap break-words font-sans overflow-x-auto max-h-[50vh] overflow-y-auto">
+                  {documentText}
+                </pre>
+              )}
+            </div>
+          )}
+
           {document.url && (
             <Button
               variant="outline"
