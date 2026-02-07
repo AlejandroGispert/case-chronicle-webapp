@@ -85,11 +85,15 @@ const EmailCard = ({
   const [viewImage, setViewImage] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [contentExpanded, setContentExpanded] = useState(false);
   const [highlightMode, setHighlightMode] = useState(false);
   const [highlightedContent, setHighlightedContent] = useState(email.content);
   const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const contentText = highlightedContent?.trim() || "";
+  const isLongContent = contentText.length > 280;
 
   const assignedContact = contacts.find((c) => c.id === email.contact_id);
   const assignedCategory = categories.find((c) => c.id === email.category_id);
@@ -379,7 +383,12 @@ const EmailCard = ({
                 </div>
               </div>
 
-              <div className="rounded-md border bg-muted/30 p-3">
+              <div
+                className={cn(
+                  "rounded-md border bg-muted/30 p-3 overflow-hidden transition-[max-height] duration-200",
+                  !contentExpanded && isLongContent && "max-h-24"
+                )}
+              >
                 <div
                   id="highlightable-content"
                   className="text-sm whitespace-pre-line break-words min-h-[2rem]"
@@ -419,6 +428,18 @@ const EmailCard = ({
                   </div>
                 )}
               </div>
+
+              {isLongContent && (
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  onClick={() => setContentExpanded(!contentExpanded)}
+                  className="p-0 h-auto text-legal-500 hover:text-legal-600"
+                >
+                  {contentExpanded ? "Show less" : "Show more"}
+                </Button>
+              )}
 
               {highlightMode && (
                 <div className="mt-2 flex flex-wrap gap-2 items-center">

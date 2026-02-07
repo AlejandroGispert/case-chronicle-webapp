@@ -64,10 +64,14 @@ const EventCard = ({
   const [currentEvent, setCurrentEvent] = useState(event);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [contentExpanded, setContentExpanded] = useState(false);
   const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  const descriptionText = currentEvent.description?.trim() || "";
+  const isLongDescription = descriptionText.length > 280;
 
   const assignedContact = contacts.find((c) => c.id === event.contact_id);
   const assignedCategory = categories.find((c) => c.id === event.category_id);
@@ -214,11 +218,27 @@ const EventCard = ({
                 <span className="text-xs font-medium text-muted-foreground">
                   Description
                 </span>
-                <div className="rounded-md border border-border bg-muted/30 p-3">
+                <div
+                  className={cn(
+                    "rounded-md border border-border bg-muted/30 p-3 overflow-hidden transition-[max-height] duration-200",
+                    !contentExpanded && isLongDescription && "max-h-24"
+                  )}
+                >
                   <p className="text-sm text-foreground whitespace-pre-line break-words min-h-[2rem]">
-                    {currentEvent.description?.trim() || "(No description provided)"}
+                    {descriptionText || "(No description provided)"}
                   </p>
                 </div>
+                {isLongDescription && (
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    onClick={() => setContentExpanded(!contentExpanded)}
+                    className="p-0 h-auto text-legal-500 hover:text-legal-600"
+                  >
+                    {contentExpanded ? "Show less" : "Show more"}
+                  </Button>
+                )}
               </div>
 
               <div className="flex items-center gap-2 mt-2 flex-wrap">
