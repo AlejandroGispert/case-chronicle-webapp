@@ -8,6 +8,7 @@ import { Case } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { useSelectedCase } from "@/contexts/SelectedCaseContext";
 
 function mapCaseWithRelationsToAppCase(dbCase: CaseWithRelations): Case {
   return {
@@ -39,6 +40,7 @@ const CaseDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const readonly = searchParams.get("readonly") === "true";
+  const { setSelectedCase } = useSelectedCase();
 
   const [caseData, setCaseData] = useState<Case | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,6 +67,7 @@ const CaseDetailPage = () => {
           return;
         }
         setCaseData(mapCaseWithRelationsToAppCase(data));
+        setSelectedCase({ id: data.id, title: data.title });
       } catch {
         if (mounted) {
           setNotFound(true);
@@ -79,7 +82,7 @@ const CaseDetailPage = () => {
     return () => {
       mounted = false;
     };
-  }, [id]);
+  }, [id, setSelectedCase]);
 
   if (loading) {
     return (
@@ -101,9 +104,9 @@ const CaseDetailPage = () => {
             This case does not exist or you don’t have access to it.
           </p>
           <Button asChild variant="outline">
-            <Link to="/dashboard">
+            <Link to="/select-case">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to cases
+              Back to Select Case
             </Link>
           </Button>
         </div>
@@ -115,9 +118,9 @@ const CaseDetailPage = () => {
     <Layout>
       <div className="space-y-4">
         <Button asChild variant="ghost" size="sm" className="gap-2 -ml-2">
-          <Link to="/dashboard">
+          <Link to="/select-case">
             <ArrowLeft className="h-4 w-4" />
-            Back to cases
+            Back to Select Case
           </Link>
         </Button>
         <CaseDetail caseData={caseData} readonly={readonly} />

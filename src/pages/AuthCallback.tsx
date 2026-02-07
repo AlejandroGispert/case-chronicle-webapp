@@ -19,7 +19,7 @@ export default function AuthCallback() {
           sessionStorage.removeItem("auth_redirect_after");
           navigate(redirect, { replace: true });
         } else {
-          navigate("/dashboard", { replace: true });
+          navigate("/select-case", { replace: true });
         }
       }
     };

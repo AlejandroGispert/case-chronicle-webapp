@@ -4,10 +4,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { SelectedCaseProvider } from "./contexts/SelectedCaseContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import SelectCase from "./pages/SelectCase";
 import Inbox from "./pages/Inbox";
 import Calendar from "./pages/Calendar";
 import NotFound from "./pages/NotFound";
@@ -30,18 +31,20 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <AuthProvider>
+              <SelectedCaseProvider>
             <Routes>
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/invite/:token" element={<InviteRedeem />} />
               
-              {/* Redirect root to dashboard if authenticated, otherwise to login */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              {/* Redirect root to Select Case if authenticated, otherwise to login */}
+              <Route path="/" element={<Navigate to="/select-case" replace />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               {/* Protected routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/inbox" element={<Inbox />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/select-case" element={<SelectCase />} />
+                <Route path="/dashboard" element={<Navigate to="/select-case" replace />} />
                 <Route path="/case/:id" element={<CaseDetailPage />} />
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/documents" element={<Index />} />
@@ -55,6 +58,7 @@ const App = () => {
               {/* 404 route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+              </SelectedCaseProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

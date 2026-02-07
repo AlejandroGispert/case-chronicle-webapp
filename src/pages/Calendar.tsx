@@ -1,17 +1,15 @@
-import { useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import CalendarView from "../components/CalendarView";
+import { useSelectedCase } from "@/contexts/SelectedCaseContext";
 
 const Calendar = () => {
-  const [searchParams] = useSearchParams();
-  const caseId = searchParams.get("caseId") ?? undefined;
-  const caseTitle = searchParams.get("caseTitle") ?? undefined;
+  const { selectedCaseId, selectedCase } = useSelectedCase();
 
   return (
     <Layout>
       <CalendarView
-        caseId={caseId}
-        caseTitle={caseTitle ? decodeURIComponent(caseTitle) : undefined}
+        caseId={selectedCaseId ?? undefined}
+        caseTitle={selectedCase?.title}
       />
     </Layout>
   );

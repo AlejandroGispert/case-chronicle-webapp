@@ -132,7 +132,7 @@ const ShareCase = () => {
               </h2>
               <p className="text-muted-foreground text-center max-w-md">
                 You don't have any cases to share yet. Create a case from the
-                Dashboard to get started.
+                Select Case to get started.
               </p>
             </CardContent>
           </Card>

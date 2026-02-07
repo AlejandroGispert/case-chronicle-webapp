@@ -17,8 +17,10 @@ import {
   Info,
   Users,
   Share2,
+  FileText,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useSelectedCase } from "@/contexts/SelectedCaseContext";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -26,6 +28,8 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
+  const { selectedCase } = useSelectedCase();
+
   return (
     <SidebarComponent className="h-full !border-r-0 [&>div>div:nth-child(2)]:!border-r-0 [&>div>div[data-sidebar='sidebar']]:!border-r-0">
       <SidebarContent>
@@ -43,9 +47,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/dashboard" className="flex items-center">
+                  <Link to="/select-case" className="flex items-center">
                     <Home className="h-4 w-4 mr-2" />
-                    Dashboard
+                    Select Case
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -86,13 +90,41 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         </SidebarGroup>
 
         <SidebarGroup>
+          <SidebarGroupLabel>Current case</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                {selectedCase ? (
+                  <SidebarMenuButton asChild>
+                    <Link
+                      to={`/case/${selectedCase.id}`}
+                      className="flex items-center w-full"
+                    >
+                      <FileText className="h-4 w-4 mr-2 shrink-0" />
+                      <span className="truncate">{selectedCase.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                ) : (
+                  <SidebarMenuButton asChild>
+                    <Link to="/select-case" className="flex items-center w-full text-muted-foreground">
+                      <FileText className="h-4 w-4 mr-2 shrink-0" />
+                      Select a case
+                    </Link>
+                  </SidebarMenuButton>
+                )}
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
           <SidebarGroupLabel>Case Status</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link
-                    to="/dashboard?status=active"
+                    to="/select-case?status=active"
                     className="flex items-center w-full"
                   >
                     <div className="h-2 w-2 rounded-full bg-green-500 mr-2" />
@@ -103,7 +135,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link
-                    to="/dashboard?status=closed"
+                    to="/select-case?status=closed"
                     className="flex items-center w-full"
                   >
                     <div className="h-2 w-2 rounded-full bg-gray-500 mr-2" />

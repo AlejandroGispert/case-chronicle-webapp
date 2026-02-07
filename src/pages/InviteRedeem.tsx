@@ -52,7 +52,7 @@ export default function InviteRedeem() {
       try {
         const result = await caseShareInviteController.redeemInvite(token);
         if (result?.success && result.caseId) {
-          navigate(`/dashboard?caseId=${result.caseId}`, { replace: true });
+          navigate("/select-case", { replace: true, state: { caseId: result.caseId, caseTitle: invitePreview?.case_title } });
         } else {
           setError(result?.error ?? "Failed to accept invite");
         }
@@ -93,7 +93,7 @@ export default function InviteRedeem() {
             </CardHeader>
             <CardContent>
               <Button asChild>
-                <Link to="/dashboard">Go to Dashboard</Link>
+                <Link to="/select-case">Go to Select Case</Link>
               </Button>
             </CardContent>
           </Card>
@@ -165,7 +165,7 @@ export default function InviteRedeem() {
                     </p>
                   )}
                   <Button asChild>
-                    <Link to="/dashboard">Go to Dashboard</Link>
+                    <Link to="/select-case">Go to Select Case</Link>
                   </Button>
                 </div>
               )}

@@ -184,7 +184,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           title: "Login successful",
           description: "Welcome to Case Chronicle",
         });
-        navigate(redirectTo || "/dashboard", { replace: true });
+        navigate(redirectTo || "/select-case", { replace: true });
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Invalid email or password";
