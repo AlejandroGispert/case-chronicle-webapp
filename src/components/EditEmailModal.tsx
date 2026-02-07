@@ -7,6 +7,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +44,7 @@ const EditEmailModal = ({
   const [recipient, setRecipient] = useState("");
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,7 +58,7 @@ const EditEmailModal = ({
     }
   }, [email, open]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
@@ -61,7 +72,16 @@ const EditEmailModal = ({
       return;
     }
 
+    setConfirmSaveOpen(true);
+  };
+
+  const performSave = async () => {
+    if (!email) return;
+
+    const trimmedDate = date.trim();
+
     setSaving(true);
+    setConfirmSaveOpen(false);
     try {
       const updated: Email = {
         ...email,
@@ -94,6 +114,7 @@ const EditEmailModal = ({
   if (!email) return null;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -178,6 +199,24 @@ const EditEmailModal = ({
         </form>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={confirmSaveOpen} onOpenChange={setConfirmSaveOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Save changes?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to save these changes to this email?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={performSave} disabled={saving}>
+            {saving ? "Saving…" : "Save"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 };
 
