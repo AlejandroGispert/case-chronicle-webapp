@@ -5,6 +5,7 @@ import {
   Clock,
   Mail,
   Edit2,
+  Eye,
   User,
   Tag,
   Trash2,
@@ -38,6 +39,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import EditEventModal from "@/components/EditEventModal";
+import ViewEventModal from "@/components/ViewEventModal";
 import { useToast } from "@/hooks/use-toast";
 
 interface EventCardProps {
@@ -62,6 +64,7 @@ const EventCard = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(event);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -129,15 +132,65 @@ const EventCard = ({
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div className="flex-1 min-w-0 w-full sm:w-auto">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                <span className="flex items-center gap-1">
-                  <CalendarDays className="h-3.5 w-3.5" />
-                  {formatDate(currentEvent.date)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {formatTime(currentEvent.time)}
-                </span>
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    {formatDate(currentEvent.date)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" />
+                    {formatTime(currentEvent.time)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-0.5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setViewModalOpen(true);
+                    }}
+                    className="h-7 w-7 p-0"
+                    title="View"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  {onUpdate && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditModalOpen(true);
+                      }}
+                      className="h-7 w-7 p-0"
+                      title="Edit event"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                      title="Delete entry"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2 mb-1">
                 <div
@@ -295,44 +348,17 @@ const EventCard = ({
                   </Button>
                 )}
             </div>
-
-            <div className="text-left sm:text-right text-xs text-muted-foreground w-full sm:w-auto sm:whitespace-nowrap">
-              <div className="flex flex-col items-start sm:items-end gap-1">
-                <div className="flex items-center gap-1 justify-start sm:justify-end">
-                  {onUpdate && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setEditModalOpen(true);
-                      }}
-                      className="h-6 w-6 p-0"
-                      title="Edit event"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                      title="Delete entry"
-                      onClick={() => setDeleteDialogOpen(true)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
+
+      <ViewEventModal
+        event={currentEvent}
+        open={viewModalOpen}
+        onOpenChange={setViewModalOpen}
+        contactName={assignedContact?.name}
+        categoryName={assignedCategory?.name}
+      />
 
       {onUpdate && (
         <EditEventModal

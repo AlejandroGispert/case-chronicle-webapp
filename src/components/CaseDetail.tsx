@@ -403,9 +403,6 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
     updatedDocument: CaseDocument & { date: string; time: string },
   ) => {
     try {
-      // Update the document's date/time in state
-      // Note: We're storing this in local state for now since documents don't have date/time fields in the database
-      // In the future, you might want to store this in document metadata or a separate table
       setDocuments(
         documents.map((doc) =>
           doc.id === updatedDocument.id
@@ -415,6 +412,15 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
       );
     } catch (error) {
       console.error("Error updating document:", error);
+    }
+  };
+
+  const handleDocumentDelete = async (documentId: string) => {
+    try {
+      const success = await documentController.removeDocument(documentId);
+      if (success) await fetchDocuments();
+    } catch (error) {
+      console.error("Error deleting document:", error);
     }
   };
 
@@ -518,8 +524,8 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
   );
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm">
-      <div className="p-6">
+    <div className="bg-muted/25 rounded-lg border shadow-sm">
+      <div className="p-6 rounded-lg bg-card">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2 sm:gap-0">
           <div className="min-w-0 flex-1">
             <h2 className="text-xl sm:text-2xl font-serif font-semibold truncate">
@@ -608,7 +614,8 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
 
         <Separator className="my-6" />
 
-        <div className="space-y-4">
+        <div className="bg-muted/20 rounded-lg p-4 sm:p-5 border border-border/50">
+          <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <h3 className="text-lg font-medium font-serif">
               Communication Timeline
@@ -828,6 +835,7 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
                             }
                           }
                           onUpdate={readonly ? undefined : handleDocumentUpdate}
+                          onDelete={readonly ? undefined : handleDocumentDelete}
                         />
                       )}
                     </div>
@@ -836,6 +844,7 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
               </div>
             ))}
           </div>
+        </div>
         </div>
       </div>
       <NewCategoryModal

@@ -13,6 +13,7 @@ import {
   File,
   Mail,
   Edit2,
+  Eye,
   Check,
   Highlighter,
   User,
@@ -52,6 +53,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import EditEmailModal from "@/components/EditEmailModal";
+import ViewEmailModal from "@/components/ViewEmailModal";
 import { Contact, Category } from "@/backend/models/types";
 
 interface EmailCardProps {
@@ -83,6 +85,7 @@ const EmailCard = ({
   const [expanded, setExpanded] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const [highlightMode, setHighlightMode] = useState(false);
   const [highlightedContent, setHighlightedContent] = useState(email.content);
   const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
@@ -162,15 +165,65 @@ const EmailCard = ({
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div className="flex-1 min-w-0 w-full sm:w-auto">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                <span className="flex items-center gap-1">
-                  <CalendarDays className="h-3.5 w-3.5" />
-                  {formatDate(email.date ?? "")}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {formatTime(email.time ?? "")}
-                </span>
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    {formatDate(email.date ?? "")}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" />
+                    {formatTime(email.time ?? "")}
+                  </span>
+                </div>
+                <div className="flex items-center gap-0.5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setViewModalOpen(true);
+                    }}
+                    className="h-7 w-7 p-0"
+                    title="View"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  {onUpdate && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditModalOpen(true);
+                      }}
+                      className="h-7 w-7 p-0"
+                      title="Edit email"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                      title="Delete email"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2 mb-1">
                 <Mail className="h-4 w-4 text-yellow-600" />
@@ -416,44 +469,15 @@ const EmailCard = ({
                 </div>
               )}
             </div>
-
-            <div className="text-left sm:text-right text-xs text-muted-foreground w-full sm:w-auto sm:whitespace-nowrap">
-              <div className="flex flex-col items-start sm:items-end gap-1">
-                <div className="flex items-center gap-1 justify-start sm:justify-end">
-                  {onUpdate && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setEditModalOpen(true);
-                      }}
-                      className="h-6 w-6 p-0"
-                      title="Edit email"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                      title="Delete email"
-                      onClick={() => setDeleteDialogOpen(true)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
+
+      <ViewEmailModal
+        email={email}
+        open={viewModalOpen}
+        onOpenChange={setViewModalOpen}
+      />
 
       {onUpdate && (
         <EditEmailModal
