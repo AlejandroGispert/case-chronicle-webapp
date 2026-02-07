@@ -18,6 +18,7 @@ import Index from "./pages/Index";
 import Contacts from "./pages/Contacts";
 import ShareCase from "./pages/ShareCase";
 import InviteRedeem from "./pages/InviteRedeem";
+import CaseDetailPage from "./pages/CaseDetailPage";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -41,6 +42,7 @@ const App = () => {
               <Route element={<ProtectedRoute />}>
                 <Route path="/inbox" element={<Inbox />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/case/:id" element={<CaseDetailPage />} />
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/documents" element={<Index />} />
                 <Route path="/contacts" element={<Contacts />} />

@@ -47,13 +47,15 @@ import { Share2 } from "lucide-react";
 
 interface CaseDetailProps {
   caseData: Case;
+  /** When true, hide add/edit/delete actions (e.g. for shared view via ?readonly=true) */
+  readonly?: boolean;
 }
 
 type TimelineItem =
   | (Email & { event_type: "Email" })
   | (Event & { event_type: "Event" })
   | (CaseDocument & { date: string; time: string; event_type: "Document" });
-const CaseDetail = ({ caseData }: CaseDetailProps) => {
+const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [documents, setDocuments] = useState<
@@ -571,28 +573,30 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                   <ChevronDown className="h-4 w-4 sm:ml-2" />
                 )}
               </Button>
-              <NewEmailModal
-                cases={[{ id: caseData.id, title: caseData.title }]}
-                onAddEmail={handleAddEmail}
-              />
-              <AttachDocumentButton
-                cases={[
-                  {
-                    id: caseData.id,
-                    title: caseData.title,
-                    number: caseData.number || undefined,
-                  },
-                ]}
-                defaultCaseId={caseData.id}
-                onDocumentAttached={() => {
-                  // Refresh documents in timeline
-                  fetchDocuments();
-                  // Refresh documents list if available
-                  if (window.refreshDocumentsList) {
-                    window.refreshDocumentsList();
-                  }
-                }}
-              />
+              {!readonly && (
+                <>
+                  <NewEmailModal
+                    cases={[{ id: caseData.id, title: caseData.title }]}
+                    onAddEmail={handleAddEmail}
+                  />
+                  <AttachDocumentButton
+                    cases={[
+                      {
+                        id: caseData.id,
+                        title: caseData.title,
+                        number: caseData.number || undefined,
+                      },
+                    ]}
+                    defaultCaseId={caseData.id}
+                    onDocumentAttached={() => {
+                      fetchDocuments();
+                      if (window.refreshDocumentsList) {
+                        window.refreshDocumentsList();
+                      }
+                    }}
+                  />
+                </>
+              )}
             </div>
           </div>
 
@@ -619,15 +623,17 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                     <label className="text-sm font-medium">
                       Filter by Category
                     </label>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsCategoryModalOpen(true)}
-                      className="h-6 text-xs"
-                    >
-                      + New
-                    </Button>
+                    {!readonly && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsCategoryModalOpen(true)}
+                        className="h-6 text-xs"
+                      >
+                        + New
+                      </Button>
+                    )}
                   </div>
                   <Select
                     value={filterCategory}
@@ -699,22 +705,22 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                       {item.event_type === "Email" ? (
                         <EmailCard
                           email={item as Email}
-                          onUpdate={handleEmailUpdate}
-                          onDelete={handleEmailDelete}
+                          onUpdate={readonly ? undefined : handleEmailUpdate}
+                          onDelete={readonly ? undefined : handleEmailDelete}
                           contacts={contacts}
-                          onContactAssign={handleEmailContactAssign}
+                          onContactAssign={readonly ? undefined : handleEmailContactAssign}
                           categories={categories}
-                          onCategoryAssign={handleEmailCategoryAssign}
+                          onCategoryAssign={readonly ? undefined : handleEmailCategoryAssign}
                         />
                       ) : item.event_type === "Event" ? (
                         <EventCard
                           event={item as Event}
-                          onUpdate={handleEventUpdate}
-                          onDelete={handleEventDelete}
+                          onUpdate={readonly ? undefined : handleEventUpdate}
+                          onDelete={readonly ? undefined : handleEventDelete}
                           contacts={contacts}
-                          onContactAssign={handleEventContactAssign}
+                          onContactAssign={readonly ? undefined : handleEventContactAssign}
                           categories={categories}
-                          onCategoryAssign={handleEventCategoryAssign}
+                          onCategoryAssign={readonly ? undefined : handleEventCategoryAssign}
                         />
                       ) : (
                         <DocumentCard
@@ -724,7 +730,7 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                               time: string;
                             }
                           }
-                          onUpdate={handleDocumentUpdate}
+                          onUpdate={readonly ? undefined : handleDocumentUpdate}
                         />
                       )}
                     </div>

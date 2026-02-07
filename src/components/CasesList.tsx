@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Case } from "../types";
-import CaseDetail from "./CaseDetail";
 import { Input } from "@/components/ui/input";
 import { Search, ArrowUpDown, WifiOff } from "lucide-react";
 import { format, isValid, parse } from "date-fns";
@@ -18,7 +17,7 @@ import { Spinner } from "@/components/ui/spinner"; // You might need to create o
 import NewCaseModal from "./NewCaseModal";
 import NewEventModal from "./NewEventModal";
 import { FileText, CalendarDays } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface CasesListProps {
   cases: Case[];
@@ -27,7 +26,7 @@ interface CasesListProps {
 }
 
 const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {
-  const [selectedCase, setSelectedCase] = useState<Case | null>(null);
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [sortBy, setSortBy] = useState<"date" | "title" | "client">("date");
@@ -91,7 +90,7 @@ const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {
   };
 
   const handleCaseSelect = (caseItem: Case) => {
-    setSelectedCase(caseItem);
+    navigate(`/case/${caseItem.id}`);
   };
 
   if (!isOnline) {
@@ -131,9 +130,8 @@ const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Sidebar */}
-      <div className="lg:col-span-1 space-y-4">
+    <div className="max-w-2xl mx-auto space-y-4">
+      <div className="space-y-4">
         {/* Search and Sort */}
         <div className="space-y-2">
           <div className="relative">
@@ -182,11 +180,7 @@ const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {
           {filteredAndSortedCases.map((caseItem) => (
             <Card
               key={caseItem.id}
-              className={`cursor-pointer hover:shadow-md transition-shadow ${
-                selectedCase?.id === caseItem.id
-                  ? "border-legal-300 ring-1 ring-legal-300"
-                  : ""
-              }`}
+              className="cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => handleCaseSelect(caseItem)}
             >
               <CardContent className="p-4">
@@ -214,7 +208,10 @@ const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {
                   </p>
                 </div>
                 {onAddEvent && (
-                  <div className="mt-3 pt-3 border-t flex flex-wrap gap-2">
+                  <div
+                    className="mt-3 pt-3 border-t flex flex-wrap gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <NewEventModal
                       caseId={caseItem.id}
                       onAddEvent={onAddEvent}
@@ -250,25 +247,6 @@ const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Detail view */}
-      <div className="lg:col-span-2">
-        {selectedCase ? (
-          <CaseDetail caseData={selectedCase} />
-        ) : (
-          <div className="h-full flex items-center justify-center border rounded-lg p-8">
-            <div className="text-center">
-              <h2 className="text-2xl font-serif font-semibold mb-2">
-                Select a Case
-              </h2>
-              <p className="text-muted-foreground">
-                Choose a case from the list to view details and communication
-                timeline.
-              </p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
