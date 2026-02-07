@@ -19,7 +19,7 @@ test.describe("Settings - Destructive case deletion", () => {
     ).toBeVisible();
   });
 
-  test("shows Export my data button for GDPR when authenticated", async ({
+  test("shows Export as text and Export as JSON buttons for GDPR when authenticated", async ({
     page,
   }) => {
     await page.goto("/settings");
@@ -31,7 +31,10 @@ test.describe("Settings - Destructive case deletion", () => {
     }
 
     await expect(
-      page.getByRole("button", { name: /export my data/i }),
+      page.getByRole("button", { name: /export as text/i }),
+    ).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.getByRole("button", { name: /export as json/i }),
     ).toBeVisible({ timeout: 10000 });
   });
 

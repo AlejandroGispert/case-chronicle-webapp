@@ -1,4 +1,4 @@
-import { Database } from "@/integrations/supabase/types";
+import { Database, Json } from "@/integrations/supabase/types";
 
 // Database rows types
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -8,9 +8,9 @@ export type Event = Database["public"]["Tables"]["events"]["Row"];
 export type Contact = Database["public"]["Tables"]["contacts"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 
-// Enhanced Email type with optional attachments field
-export type Email = EmailDb & {
-  attachments?: EmailAttachment[]; // Attachments enriched after fetch
+// Enhanced Email type: same as DB row but attachments parsed to EmailAttachment[]
+export type Email = Omit<EmailDb, "attachments"> & {
+  attachments?: EmailAttachment[];
 };
 
 // Case with related emails and events
@@ -51,6 +51,69 @@ export interface EmailAttachment {
   path?: string;
   url: string;
   size?: number;
+}
+
+/**
+ * Parses attachments from DB JSON (string or already-parsed array).
+ * Uses no any/unknown; builds EmailAttachment[] by validating shape.
+ */
+export function parseAttachmentsFromJson(raw: Json | null): EmailAttachment[] {
+  if (raw === null || raw === undefined) return [];
+  let parsed: Json;
+  if (typeof raw === "string") {
+    try {
+      parsed = jsonParse(raw);
+    } catch {
+      return [];
+    }
+  } else {
+    parsed = raw;
+  }
+  if (!Array.isArray(parsed)) return [];
+  const result: EmailAttachment[] = [];
+  for (const item of parsed) {
+    const attachment = itemToEmailAttachment(item);
+    if (attachment) result.push(attachment);
+  }
+  return result;
+}
+
+/** Parses a JSON string; return type is Json (JSON.parse is typed as any in TS). */
+function jsonParse(s: string): Json {
+  return JSON.parse(s);
+}
+
+function itemToEmailAttachment(item: Json): EmailAttachment | null {
+  if (item === null || typeof item !== "object" || Array.isArray(item))
+    return null;
+  if (
+    !("id" in item) ||
+    !("filename" in item) ||
+    !("type" in item) ||
+    !("url" in item)
+  )
+    return null;
+  const id = item.id;
+  const filename = item.filename;
+  const type = item.type;
+  const url = item.url;
+  const path = "path" in item ? item.path : undefined;
+  const size = "size" in item ? item.size : undefined;
+  if (
+    typeof id !== "string" ||
+    typeof filename !== "string" ||
+    typeof type !== "string" ||
+    typeof url !== "string"
+  )
+    return null;
+  return {
+    id,
+    filename,
+    type,
+    url,
+    path: typeof path === "string" ? path : undefined,
+    size: typeof size === "number" ? size : undefined,
+  };
 }
 
 // CreateEmailInput represents the structure to create an email

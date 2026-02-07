@@ -99,20 +99,25 @@ const Settings = () => {
     }
   };
 
-  const handleExportData = async () => {
+  const handleExportData = async (format: "json" | "text") => {
     setExportLoading(true);
     try {
-      const json = await dataExportController.exportUserData();
-      const blob = new Blob([json], { type: "application/json" });
+      const content = await dataExportController.exportUserData(format);
+      const isJson = format === "json";
+      const blob = new Blob([content], {
+        type: isJson ? "application/json" : "text/plain;charset=utf-8",
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `case-chronicles-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `case-chronicles-export-${new Date().toISOString().slice(0, 10)}.${isJson ? "json" : "txt"}`;
       a.click();
       URL.revokeObjectURL(url);
       toast({
         title: "Data exported",
-        description: "Your data has been downloaded as JSON.",
+        description: isJson
+          ? "Your data has been downloaded as JSON (machine-readable)."
+          : "Your data has been downloaded as readable text.",
       });
     } catch (error) {
       console.error("Export error:", error);
@@ -149,17 +154,29 @@ const Settings = () => {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground mb-2">
-                Export all your data as JSON (GDPR Art. 20 - data portability).
+                Export all your data (GDPR Art. 20 – data portability). Choose
+                readable text or JSON for machine portability.
               </p>
-              <Button
-                variant="outline"
-                onClick={handleExportData}
-                disabled={exportLoading}
-                className="gap-2"
-              >
-                <Download className="h-4 w-4" />
-                {exportLoading ? "Exporting…" : "Export my data"}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportData("text")}
+                  disabled={exportLoading}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  {exportLoading ? "Exporting…" : "Export as text"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportData("json")}
+                  disabled={exportLoading}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  {exportLoading ? "Exporting…" : "Export as JSON"}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

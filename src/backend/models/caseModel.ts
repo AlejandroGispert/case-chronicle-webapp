@@ -1,5 +1,13 @@
 import { getDatabaseService, getAuthService } from "../services";
-import { Case, CaseWithRelations, CreateCaseInput } from "./types";
+import {
+  Case,
+  CaseWithRelations,
+  CreateCaseInput,
+  Email,
+  Event,
+  EmailDb,
+  parseAttachmentsFromJson,
+} from "./types";
 
 export const caseModel = {
   async getCases(): Promise<Case[]> {
@@ -82,7 +90,7 @@ export const caseModel = {
 
     // Get emails for this case
     const { data: emails, error: emailsError } = await db
-      .from("emails")
+      .from<EmailDb>("emails")
       .select("*")
       .eq("case_id", caseId)
       .eq("user_id", user.id)
@@ -98,7 +106,7 @@ export const caseModel = {
 
     // Get events for this case
     const { data: events, error: eventsError } = await db
-      .from("events")
+      .from<Event>("events")
       .select("*")
       .eq("case_id", caseId)
       .eq("user_id", user.id)
@@ -112,27 +120,18 @@ export const caseModel = {
 
     console.log("Found events:", events);
 
-    // Parse attachments: Supabase may return JSON as string or already-parsed object
-    const processedEmails = (emails || []).map((email) => {
-      let attachments: unknown[] = [];
-      if (email.attachments != null) {
-        try {
-          attachments = typeof email.attachments === "string"
-            ? (JSON.parse(email.attachments) as unknown[])
-            : Array.isArray(email.attachments)
-              ? email.attachments
-              : [];
-        } catch {
-          attachments = [];
-        }
-      }
-      return { ...email, attachments };
+    const processedEmails = (emails || []).map((dbRow): Email => {
+      const { attachments: rawAttachments, ...rest } = dbRow;
+      return {
+        ...rest,
+        attachments: parseAttachmentsFromJson(rawAttachments),
+      };
     });
 
-    const processedResult = {
+    const processedResult: CaseWithRelations = {
       ...caseData,
       emails: processedEmails,
-      events: events || [],
+      events: events ?? [],
     };
 
     console.log("Returning case with relations:", processedResult);
