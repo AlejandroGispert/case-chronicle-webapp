@@ -14,15 +14,16 @@ import {
   Mail,
   Edit2,
   Check,
-  X,
   Highlighter,
   User,
   Tag,
   Trash2,
+  CalendarDays,
+  Clock,
 } from "lucide-react";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -50,6 +51,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import EditEmailModal from "@/components/EditEmailModal";
 import { Contact, Category } from "@/backend/models/types";
 
 interface EmailCardProps {
@@ -80,9 +82,7 @@ const EmailCard = ({
 }: EmailCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedDate, setEditedDate] = useState(email.date);
-  const [editedTime, setEditedTime] = useState(email.time);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [highlightMode, setHighlightMode] = useState(false);
   const [highlightedContent, setHighlightedContent] = useState(email.content);
   const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
@@ -95,15 +95,34 @@ const EmailCard = ({
   const hasAttachments =
     Array.isArray(email.attachments) && email.attachments.length > 0;
 
-  const handleSave = () => {
-    onUpdate?.({ ...email, date: editedDate, time: editedTime });
-    setIsEditing(false);
+  const handleEditSave = (updatedEmail: Email) => {
+    onUpdate?.(updatedEmail);
   };
 
-  const handleCancel = () => {
-    setEditedDate(email.date);
-    setEditedTime(email.time);
-    setIsEditing(false);
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      return format(date, "MMM d, yyyy");
+    } catch {
+      return dateString;
+    }
+  };
+
+  const formatTime = (timeString: string) => {
+    if (!timeString) return "";
+    try {
+      if (timeString.match(/^\d{1,2}:\d{2}$/)) {
+        const [hours, minutes] = timeString.split(":").map(Number);
+        const period = hours >= 12 ? "PM" : "AM";
+        const displayHours = hours % 12 || 12;
+        return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+      }
+      return timeString;
+    } catch {
+      return timeString;
+    }
   };
 
   const applyHighlight = (color: string) => {
@@ -389,70 +408,64 @@ const EmailCard = ({
             </div>
 
             <div className="text-left sm:text-right text-xs text-muted-foreground w-full sm:w-auto sm:whitespace-nowrap">
-              {isEditing ? (
-                <div className="space-y-2">
-                  <Input
-                    type="date"
-                    value={editedDate}
-                    onChange={(e) => setEditedDate(e.target.value)}
-                    className="h-7 text-xs w-full sm:w-auto"
-                  />
-                  <Input
-                    type="time"
-                    value={editedTime}
-                    onChange={(e) => setEditedTime(e.target.value)}
-                    className="h-7 text-xs w-full sm:w-auto"
-                  />
-                  <div className="flex gap-1 justify-start sm:justify-end">
+              <div className="flex flex-col items-start sm:items-end gap-1">
+                <div className="flex items-center gap-1 justify-start sm:justify-end">
+                  {onUpdate && (
                     <Button
+                      type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={handleSave}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditModalOpen(true);
+                      }}
                       className="h-6 w-6 p-0"
-                    >
-                      <Check className="h-4 w-4 text-green-600" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleCancel}
-                      className="h-6 w-6 p-0"
-                    >
-                      <X className="h-4 w-4 text-red-600" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-1 justify-start sm:justify-end">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsEditing(true)}
-                      className="h-6 w-6 p-0"
+                      title="Edit email"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    {onDelete && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                        title="Delete email"
-                        onClick={() => setDeleteDialogOpen(true)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
-                    <p className="break-words sm:break-normal">{email.date}</p>
-                  </div>
-                  <p className="break-words sm:break-normal">{email.time}</p>
-                </>
-              )}
+                  )}
+                  {onDelete && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                      title="Delete email"
+                      onClick={() => setDeleteDialogOpen(true)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  <span className="break-words sm:break-normal">
+                    {formatDate(email.date ?? "")}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span className="break-words sm:break-normal">
+                    {formatTime(email.time ?? "")}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {onUpdate && (
+        <EditEmailModal
+          key={email.id}
+          email={email}
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          onSave={handleEditSave}
+        />
+      )}
 
       <Dialog open={!!viewImage} onOpenChange={() => setViewImage(null)}>
         <DialogContent className="sm:max-w-[700px]">

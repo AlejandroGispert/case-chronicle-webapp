@@ -2,53 +2,45 @@ import { useState } from "react";
 import { CaseDocument } from "@/backend/models/documentModel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Download, Edit2, Check, X, Calendar } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
+import { FileText, Download, Edit2, Calendar, CalendarDays, Clock, ExternalLink } from "lucide-react";
+import EditDocumentModal from "@/components/EditDocumentModal";
 import { format } from "date-fns";
 
+type DocumentWithDateTime = CaseDocument & { date: string; time: string };
+
+const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|$)/i;
+
+function isImageDocument(doc: CaseDocument): boolean {
+  if (doc.type?.startsWith("image/")) return true;
+  return IMAGE_EXTENSIONS.test(doc.filename ?? "");
+}
+
 interface DocumentCardProps {
-  document: CaseDocument;
-  onUpdate?: (updatedDocument: CaseDocument & { date: string; time: string }) => void;
+  document: DocumentWithDateTime;
+  onUpdate?: (updatedDocument: DocumentWithDateTime) => void;
 }
 
 const DocumentCard = ({ document, onUpdate }: DocumentCardProps) => {
-  // Parse date and time from uploaded_at
-  const parseDateTime = (uploadedAt: string) => {
-    try {
-      const date = new Date(uploadedAt);
-      return {
-        date: format(date, "yyyy-MM-dd"),
-        time: format(date, "HH:mm"),
-      };
-    } catch {
-      const now = new Date();
-      return {
-        date: format(now, "yyyy-MM-dd"),
-        time: format(now, "HH:mm"),
-      };
-    }
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+
+  const handleEditSave = (updated: DocumentWithDateTime) => {
+    onUpdate?.(updated);
   };
 
-  const initialDateTime = parseDateTime(document.uploaded_at);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedDate, setEditedDate] = useState(initialDateTime.date);
-  const [editedTime, setEditedTime] = useState(initialDateTime.time);
-
-  const handleSave = () => {
-    if (onUpdate) {
-      onUpdate({
-        ...document,
-        date: editedDate,
-        time: editedTime,
-      });
+  const handleOpen = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!document.url) return;
+    if (isImageDocument(document)) {
+      setImagePreviewOpen(true);
+    } else {
+      window.open(document.url, "_blank", "noopener,noreferrer");
     }
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setEditedDate(initialDateTime.date);
-    setEditedTime(initialDateTime.time);
-    setIsEditing(false);
   };
 
   const formatFileSize = (bytes?: number): string => {
@@ -87,6 +79,7 @@ const DocumentCard = ({ document, onUpdate }: DocumentCardProps) => {
   };
 
   return (
+    <>
     <Card className="hover:bg-muted/50 transition-colors">
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-4">
@@ -101,9 +94,9 @@ const DocumentCard = ({ document, onUpdate }: DocumentCardProps) => {
               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  {formatDate(editedDate)}
+                  {formatDate(document.date)}
                 </span>
-                <span>{formatTime(editedTime)}</span>
+                <span>{formatTime(document.time)}</span>
                 {document.size && (
                   <span>{formatFileSize(document.size)}</span>
                 )}
@@ -111,57 +104,91 @@ const DocumentCard = ({ document, onUpdate }: DocumentCardProps) => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="text-right text-xs text-muted-foreground whitespace-nowrap">
-              {isEditing ? (
-                <div className="space-y-2">
-                  <Input
-                    type="date"
-                    value={editedDate}
-                    onChange={(e) => setEditedDate(e.target.value)}
-                    className="h-7 text-xs"
-                  />
-                  <Input
-                    type="time"
-                    value={editedTime}
-                    onChange={(e) => setEditedTime(e.target.value)}
-                    className="h-7 text-xs"
-                  />
-                  <div className="flex gap-1 justify-end">
-                    <Button variant="ghost" size="sm" onClick={handleSave} className="h-6 w-6 p-0">
-                      <Check className="h-4 w-4 text-green-600" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={handleCancel} className="h-6 w-6 p-0">
-                      <X className="h-4 w-4 text-red-600" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-1 justify-end">
-                    <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="h-6 w-6 p-0">
+            <div className="text-left sm:text-right text-xs text-muted-foreground w-full sm:w-auto sm:whitespace-nowrap">
+              <div className="flex flex-col items-start sm:items-end gap-1">
+                <div className="flex items-center gap-1 justify-start sm:justify-end">
+                  {onUpdate && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditModalOpen(true);
+                      }}
+                      className="h-6 w-6 p-0"
+                      title="Edit document"
+                    >
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    <p>{formatDate(editedDate)}</p>
-                  </div>
-                  <p>{formatTime(editedTime)}</p>
-                </>
-              )}
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  <span className="break-words sm:break-normal">
+                    {formatDate(document.date)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span className="break-words sm:break-normal">
+                    {formatTime(document.time)}
+                  </span>
+                </div>
+              </div>
             </div>
             {document.url && (
-              <a
-                href={document.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-              >
-                <Download className="h-4 w-4" />
-                Download
-              </a>
+              <>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={handleOpen}
+                  className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Open
+                </Button>
+                <a
+                  href={document.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </a>
+              </>
             )}
           </div>
         </div>
       </CardContent>
     </Card>
+
+    {onUpdate && (
+      <EditDocumentModal
+        key={document.id}
+        document={document}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onSave={handleEditSave}
+      />
+    )}
+
+    <Dialog open={imagePreviewOpen} onOpenChange={setImagePreviewOpen}>
+      <DialogContent className="max-w-[90vw] max-h-[90vh] w-auto p-2 overflow-auto">
+        <div className="flex items-center justify-center min-h-[200px] bg-muted/30 rounded-lg p-4">
+          <img
+            src={document.url}
+            alt={document.filename}
+            className="max-w-full max-h-[80vh] w-auto h-auto object-contain rounded"
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 };
 

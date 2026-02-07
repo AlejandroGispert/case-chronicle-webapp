@@ -9,11 +9,22 @@ import { format } from "date-fns";
 import { Calendar, FileText, Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 const SelectCase = () => {
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirmCase, setConfirmCase] = useState<{ id: string; title: string } | null>(null);
   const location = useLocation();
   const { toast } = useToast();
   const { selectedCase, setSelectedCase } = useSelectedCase();
@@ -71,11 +82,18 @@ const SelectCase = () => {
       : cases;
 
   const handleSelectCase = (id: string, title: string) => {
-    setSelectedCase({ id, title });
-    toast({
-      title: "Case selected",
-      description: `"${title}" is now your selected case.`,
-    });
+    setConfirmCase({ id, title });
+  };
+
+  const confirmSelectCase = () => {
+    if (confirmCase) {
+      setSelectedCase({ id: confirmCase.id, title: confirmCase.title });
+      toast({
+        title: "Case selected",
+        description: `"${confirmCase.title}" is now your selected case.`,
+      });
+      setConfirmCase(null);
+    }
   };
 
   const handleRefresh = async () => {
@@ -201,6 +219,25 @@ const SelectCase = () => {
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!confirmCase} onOpenChange={(open) => !open && setConfirmCase(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Select this case?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmCase
+                ? `"${confirmCase.title}" will become your active case for Calendar and Case details.`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSelectCase}>
+              Select case
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };

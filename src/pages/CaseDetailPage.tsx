@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import CaseDetail from "@/components/CaseDetail";
+import CaseDetailSkeleton from "@/components/CaseDetailSkeleton";
 import { caseController } from "@/backend/controllers/caseController";
 import { CaseWithRelations } from "@/backend/models/types";
 import { Case } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { useSelectedCase } from "@/contexts/SelectedCaseContext";
 
 function mapCaseWithRelationsToAppCase(dbCase: CaseWithRelations): Case {
@@ -76,10 +76,7 @@ const CaseDetailPage = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="flex flex-col items-center justify-center py-16 gap-4">
-          <Spinner />
-          <p className="text-muted-foreground">Loading case…</p>
-        </div>
+        <CaseDetailSkeleton />
       </Layout>
     );
   }

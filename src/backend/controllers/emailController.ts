@@ -116,13 +116,18 @@ export const emailController = {
       const { user } = await authService.getUser();
       requireAuth(user);
 
+      const updatePayload: Partial<ModelEmail> = {};
+      if (emailData.date !== undefined) updatePayload.date = emailData.date;
+      if (emailData.time !== undefined) updatePayload.time = emailData.time;
+      if (emailData.content !== undefined) updatePayload.content = emailData.content;
+      if (emailData.subject !== undefined) updatePayload.subject = emailData.subject;
+      if (emailData.sender !== undefined) updatePayload.sender = emailData.sender;
+      if (emailData.recipient !== undefined) updatePayload.recipient = emailData.recipient;
+
       const db = getDatabaseService();
       const { data, error } = await db
         .from<ModelEmail>('emails')
-        .update({
-          date: emailData.date,
-          time: emailData.time,
-        })
+        .update(updatePayload)
         .eq('id', emailData.id)
         .eq('user_id', user.id)
         .select()

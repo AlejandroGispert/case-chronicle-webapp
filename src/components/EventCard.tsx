@@ -307,13 +307,14 @@ const EventCard = ({
                   )}
                   {onDelete && (
                     <Button
+                      type="button"
                       variant="ghost"
                       size="sm"
                       className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
                       title="Delete entry"
                       onClick={() => setDeleteDialogOpen(true)}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
                 </div>

@@ -18,7 +18,7 @@ import {
   Plus,
   Upload,
 } from "lucide-react";
-import { format, isValid } from "date-fns";
+import { format, isValid, parse } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -289,6 +289,10 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
         id: updatedEmail.id,
         date: updatedEmail.date,
         time: updatedEmail.time,
+        content: updatedEmail.content,
+        subject: updatedEmail.subject,
+        sender: updatedEmail.sender,
+        recipient: updatedEmail.recipient,
       });
       if (result) {
         await fetchEmails();
@@ -777,7 +781,10 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
               <div key={group} className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <h4 className="text-sm font-medium text-muted-foreground min-w-0 break-words">
-                    {format(new Date(group), "MMMM d, yyyy")}
+                    {format(
+                      parse(group, "yyyy-MM-dd", new Date()),
+                      "MMMM d, yyyy",
+                    )}
                   </h4>
                     <Separator className="flex-1 hidden sm:block" />
                   <span className="text-sm text-muted-foreground flex-shrink-0">
