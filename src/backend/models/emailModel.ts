@@ -234,9 +234,14 @@ export const emailModel = {
       return false;
     }
 
-    const attachments: EmailAttachment[] = email.attachments
-      ? JSON.parse(email.attachments as unknown as string)
-      : [];
+    const raw = email.attachments;
+    const attachments: EmailAttachment[] = !raw
+      ? []
+      : typeof raw === "string"
+        ? (JSON.parse(raw) as EmailAttachment[])
+        : Array.isArray(raw)
+          ? (raw as EmailAttachment[])
+          : [];
 
     // Delete attachments from storage
     const storageService = getStorageService();

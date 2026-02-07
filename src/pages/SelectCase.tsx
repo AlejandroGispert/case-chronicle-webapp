@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { caseController } from "@/backend/controllers/caseController";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +26,7 @@ const SelectCase = () => {
   const [loading, setLoading] = useState(true);
   const [confirmCase, setConfirmCase] = useState<{ id: string; title: string } | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { selectedCase, setSelectedCase } = useSelectedCase();
 
@@ -93,6 +94,7 @@ const SelectCase = () => {
         description: `"${confirmCase.title}" is now your selected case.`,
       });
       setConfirmCase(null);
+      navigate(`/case/${confirmCase.id}`);
     }
   };
 

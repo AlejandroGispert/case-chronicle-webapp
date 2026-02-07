@@ -385,18 +385,30 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
   const handleEventDelete = async (eventId: string) => {
     try {
       const success = await eventController.removeEvent(eventId);
-      if (success) await fetchEvents();
+      if (success) {
+        await fetchEvents();
+        toast({ title: "Entry deleted", description: "The entry was removed." });
+      } else {
+        toast({ title: "Delete failed", description: "Could not delete the entry.", variant: "destructive" });
+      }
     } catch (error) {
       console.error("Error deleting event:", error);
+      toast({ title: "Delete failed", description: "Could not delete the entry.", variant: "destructive" });
     }
   };
 
   const handleEmailDelete = async (emailId: string) => {
     try {
       const success = await emailController.removeEmail(emailId);
-      if (success) await fetchEmails();
+      if (success) {
+        await fetchEmails();
+        toast({ title: "Email deleted", description: "The email was removed." });
+      } else {
+        toast({ title: "Delete failed", description: "Could not delete the email.", variant: "destructive" });
+      }
     } catch (error) {
       console.error("Error deleting email:", error);
+      toast({ title: "Delete failed", description: "Could not delete the email.", variant: "destructive" });
     }
   };
 
