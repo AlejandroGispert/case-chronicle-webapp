@@ -21,10 +21,16 @@ const SelectCase = () => {
   const statusFilter = new URLSearchParams(location.search).get("status");
 
   useEffect(() => {
-    const state = location.state as { caseId?: string; caseTitle?: string } | null;
+    const state = location.state as {
+      caseId?: string;
+      caseTitle?: string;
+    } | null;
     if (state?.caseId && state?.caseTitle) {
       setSelectedCase({ id: state.caseId, title: state.caseTitle });
-      toast({ title: "Case selected", description: `"${state.caseTitle}" is now your active case.` });
+      toast({
+        title: "Case selected",
+        description: `"${state.caseTitle}" is now your active case.`,
+      });
     }
   }, [location.state, setSelectedCase, toast]);
 
@@ -66,7 +72,10 @@ const SelectCase = () => {
 
   const handleSelectCase = (id: string, title: string) => {
     setSelectedCase({ id, title });
-    toast({ title: "Case selected", description: `"${title}" is now your active case.` });
+    toast({
+      title: "Case selected",
+      description: `"${title}" is now your selected case.`,
+    });
   };
 
   const handleRefresh = async () => {
@@ -157,7 +166,7 @@ const SelectCase = () => {
                   key={c.id}
                   className={cn(
                     "cursor-pointer transition-colors hover:bg-muted/50",
-                    isSelected && "ring-2 ring-primary bg-primary/5"
+                    isSelected && "ring-2 ring-primary bg-primary/5",
                   )}
                   onClick={() => handleSelectCase(c.id, c.title)}
                 >
@@ -175,8 +184,9 @@ const SelectCase = () => {
                     <Badge
                       variant="secondary"
                       className={cn(
-                        c.status === "active" && "bg-green-500/20 text-green-700",
-                        c.status === "closed" && "bg-gray-500/20 text-gray-700"
+                        c.status === "active" &&
+                          "bg-green-500/20 text-green-700",
+                        c.status === "closed" && "bg-gray-500/20 text-gray-700",
                       )}
                     >
                       {c.status}

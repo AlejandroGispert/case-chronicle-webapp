@@ -9,11 +9,17 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { documentController } from "@/backend/controllers/documentController";
-import { Case } from "@/backend/models/types";
 import { Upload, Loader2 } from "lucide-react";
 
+/** Minimal case shape needed for the document attach dropdown. */
+export interface CaseForDocument {
+  id: string;
+  title: string;
+  number?: string;
+}
+
 interface AttachDocumentButtonProps {
-  cases: Case[];
+  cases: CaseForDocument[];
   onDocumentAttached?: () => void;
   defaultCaseId?: string;
   /** Optional ref to trigger file dialog from outside (e.g. Add entry dropdown). */

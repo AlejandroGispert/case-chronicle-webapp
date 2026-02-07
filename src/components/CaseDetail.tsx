@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Case, Email, Event } from "../types";
+import type { CreateEmailInput } from "@/backend/models/types";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import EmailTimeline from "./EmailTimeline";
@@ -65,12 +66,31 @@ interface CaseDetailProps {
   readonly?: boolean;
 }
 
-type TimelineItem =
-  | (Email & { event_type: "Email" })
-  | (Event & { event_type: "Event" })
-  | (CaseDocument & { date: string; time: string; event_type: "Document" });
+/** Email as shown in timeline (attachments enriched from Json). */
+type TimelineEmail = Omit<Email, "attachments"> & {
+  event_type: "Email";
+  attachments?: Attachment[];
+};
+type TimelineEvent = Event & { event_type: "Event" };
+type TimelineDocument = CaseDocument & {
+  date: string;
+  time: string;
+  event_type: "Document";
+};
+type TimelineItem = TimelineEmail | TimelineEvent | TimelineDocument;
+
+function isTimelineEmail(item: TimelineItem): item is TimelineEmail {
+  return item.event_type === "Email";
+}
+function isTimelineEvent(item: TimelineItem): item is TimelineEvent {
+  return item.event_type === "Event";
+}
+function isTimelineDocument(item: TimelineItem): item is TimelineDocument {
+  return item.event_type === "Document";
+}
+
 const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
-  const [emails, setEmails] = useState<Email[]>([]);
+  const [emails, setEmails] = useState<TimelineEmail[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [documents, setDocuments] = useState<
     (CaseDocument & { date: string; time: string })[]
@@ -98,10 +118,10 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
         caseData.id,
       );
       if (fetchedEmails) {
-        const enrichedEmails: Email[] = fetchedEmails.map((email) => ({
+        const enrichedEmails: TimelineEmail[] = fetchedEmails.map((email) => ({
           ...email,
-          event_type: "Email",
-          attachments: email.attachments as unknown as Attachment[],
+          event_type: "Email" as const,
+          attachments: (email.attachments as unknown as Attachment[]) ?? undefined,
         }));
         setEmails(enrichedEmails);
       }
@@ -187,6 +207,15 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
     }
   }, []);
 
+  const fetchSharedUsers = useCallback(async () => {
+    try {
+      const users = await caseShareController.getSharedUsers(caseData.id);
+      setSharedUsers(users);
+    } catch (error) {
+      console.error("Error fetching shared users:", error);
+    }
+  }, [caseData.id]);
+
   useEffect(() => {
     console.log("CaseData:", caseData);
     fetchEmails();
@@ -202,36 +231,20 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
     fetchDocuments,
     fetchContacts,
     fetchCategories,
+    fetchSharedUsers,
   ]);
-
-  const fetchSharedUsers = async () => {
-    try {
-      const users = await caseShareController.getSharedUsers(caseData.id);
-      setSharedUsers(users);
-    } catch (error) {
-      console.error("Error fetching shared users:", error);
-    }
-  };
 
   useEffect(() => {
     console.log("Categories state updated:", categories);
   }, [categories]);
 
-  const handleAddEmail = async (newEmail: Email, caseId: string) => {
+  const handleAddEmail = async (
+    newEmail: CreateEmailInput,
+    caseId: string,
+  ) => {
     if (caseId === caseData.id) {
       try {
-        const createdEmail = await emailController.createNewEmail({
-          id: newEmail.id,
-          case_id: caseId,
-          sender: newEmail.sender,
-          recipient: newEmail.recipient,
-          subject: newEmail.subject,
-          content: newEmail.content,
-          date: newEmail.date,
-          time: newEmail.time,
-          user_id: "",
-          attachments: newEmail.attachments,
-        });
+        const createdEmail = await emailController.createNewEmail(newEmail);
 
         if (createdEmail) {
           await fetchEmails();
@@ -430,18 +443,18 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
   const totalCommunications =
     (emails.length || 0) + (events.length || 0) + (documents.length || 0);
 
-  const getCombinedTimeline = () => {
-    const emailEvents = emails.map((email) => ({
+  const getCombinedTimeline = (): TimelineItem[] => {
+    const emailEvents: TimelineEmail[] = emails.map((email) => ({
       ...email,
       event_type: "Email" as const,
     }));
 
-    const caseEvents = events.map((event) => ({
+    const caseEvents: TimelineEvent[] = events.map((event) => ({
       ...event,
-      event_type: event.event_type || ("Event" as const),
+      event_type: (event.event_type || "Event") as "Event",
     }));
 
-    const documentEvents = documents.map((doc) => ({
+    const documentEvents: TimelineDocument[] = documents.map((doc) => ({
       ...doc,
       event_type: "Document" as const,
     }));
@@ -454,21 +467,6 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
         : bDate.getTime() - aDate.getTime();
     });
   };
-  type Email = {
-    attachments: JSON | null;
-    case_id: string;
-    content: string;
-    created_at: string;
-    date: string;
-    id: string;
-    recipient: string;
-    sender: string;
-    subject: string;
-    time: string;
-    user_id: string;
-    event_type: string;
-  };
-  const isEmail = (item: Email): item is Email => item.event_type === "Email";
 
   const filteredItems = getCombinedTimeline().filter((item) => {
     const matchesType =
@@ -481,23 +479,23 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
 
     const matchesCategory =
       filterCategory === "all" ||
-      (item.event_type === "Email" &&
-        (item as Email).category_id === filterCategory) ||
-      (item.event_type === "Event" &&
-        (item as Event).category_id === filterCategory) ||
-      (item.event_type === "Document" && filterCategory === "all"); // Documents don't have categories yet
+      (isTimelineEmail(item) && item.category_id === filterCategory) ||
+      (isTimelineEvent(item) && item.category_id === filterCategory) ||
+      (isTimelineDocument(item) && filterCategory === "all");
 
     const matchesSearch =
       searchQuery === "" ||
-      (item.event_type === "Document" &&
-        (item as CaseDocument & { date: string; time: string }).filename
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())) ||
-      (isEmail(item)
-        ? item.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.content?.toLowerCase().includes(searchQuery.toLowerCase())
-        : item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+      (isTimelineDocument(item) &&
+        item.filename.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (isTimelineEmail(item)
+        ? (item.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.content?.toLowerCase().includes(searchQuery.toLowerCase())) ??
+          false
+        : isTimelineEvent(item)
+          ? (item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              item.description?.toLowerCase().includes(searchQuery.toLowerCase())) ??
+            false
+          : false);
 
     return matchesType && matchesCategory && matchesSearch;
   });
@@ -791,8 +789,12 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
                     <div key={item.id} className="relative">
                       {item.event_type === "Email" ? (
                         <EmailCard
-                          email={item as Email}
-                          onUpdate={readonly ? undefined : handleEmailUpdate}
+                          email={item as unknown as Email}
+                          onUpdate={
+                            readonly
+                              ? undefined
+                              : (e) => handleEmailUpdate(e as Email)
+                          }
                           onDelete={readonly ? undefined : handleEmailDelete}
                           contacts={contacts}
                           onContactAssign={readonly ? undefined : handleEmailContactAssign}

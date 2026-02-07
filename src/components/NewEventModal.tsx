@@ -76,12 +76,12 @@ const NewEventModal = ({
       }
     }
 
-    const eventData = {
+    const eventData: import("@/types").NewEventFormData = {
       id: uuidv4(),
-      title: formData.get("eventTitle"),
+      title: String(formData.get("eventTitle") ?? ""),
       date: eventDate,
-      time: formData.get("eventTime"),
-      description: formData.get("eventDescription"),
+      time: String(formData.get("eventTime") ?? "12:00"),
+      description: String(formData.get("eventDescription") ?? ""),
       event_type: "event",
     };
 

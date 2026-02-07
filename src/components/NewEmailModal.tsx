@@ -20,12 +20,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Email } from "../types";
 import { Mail } from "lucide-react";
+import type { CreateEmailInput } from "@/backend/models/types";
 
 interface NewEmailModalProps {
   cases?: { id: string; title: string }[];
-  onAddEmail: (emailData: Email, caseId: string) => void;
+  onAddEmail: (emailData: CreateEmailInput, caseId: string) => void;
   /** When set, control the dialog open state from outside (e.g. Add entry dropdown). */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -94,7 +94,7 @@ const NewEmailModal = ({ cases = [], onAddEmail, open: openProp, onOpenChange }:
       }
     }
 
-    const emailData: Email = {
+    const emailData: CreateEmailInput = {
       id: uuidv4(),
       case_id: selectedCaseId,
       subject,
@@ -103,8 +103,7 @@ const NewEmailModal = ({ cases = [], onAddEmail, open: openProp, onOpenChange }:
       date,
       time,
       content,
-      attachments: [], // Can be extended later
-      created_at: new Date().toISOString(),
+      attachments: [],
       user_id: "", // Assigned by backend
     };
 
