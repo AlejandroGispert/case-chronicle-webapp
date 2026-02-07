@@ -77,6 +77,16 @@ npm run test:e2e
 
 By default Playwright uses `http://localhost:3000`. Override with `E2E_BASE_URL` if needed.
 
+## 7. Events RLS (if “Add event” fails with row-level security)
+
+If adding an event shows “new row violates row-level security on events table”, run the events RLS migration so authenticated users can insert their own events:
+
+1. Open **Supabase Dashboard** → your project → **SQL Editor**.
+2. Open `supabase/migrations/20250207000000_events_rls_insert_policy.sql` in this repo and copy its contents.
+3. Paste into the SQL Editor and click **Run**.
+
+This adds an INSERT policy on `public.events` so rows with `user_id = auth.uid()` are allowed.
+
 ## Summary checklist
 
 - [ ] `npm install` and `cp .env.example .env` with real Supabase values.

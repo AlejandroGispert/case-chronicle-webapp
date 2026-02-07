@@ -74,7 +74,7 @@ export const eventModel = {
 
     if (error) {
       console.error('Error creating event:', error.message);
-      return null;
+      throw new Error(error.message);
     }
 
     return data;

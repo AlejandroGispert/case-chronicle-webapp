@@ -83,14 +83,16 @@ const NewEventModal = ({
 
     const eventData: import("@/types").NewEventFormData = {
       id: uuidv4(),
-      title: String(formData.get("eventTitle") ?? ""),
+      title: String(formData.get("eventTitle") ?? "").trim(),
       date: eventDate,
       time: String(formData.get("eventTime") ?? "12:00"),
-      description: String(formData.get("eventDescription") ?? ""),
+      description: String(formData.get("eventDescription") ?? "").trim(),
       event_type: "event",
     };
 
-    if (!selectedCaseId) {
+    // Use caseId from props when modal was opened for a specific case (e.g. from Case Detail)
+    const effectiveCaseId = caseId ?? selectedCaseId;
+    if (!effectiveCaseId) {
       toast({
         title: "No Case Selected",
         description: "Please select a case to assign the event to.",
@@ -100,16 +102,18 @@ const NewEventModal = ({
     }
 
     try {
-      await Promise.resolve(onAddEvent(eventData, selectedCaseId));
+      await Promise.resolve(onAddEvent(eventData, effectiveCaseId));
       toast({
         title: "Event added",
         description: "Your event has been added to the case.",
       });
       setOpen(false);
-    } catch {
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong. Please try again.";
       toast({
         title: "Could not add event",
-        description: "Something went wrong. Please try again.",
+        description: message,
         variant: "destructive",
       });
     }
@@ -183,12 +187,11 @@ const NewEventModal = ({
             <Input id="eventTime" name="eventTime" type="time" required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="eventDescription">Description</Label>
+            <Label htmlFor="eventDescription">Description (optional)</Label>
             <textarea
               id="eventDescription"
               name="eventDescription"
               className="w-full h-32 rounded-md border px-3 py-2 text-sm"
-              required
             />
           </div>
           <DialogFooter>
