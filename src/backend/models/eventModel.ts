@@ -115,19 +115,24 @@ export const eventModel = {
     if (!user) return false;
     
     const db = getDatabaseService();
-    const { error } = await db
+    const { data, error } = await db
       .from('events')
       .delete()
       .eq('id', eventId)
       .eq('user_id', user.id)
+      .select('id')
       .execute();
       
     if (error) {
-      console.error('Error deleting event:', error);
+      console.error('Error deleting event:', error.message, { eventId, userId: user.id });
       return false;
     }
     
-    return true;
+    const deleted = Array.isArray(data) ? data : data != null ? [data] : [];
+    if (deleted.length === 0 && import.meta.env?.DEV) {
+      console.warn('Event delete returned 0 rows (RLS may be blocking). Run migration: supabase/migrations/20250207100000_events_rls_delete_policy.sql', { eventId, userId: user.id });
+    }
+    return deleted.length > 0;
   },
 
   async assignContactToEvent(eventId: string, contactId: string | null): Promise<boolean> {
