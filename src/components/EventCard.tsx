@@ -5,8 +5,6 @@ import {
   Clock,
   Mail,
   Edit2,
-  Check,
-  X,
   User,
   Tag,
   Trash2,
@@ -16,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { format, isValid, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -40,6 +37,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import EditEventModal from "@/components/EditEventModal";
 import { useToast } from "@/hooks/use-toast";
 
 interface EventCardProps {
@@ -63,9 +61,7 @@ const EventCard = ({
 }: EventCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(event);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedDate, setEditedDate] = useState(event.date);
-  const [editedTime, setEditedTime] = useState(event.time);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -76,41 +72,11 @@ const EventCard = ({
 
   useEffect(() => {
     setCurrentEvent(event);
-    setEditedDate(event.date);
-    setEditedTime(event.time);
   }, [event]);
 
-  const handleSave = () => {
-    // Validate date is not more than 2 years in the future
-    if (editedDate) {
-      const selectedDate = new Date(editedDate);
-      const maxDate = new Date();
-      maxDate.setFullYear(maxDate.getFullYear() + 2);
-      
-      if (selectedDate > maxDate) {
-        toast({
-          title: "Invalid Date",
-          description: "Date cannot be more than 2 years in the future.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    const updatedEvent = {
-      ...currentEvent,
-      date: editedDate,
-      time: editedTime,
-    };
-    onUpdate?.(updatedEvent);
+  const handleEditSave = (updatedEvent: Event) => {
     setCurrentEvent(updatedEvent);
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setEditedDate(currentEvent.date);
-    setEditedTime(currentEvent.time);
-    setIsEditing(false);
+    onUpdate?.(updatedEvent);
   };
 
   const formatTime = (timeString: string) => {
@@ -182,15 +148,15 @@ const EventCard = ({
                 <h3 className="font-medium text-base truncate">{entryName}</h3>
               </div>
 
-              <div
-                className={cn("transition-all duration-200 overflow-hidden", {
-                  "max-h-16": !isExpanded,
-                  "max-h-full": isExpanded,
-                })}
-              >
-                <p className="text-sm whitespace-pre-line">
-                  {currentEvent.description?.trim() ||
-                    "(No description provided)"}
+              <div className="text-sm">
+                <p className="whitespace-pre-line break-words">
+                  {currentEvent.description?.trim()
+                    ? isExpanded
+                      ? currentEvent.description.trim()
+                      : currentEvent.description.trim().length > 100
+                        ? `${currentEvent.description.trim().slice(0, 100)}…`
+                        : currentEvent.description.trim()
+                    : "(No description provided)"}
                 </p>
               </div>
 
@@ -307,98 +273,77 @@ const EventCard = ({
               </div>
 
               {currentEvent.description &&
-                currentEvent.description.length > 100 && (
+                currentEvent.description.trim().length > 100 && (
                   <Button
+                    type="button"
                     variant="link"
                     size="sm"
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="p-0 h-auto mt-2 text-legal-500 hover:text-legal-600"
                   >
-                    {isExpanded ? "Show Less" : "Show More"}
+                    {isExpanded ? "Show less" : "Show more"}
                   </Button>
                 )}
             </div>
 
             <div className="text-left sm:text-right text-xs text-muted-foreground w-full sm:w-auto sm:whitespace-nowrap">
-              {isEditing ? (
-                <div className="space-y-2">
-                  <Input
-                    type="date"
-                    value={editedDate}
-                    onChange={(e) => setEditedDate(e.target.value)}
-                    className="h-7 text-xs w-full sm:w-auto"
-                    max={(() => {
-                      const maxDate = new Date();
-                      maxDate.setFullYear(maxDate.getFullYear() + 2);
-                      return maxDate.toISOString().split('T')[0];
-                    })()}
-                  />
-                  <Input
-                    type="time"
-                    value={editedTime}
-                    onChange={(e) => setEditedTime(e.target.value)}
-                    className="h-7 text-xs w-full sm:w-auto"
-                  />
-                  <div className="flex gap-1 justify-start sm:justify-end">
+              <div className="flex flex-col items-start sm:items-end gap-1">
+                <div className="flex items-center gap-1 justify-start sm:justify-end">
+                  {onUpdate && (
                     <Button
+                      type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={handleSave}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditModalOpen(true);
+                      }}
                       className="h-6 w-6 p-0"
-                    >
-                      <Check className="h-4 w-4 text-green-600" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleCancel}
-                      className="h-6 w-6 p-0"
-                    >
-                      <X className="h-4 w-4 text-red-600" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-1 justify-start sm:justify-end">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsEditing(true)}
-                      className="h-6 w-6 p-0"
+                      title="Edit event"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    {onDelete && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                        title="Delete entry"
-                        onClick={() => setDeleteDialogOpen(true)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <CalendarDays className="h-3.5 w-3.5" />
-                      <span className="break-words sm:break-normal">
-                        {formatDate(currentEvent.date)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span className="break-words sm:break-normal">
-                      {formatTime(currentEvent.time)}
-                    </span>
-                  </div>
-                </>
-              )}
+                  )}
+                  {onDelete && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                      title="Delete entry"
+                      onClick={() => setDeleteDialogOpen(true)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  <span className="break-words sm:break-normal">
+                    {formatDate(currentEvent.date)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span className="break-words sm:break-normal">
+                    {formatTime(currentEvent.time)}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {onUpdate && (
+        <EditEventModal
+          key={currentEvent.id}
+          event={currentEvent}
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          onSave={handleEditSave}
+        />
+      )}
 
       {onDelete && (
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

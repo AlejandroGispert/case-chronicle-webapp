@@ -48,29 +48,10 @@ export const eventController = {
   },
 
   async updateEvent(eventData: Partial<Event>) {
-    try {
-      const authService = getAuthService();
-      const { user } = await authService.getUser();
-      requireAuth(user);
-
-      const db = getDatabaseService();
-      const { data, error } = await db
-        .from<Event>('events')
-        .update({
-          date: eventData.date,
-          time: eventData.time,
-        })
-        .eq('id', eventData.id)
-        .eq('user_id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error("Error updating event:", error);
-      return null;
-    }
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    requireAuth(user);
+    return await eventModel.updateEvent(eventData);
   },
 
   async assignContactToEvent(eventId: string, contactId: string | null) {

@@ -320,7 +320,7 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
       const result = await eventController.updateEvent(updatedEvent);
       if (result) {
         setEvents(
-          events.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)),
+          events.map((e) => (e.id === updatedEvent.id ? result : e)),
         );
       }
     } catch (error) {

@@ -80,6 +80,35 @@ export const eventModel = {
     return data;
   },
 
+  async updateEvent(eventData: Partial<Event>): Promise<Event | null> {
+    const authService = getAuthService();
+    const { user } = await authService.getUser();
+    if (!user || !eventData.id) return null;
+
+    const db = getDatabaseService();
+    const payload: Partial<Event> = {};
+    if (eventData.title !== undefined) payload.title = eventData.title;
+    if (eventData.description !== undefined) payload.description = eventData.description;
+    if (eventData.date !== undefined) payload.date = eventData.date;
+    if (eventData.time !== undefined) payload.time = eventData.time;
+
+    if (Object.keys(payload).length === 0) return null;
+
+    const { data, error } = await db
+      .from<Event>('events')
+      .update(payload)
+      .eq('id', eventData.id)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating event:', error.message);
+      return null;
+    }
+    return data;
+  },
+
   async deleteEvent(eventId: string): Promise<boolean> {
     const authService = getAuthService();
     const { user } = await authService.getUser();
