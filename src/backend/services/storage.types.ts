@@ -17,17 +17,19 @@ export interface UploadOptions {
   metadata?: Record<string, string>;
 }
 
+export interface StorageFileMetadata {
+  size?: number;
+  mimetype?: string;
+  [key: string]: string | number | undefined;
+}
+
 export interface StorageFile {
   name: string;
   id: string;
   updated_at: string;
   created_at: string;
   last_accessed_at: string;
-  metadata?: {
-    size?: number;
-    mimetype?: string;
-    [key: string]: any;
-  };
+  metadata?: StorageFileMetadata;
 }
 
 export interface IStorageService {

@@ -4,22 +4,24 @@
  * This adapter wraps Supabase's query builder to match our abstraction interface.
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import { IDatabaseService, QueryBuilder } from './database.types';
+import { SupabaseClient } from "@supabase/supabase-js";
+import type { IDatabaseService, QueryBuilder, FilterValue, RpcParams } from "./database.types";
 
-export class SupabaseQueryBuilder<T = any> implements QueryBuilder<T> {
-  private query: any;
+type SupabaseQueryChain = ReturnType<SupabaseClient["from"]>;
 
-  constructor(query: any) {
+export class SupabaseQueryBuilder<T> implements QueryBuilder<T> {
+  private query: SupabaseQueryChain;
+
+  constructor(query: SupabaseQueryChain) {
     this.query = query;
   }
 
-  select(columns: string = '*'): QueryBuilder<T> {
+  select(columns: string = "*"): QueryBuilder<T> {
     this.query = this.query.select(columns);
     return this;
   }
 
-  insert(data: any): QueryBuilder<T> {
+  insert(data: Partial<T> | Partial<T>[]): QueryBuilder<T> {
     this.query = this.query.insert(data);
     return this;
   }
@@ -34,32 +36,32 @@ export class SupabaseQueryBuilder<T = any> implements QueryBuilder<T> {
     return this;
   }
 
-  eq(column: string, value: any): QueryBuilder<T> {
+  eq(column: string, value: FilterValue): QueryBuilder<T> {
     this.query = this.query.eq(column, value);
     return this;
   }
 
-  neq(column: string, value: any): QueryBuilder<T> {
+  neq(column: string, value: FilterValue): QueryBuilder<T> {
     this.query = this.query.neq(column, value);
     return this;
   }
 
-  gt(column: string, value: any): QueryBuilder<T> {
+  gt(column: string, value: FilterValue): QueryBuilder<T> {
     this.query = this.query.gt(column, value);
     return this;
   }
 
-  gte(column: string, value: any): QueryBuilder<T> {
+  gte(column: string, value: FilterValue): QueryBuilder<T> {
     this.query = this.query.gte(column, value);
     return this;
   }
 
-  lt(column: string, value: any): QueryBuilder<T> {
+  lt(column: string, value: FilterValue): QueryBuilder<T> {
     this.query = this.query.lt(column, value);
     return this;
   }
 
-  lte(column: string, value: any): QueryBuilder<T> {
+  lte(column: string, value: FilterValue): QueryBuilder<T> {
     this.query = this.query.lte(column, value);
     return this;
   }
@@ -74,12 +76,12 @@ export class SupabaseQueryBuilder<T = any> implements QueryBuilder<T> {
     return this;
   }
 
-  in(column: string, values: any[]): QueryBuilder<T> {
+  in(column: string, values: FilterValue[]): QueryBuilder<T> {
     this.query = this.query.in(column, values);
     return this;
   }
 
-  is(column: string, value: any): QueryBuilder<T> {
+  is(column: string, value: FilterValue): QueryBuilder<T> {
     this.query = this.query.is(column, value);
     return this;
   }
@@ -143,12 +145,12 @@ export class SupabaseQueryBuilder<T = any> implements QueryBuilder<T> {
 export class SupabaseDatabaseService implements IDatabaseService {
   constructor(private client: SupabaseClient) {}
 
-  from<T = any>(table: string): QueryBuilder<T> {
+  from<T>(table: string): QueryBuilder<T> {
     const query = this.client.from(table);
     return new SupabaseQueryBuilder<T>(query);
   }
 
-  async rpc(functionName: string, params?: Record<string, any>): Promise<{ data: any; error: Error | null }> {
+  async rpc<T>(functionName: string, params?: RpcParams): Promise<{ data: T | null; error: Error | null }> {
     const result = await this.client.rpc(functionName, params);
     return {
       data: result.data,

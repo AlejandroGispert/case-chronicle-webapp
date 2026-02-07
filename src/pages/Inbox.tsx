@@ -199,8 +199,8 @@ const Inbox = () => {
                   cases={cases}
                   onDocumentAttached={() => {
                     // Refresh documents list if available
-                    if ((window as any).refreshDocumentsList) {
-                      (window as any).refreshDocumentsList();
+                    if (window.refreshDocumentsList) {
+                      window.refreshDocumentsList();
                     }
                   }}
                 />

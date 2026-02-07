@@ -16,13 +16,14 @@
  * - Data export / deletion (GDPR)
  */
 
-import { getDatabaseService } from '../services';
-import type { AuditLog, CreateAuditLogInput, AuditAction, AuditResourceType } from './types';
+import { getDatabaseService } from "../services";
+import type { AuditLog, CreateAuditLogInput, AuditAction, AuditResourceType } from "./types";
+import type { Json } from "@/integrations/supabase/types";
 
 /**
  * Sanitize metadata to ensure no PII is logged
  */
-function sanitizeMetadata(metadata?: Record<string, any>): Record<string, any> | undefined {
+function sanitizeMetadata(metadata?: Record<string, Json>): Record<string, Json> | undefined {
   if (!metadata) return undefined;
 
   const piiFields = [
@@ -37,18 +38,22 @@ function sanitizeMetadata(metadata?: Record<string, any>): Record<string, any> |
     'name',
   ];
 
-  const sanitized = { ...metadata };
+  const sanitized: Record<string, Json> = { ...metadata };
 
   for (const field of piiFields) {
-    if (sanitized[field]) {
-      sanitized[field] = '[REDACTED]';
+    if (field in sanitized && sanitized[field]) {
+      sanitized[field] = "[REDACTED]";
     }
   }
 
-  // Recursively sanitize nested objects
+  function isJsonObject(val: Json): val is Record<string, Json> {
+    return typeof val === "object" && val !== null && !Array.isArray(val);
+  }
+
   for (const key in sanitized) {
-    if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
-      sanitized[key] = sanitizeMetadata(sanitized[key]);
+    const val = sanitized[key];
+    if (isJsonObject(val)) {
+      sanitized[key] = sanitizeMetadata(val);
     }
   }
 
@@ -120,7 +125,7 @@ export async function logSuccess(
     request_id?: string | null;
     ip_address?: string | null;
     user_agent?: string | null;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, Json>;
   }
 ): Promise<AuditLog | null> {
   return logAuditEvent({
@@ -149,7 +154,7 @@ export async function logFailure(
     request_id?: string | null;
     ip_address?: string | null;
     user_agent?: string | null;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, Json>;
   }
 ): Promise<AuditLog | null> {
   return logAuditEvent({

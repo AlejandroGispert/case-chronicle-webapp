@@ -161,9 +161,16 @@ const MyComponent = () => {
 };
 ```
 
+### TypeScript – No `any`, No `unknown`, No Typecasting
+
+- Use only concrete types or interfaces for all parameters, return values, and object shapes.
+- No `any`, no `unknown`, no typecasting (`as Type`, `as any`, etc.). Define proper types instead.
+
 ---
 
 ## 🚫 Forbidden Anti-Patterns
+
+❌ **Using `any`, `unknown`, or typecasting** – Use only concrete types and interfaces. No `any`, no `unknown`, no `as Type` or similar assertions.
 
 ❌ Direct Supabase imports outside service adapters
 

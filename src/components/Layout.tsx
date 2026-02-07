@@ -3,6 +3,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { caseController } from "@/backend/controllers/caseController";
+import type { Case } from "@/backend/models/types";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -16,7 +17,7 @@ const Layout = ({ children, onAddEvent, onCaseCreated }: LayoutProps) => {
   const fetchCases = async () => {
     try {
       const casesData = await caseController.fetchAllCases();
-      setCases(casesData.map((c: any) => ({ id: c.id, title: c.title })));
+      setCases(casesData.map((c: Case) => ({ id: c.id, title: c.title })));
     } catch (error) {
       console.error("Error fetching cases for header:", error);
     }

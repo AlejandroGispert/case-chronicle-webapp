@@ -588,8 +588,8 @@ const CaseDetail = ({ caseData }: CaseDetailProps) => {
                   // Refresh documents in timeline
                   fetchDocuments();
                   // Refresh documents list if available
-                  if ((window as any).refreshDocumentsList) {
-                    (window as any).refreshDocumentsList();
+                  if (window.refreshDocumentsList) {
+                    window.refreshDocumentsList();
                   }
                 }}
               />

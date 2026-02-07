@@ -31,6 +31,8 @@ export type AuditResourceType =
   | 'user'
   | 'session';
 
+import type { Json } from "@/integrations/supabase/types";
+
 export interface AuditLog {
   id?: string;
   user_id: string | null; // null for system actions
@@ -41,7 +43,7 @@ export interface AuditLog {
   request_id?: string | null;
   ip_address?: string | null;
   user_agent?: string | null;
-  metadata?: Record<string, any>; // No PII allowed
+  metadata?: Record<string, Json>; // No PII allowed
   success: boolean;
   error_message?: string | null;
 }
@@ -54,7 +56,7 @@ export interface CreateAuditLogInput {
   request_id?: string | null;
   ip_address?: string | null;
   user_agent?: string | null;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, Json>;
   success: boolean;
   error_message?: string | null;
 }

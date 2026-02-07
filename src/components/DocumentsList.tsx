@@ -146,11 +146,11 @@ const DocumentsList = () => {
 
   // Expose refresh function via window for external calls
   useEffect(() => {
-    (window as any).refreshDocumentsList = () => {
+    window.refreshDocumentsList = () => {
       setRefreshKey(prev => prev + 1);
     };
     return () => {
-      delete (window as any).refreshDocumentsList;
+      delete window.refreshDocumentsList;
     };
   }, []);
 

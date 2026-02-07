@@ -1,5 +1,5 @@
 import { caseModel } from "../models/caseModel";
-import { CreateCaseInput } from "../models/types";
+import { CreateCaseInput, Case } from "../models/types";
 import { requireAuth } from "../auth/authorization";
 import { getAuthService } from "../services";
 import { logSuccess } from "../audit";
@@ -47,7 +47,7 @@ export const caseController = {
     return result;
   },
 
-  async updateCaseDetails(caseId: string, updates: any) {
+  async updateCaseDetails(caseId: string, updates: Partial<Case>) {
     return await caseModel.updateCase(caseId, updates);
   },
 

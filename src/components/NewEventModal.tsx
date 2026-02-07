@@ -25,7 +25,7 @@ import { Calendar } from "lucide-react";
 interface NewEventModalProps {
   cases?: { id: string; title: string }[];
   caseId?: string; // Optional: if provided, pre-select this case and hide selector
-  onAddEvent: (eventData: any, caseId: string) => void;
+  onAddEvent: (eventData: import("@/types").NewEventFormData, caseId: string) => void;
 }
 
 const NewEventModal = ({

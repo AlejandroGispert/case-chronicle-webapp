@@ -1,5 +1,15 @@
 import { Database } from "@/integrations/supabase/types";
 
+/** Event data from NewEventModal form, before case_id and user_id are added */
+export interface NewEventFormData {
+  id?: string;
+  title: string;
+  date: string;
+  time: string;
+  description: string;
+  event_type: string;
+}
+
 export interface Attachment {
   id: string;
   filename: string;

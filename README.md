@@ -6,6 +6,10 @@ to present and manage their case history to a caseworker, advisor, or handler in
  
 
 
+## Development setup
+
+For local setup (including fixing “Google login redirects to Netlify”), see **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)**.
+
 ## What It Does
 Case Chronicles lets users:
 

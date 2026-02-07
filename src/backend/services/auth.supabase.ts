@@ -2,8 +2,34 @@
  * Supabase Auth implementation of IAuthService
  */
 
-import { SupabaseClient, AuthChangeEvent, Session as SupabaseSession, User as SupabaseUser } from '@supabase/supabase-js';
-import { IAuthService, User, Session, AuthStateChangeEvent, AuthStateChangeCallback } from './auth.types';
+import {
+  SupabaseClient,
+  AuthChangeEvent,
+  Session as SupabaseSession,
+  User as SupabaseUser,
+} from "@supabase/supabase-js";
+import {
+  IAuthService,
+  User,
+  Session,
+  AuthStateChangeEvent,
+  AuthStateChangeEventType,
+  AuthStateChangeCallback,
+  OAuthProvider,
+} from "./auth.types";
+
+const AUTH_EVENT_MAP: Record<string, AuthStateChangeEventType> = {
+  INITIAL_SESSION: "INITIAL_SESSION",
+  SIGNED_IN: "SIGNED_IN",
+  SIGNED_OUT: "SIGNED_OUT",
+  TOKEN_REFRESHED: "TOKEN_REFRESHED",
+  USER_UPDATED: "USER_UPDATED",
+  PASSWORD_RECOVERY: "PASSWORD_RECOVERY",
+};
+
+function mapAuthEvent(event: AuthChangeEvent): AuthStateChangeEventType {
+  return AUTH_EVENT_MAP[event] ?? "INITIAL_SESSION";
+}
 
 export class SupabaseAuthService implements IAuthService {
   constructor(private client: SupabaseClient) {}
@@ -40,7 +66,7 @@ export class SupabaseAuthService implements IAuthService {
   async signUp(
     email: string,
     password: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, import("@/integrations/supabase/types").Json>
   ): Promise<{ user: User | null; session: Session | null; error: Error | null }> {
     try {
       const result = await this.client.auth.signUp({
@@ -140,12 +166,12 @@ export class SupabaseAuthService implements IAuthService {
   }
 
   async signInWithOAuth(
-    provider: string,
+    provider: OAuthProvider,
     options?: { redirectTo?: string; scopes?: string }
   ): Promise<{ error: Error | null }> {
     try {
       const result = await this.client.auth.signInWithOAuth({
-        provider: provider as any,
+        provider,
         options: {
           redirectTo: options?.redirectTo,
           scopes: options?.scopes,
@@ -171,7 +197,7 @@ export class SupabaseAuthService implements IAuthService {
   onAuthStateChange(callback: AuthStateChangeCallback): { subscription: { unsubscribe: () => void } } {
     const { data } = this.client.auth.onAuthStateChange((event: AuthChangeEvent, session: SupabaseSession | null) => {
       const mappedEvent: AuthStateChangeEvent = {
-        event: event as any,
+        event: mapAuthEvent(event),
         session: session ? this.mapSession(session) : null,
       };
       callback(mappedEvent);
@@ -210,22 +236,30 @@ export class SupabaseAuthService implements IAuthService {
   }
 
   private mapUser(user: SupabaseUser): User {
+    const metadata = user.user_metadata ?? {};
+    const appMeta = user.app_metadata ?? {};
+    const role =
+      (typeof metadata.role === "string" ? metadata.role : undefined) ??
+      (typeof appMeta.role === "string" ? appMeta.role : undefined);
+    const rolesRaw = metadata.roles ?? appMeta.roles;
+    const roles = Array.isArray(rolesRaw) && rolesRaw.every((r) => typeof r === "string") ? rolesRaw : undefined;
+
     return {
       id: user.id,
-      email: user.email,
-      ...user,
+      email: user.email ?? undefined,
+      role,
+      roles,
     };
   }
 
   private mapSession(session: SupabaseSession): Session {
     return {
       access_token: session.access_token,
-      refresh_token: session.refresh_token,
-      expires_at: session.expires_at,
-      expires_in: session.expires_in,
-      token_type: session.token_type,
+      refresh_token: session.refresh_token ?? undefined,
+      expires_at: session.expires_at ?? undefined,
+      expires_in: session.expires_in ?? undefined,
+      token_type: session.token_type ?? undefined,
       user: this.mapUser(session.user),
-      ...session,
     };
   }
 }

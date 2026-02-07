@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { authController } from "@/backend/controllers/authController";
 import { useToast } from "@/hooks/use-toast";
 import type { Session, User } from "@/backend/services/auth.types";
+import type { Profile } from "@/backend/models/types";
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -24,7 +25,7 @@ type AuthContextType = {
   ) => Promise<void>;
   logout: () => Promise<void>;
   user: User | null;
-  profile: any | null;
+  profile: Profile | null;
   loading: boolean;
   session: Session | null;
 };
@@ -33,7 +34,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -50,8 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Map session user to User type
-    setUser(session.user as User);
+    setUser(session.user);
     setSession(session);
 
     try {
@@ -186,10 +186,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         navigate(redirectTo || "/dashboard", { replace: true });
       }
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Invalid email or password";
       toast({
         title: "Login failed",
-        description: error.message || "Invalid email or password",
+        description: message,
         variant: "destructive",
       });
       throw error;
@@ -201,10 +202,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginWithGoogle = async (redirectTo?: string) => {
     try {
       await authController.loginWithGoogle(redirectTo);
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not sign in with Google";
       toast({
         title: "Google login failed",
-        description: error.message || "Could not sign in with Google",
+        description: message,
         variant: "destructive",
       });
       throw error;
@@ -234,10 +236,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         navigate(redirectTo || "/login", { replace: true });
       }
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not create account";
       toast({
         title: "Signup failed",
-        description: error.message || "Could not create account",
+        description: message,
         variant: "destructive",
       });
       throw error;
@@ -254,10 +257,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: "Logged out",
         description: "You have been logged out successfully",
       });
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not log out";
       toast({
         title: "Logout failed",
-        description: error.message || "Could not log out",
+        description: message,
         variant: "destructive",
       });
     }

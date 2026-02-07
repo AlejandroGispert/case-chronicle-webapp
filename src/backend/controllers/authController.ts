@@ -1,6 +1,9 @@
-import { getAuthService } from '../services';
-import { profileModel } from '../models/profileModel';
-import { logSuccess } from '../audit';
+import { getAuthService } from "../services";
+import { profileModel } from "../models/profileModel";
+import { logSuccess } from "../audit";
+import type { AuthStateChangeEventType } from "../services/auth.types";
+import type { Session } from "../services/auth.types";
+import type { Profile } from "../models/types";
 
 export const authController = {
   async login(email: string, password: string) {
@@ -94,7 +97,7 @@ export const authController = {
     }
   },
   
-  onAuthStateChange(callback: (event: any, session: any) => void | Promise<void>) {
+  onAuthStateChange(callback: (event: AuthStateChangeEventType, session: Session | null) => void | Promise<void>) {
     const authService = getAuthService();
     return authService.onAuthStateChange((event) => {
       return callback(event.event, event.session);
@@ -105,7 +108,7 @@ export const authController = {
     return await profileModel.getCurrentProfile();
   },
   
-  async updateProfile(updates: any) {
+  async updateProfile(updates: Partial<Profile>) {
     return await profileModel.updateProfile(updates);
   }
 };

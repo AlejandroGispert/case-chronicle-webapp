@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { caseAccessController } from "@/backend/controllers/caseAccessController";
+import type { CaseWithRelations } from "@/backend/models/types";
 
 const CaseAccess = () => {
   const [caseCode, setCaseCode] = useState("");
-  const [caseData, setCaseData] = useState<any | null>(null);
+  const [caseData, setCaseData] = useState<CaseWithRelations | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 

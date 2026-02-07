@@ -1,6 +1,8 @@
+import type { Json } from "@/integrations/supabase/types";
+
 /**
  * Auth Abstraction Layer
- * 
+ *
  * This interface allows swapping auth implementations without changing business logic.
  * Currently implemented for Supabase Auth, but can be extended to support:
  * - Auth0
@@ -10,10 +12,29 @@
  * - Custom JWT-based auth
  */
 
+export type OAuthProvider =
+  | "google"
+  | "github"
+  | "apple"
+  | "azure"
+  | "bitbucket"
+  | "discord"
+  | "facebook"
+  | "gitlab"
+  | "keycloak"
+  | "linkedin_oidc"
+  | "notion"
+  | "slack"
+  | "spotify"
+  | "twitch"
+  | "twitter"
+  | "workos";
+
 export interface User {
   id: string;
   email?: string;
-  [key: string]: any;
+  role?: string;
+  roles?: string[];
 }
 
 export interface Session {
@@ -23,11 +44,18 @@ export interface Session {
   expires_in?: number;
   token_type?: string;
   user: User;
-  [key: string]: any;
 }
 
+export type AuthStateChangeEventType =
+  | "INITIAL_SESSION"
+  | "SIGNED_IN"
+  | "SIGNED_OUT"
+  | "TOKEN_REFRESHED"
+  | "USER_UPDATED"
+  | "PASSWORD_RECOVERY";
+
 export interface AuthStateChangeEvent {
-  event: 'INITIAL_SESSION' | 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED' | 'USER_UPDATED' | 'PASSWORD_RECOVERY';
+  event: AuthStateChangeEventType;
   session: Session | null;
 }
 
@@ -42,7 +70,7 @@ export interface IAuthService {
   /**
    * Sign up with email and password
    */
-  signUp(email: string, password: string, metadata?: Record<string, any>): Promise<{ user: User | null; session: Session | null; error: Error | null }>;
+  signUp(email: string, password: string, metadata?: Record<string, Json>): Promise<{ user: User | null; session: Session | null; error: Error | null }>;
 
   /**
    * Sign out the current user
@@ -62,7 +90,7 @@ export interface IAuthService {
   /**
    * Sign in with OAuth provider
    */
-  signInWithOAuth(provider: string, options?: { redirectTo?: string; scopes?: string }): Promise<{ error: Error | null }>;
+  signInWithOAuth(provider: OAuthProvider, options?: { redirectTo?: string; scopes?: string }): Promise<{ error: Error | null }>;
 
   /**
    * Listen to auth state changes

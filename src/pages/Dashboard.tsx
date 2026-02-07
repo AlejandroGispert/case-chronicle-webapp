@@ -5,13 +5,13 @@ import { useLocation } from "react-router-dom";
 import { caseController } from "@/backend/controllers/caseController";
 import { eventController } from "@/backend/controllers/eventController";
 import { useToast } from "@/hooks/use-toast";
-import { Event as DbEvent, CreateEventInput } from "@/backend/models/types";
+import { Event as DbEvent, CaseWithRelations, Case as DbCase, CreateEventInput } from "@/backend/models/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { Case } from "@/types";
+import { Case, NewEventFormData } from "@/types";
 import { format } from "date-fns";
 
 // Converts Supabase case + events to app-level structure
-const mapDatabaseCaseToAppCase = (dbCase: any): Case => {
+const mapDatabaseCaseToAppCase = (dbCase: CaseWithRelations): Case => {
   return {
     id: dbCase.id,
     title: dbCase.title,
@@ -38,9 +38,9 @@ const mapDatabaseCaseToAppCase = (dbCase: any): Case => {
 };
 
 const Dashboard = () => {
-  const [cases, setCases] = useState<any[]>([]);
+  const [cases, setCases] = useState<CaseWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filteredCases, setFilteredCases] = useState<any[]>([]);
+  const [filteredCases, setFilteredCases] = useState<CaseWithRelations[]>([]);
   const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -51,7 +51,7 @@ const Dashboard = () => {
         setLoading(true);
         const casesData = await caseController.fetchAllCases();
         const casesWithEvents = await Promise.all(
-          casesData.map(async (c: any) => {
+          casesData.map(async (c: DbCase) => {
             const events = await eventController.fetchEventsByCase(c.id);
             return {
               ...c,
@@ -60,11 +60,12 @@ const Dashboard = () => {
           }),
         );
         setCases(casesWithEvents);
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error fetching cases:", error);
+        const message = error instanceof Error ? error.message : "Could not load your cases";
         toast({
           title: "Error loading cases",
-          description: error.message || "Could not load your cases",
+          description: message,
           variant: "destructive",
         });
       } finally {
@@ -87,7 +88,7 @@ const Dashboard = () => {
     }
   }, [cases, location.search]);
 
-  const handleAddEvent = async (eventData: any, caseId: string) => {
+  const handleAddEvent = async (eventData: NewEventFormData, caseId: string) => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -156,11 +157,12 @@ const Dashboard = () => {
           description: "The event was added successfully.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error adding event:", error);
+      const message = error instanceof Error ? error.message : "Could not add the event";
       toast({
         title: "Error adding event",
-        description: error.message || "Could not add the event",
+        description: message,
         variant: "destructive",
       });
     }
@@ -173,7 +175,7 @@ const Dashboard = () => {
       setLoading(true);
       const casesData = await caseController.fetchAllCases();
       const casesWithEvents = await Promise.all(
-        casesData.map(async (c: any) => {
+        casesData.map(async (c: DbCase) => {
           const events = await eventController.fetchEventsByCase(c.id);
           return {
             ...c,
@@ -182,11 +184,12 @@ const Dashboard = () => {
         }),
       );
       setCases(casesWithEvents);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error refreshing cases:", error);
+      const message = error instanceof Error ? error.message : "Could not refresh cases";
       toast({
         title: "Error refreshing cases",
-        description: error.message || "Could not refresh cases",
+        description: message,
         variant: "destructive",
       });
     } finally {

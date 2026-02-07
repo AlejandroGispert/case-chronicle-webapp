@@ -23,7 +23,7 @@ import { Link } from "react-router-dom";
 interface CasesListProps {
   cases: Case[];
   onRefresh?: () => void;
-  onAddEvent?: (eventData: any, caseId: string) => void;
+  onAddEvent?: (eventData: import("@/types").NewEventFormData, caseId: string) => void;
 }
 
 const CasesList = ({ cases, onRefresh, onAddEvent }: CasesListProps) => {

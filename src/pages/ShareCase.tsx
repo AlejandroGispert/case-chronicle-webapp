@@ -54,11 +54,12 @@ const ShareCase = () => {
         const { shared, pending } = await fetchSharedAndPending(casesData.map((c) => c.id));
         setSharedUsersByCase(shared);
         setPendingInvitesByCase(pending);
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error fetching cases:", error);
+        const message = error instanceof Error ? error.message : "Could not load your cases";
         toast({
           title: "Error loading cases",
-          description: error.message || "Could not load your cases",
+          description: message,
           variant: "destructive",
         });
       } finally {

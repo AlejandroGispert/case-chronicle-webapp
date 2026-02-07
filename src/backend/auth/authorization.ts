@@ -35,7 +35,7 @@ export function requireRole(user: User | null, role: string): asserts user is Us
   requireAuth(user);
   
   // Check if user has the role in their metadata
-  const userRoles = (user as any).role || (user as any).roles || [];
+  const userRoles = user.role ? [user.role] : user.roles ?? [];
   const roles = Array.isArray(userRoles) ? userRoles : [userRoles];
   
   if (!roles.includes(role)) {
@@ -85,7 +85,7 @@ export function requireAnyRole(
 ): asserts user is User {
   requireAuth(user);
   
-  const userRoles = (user as any).role || (user as any).roles || [];
+  const userRoles = user.role ? [user.role] : user.roles ?? [];
   const userRolesArray = Array.isArray(userRoles) ? userRoles : [userRoles];
   
   const hasRole = roles.some(role => userRolesArray.includes(role));
@@ -105,7 +105,7 @@ export function requireAllRoles(
 ): asserts user is User {
   requireAuth(user);
   
-  const userRoles = (user as any).role || (user as any).roles || [];
+  const userRoles = user.role ? [user.role] : user.roles ?? [];
   const userRolesArray = Array.isArray(userRoles) ? userRoles : [userRoles];
   
   const hasAllRoles = roles.every(role => userRolesArray.includes(role));

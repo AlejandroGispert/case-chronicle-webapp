@@ -3,7 +3,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { IStorageService, UploadOptions, StorageFile } from './storage.types';
+import { IStorageService, UploadOptions, StorageFile, StorageFileMetadata } from "./storage.types";
 
 export class SupabaseStorageService implements IStorageService {
   constructor(private client: SupabaseClient) {}
@@ -15,7 +15,7 @@ export class SupabaseStorageService implements IStorageService {
     options?: UploadOptions
   ): Promise<{ data: { path: string } | null; error: Error | null }> {
     try {
-      const uploadOptions: any = {};
+      const uploadOptions: { cacheControl?: string; contentType?: string; upsert?: boolean } = {};
       if (options?.cacheControl) uploadOptions.cacheControl = options.cacheControl;
       if (options?.contentType) uploadOptions.contentType = options.contentType;
       if (options?.upsert !== undefined) uploadOptions.upsert = options.upsert;
@@ -108,7 +108,11 @@ export class SupabaseStorageService implements IStorageService {
     }
   ): Promise<{ data: StorageFile[] | null; error: Error | null }> {
     try {
-      const listOptions: any = {};
+      const listOptions: {
+        limit?: number;
+        offset?: number;
+        sortBy?: { column: string; order: "asc" | "desc" };
+      } = {};
       if (options?.limit) listOptions.limit = options.limit;
       if (options?.offset) listOptions.offset = options.offset;
       if (options?.sortBy) {
@@ -127,15 +131,22 @@ export class SupabaseStorageService implements IStorageService {
         };
       }
 
-      // Transform Supabase file format to our StorageFile format
-      const files: StorageFile[] = (result.data || []).map((file: any) => ({
-        name: file.name,
-        id: file.id || file.name,
-        updated_at: file.updated_at || new Date().toISOString(),
-        created_at: file.created_at || new Date().toISOString(),
-        last_accessed_at: file.last_accessed_at || new Date().toISOString(),
-        metadata: file.metadata || {},
-      }));
+      const supabaseFiles = result.data ?? [];
+      const files: StorageFile[] = supabaseFiles.map((file) => {
+        const meta = file.metadata ?? {};
+        const metadata: StorageFileMetadata =
+          typeof meta === "object" && meta !== null
+            ? { size: typeof meta.size === "number" ? meta.size : undefined, mimetype: typeof meta.mimetype === "string" ? meta.mimetype : undefined }
+            : {};
+        return {
+          name: file.name,
+          id: file.id ?? file.name,
+          updated_at: file.updated_at ?? new Date().toISOString(),
+          created_at: file.created_at ?? new Date().toISOString(),
+          last_accessed_at: file.last_accessed_at ?? new Date().toISOString(),
+          metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+        };
+      });
 
       return {
         data: files,
