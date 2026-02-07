@@ -243,12 +243,15 @@ export class SupabaseAuthService implements IAuthService {
       (typeof appMeta.role === "string" ? appMeta.role : undefined);
     const rolesRaw = metadata.roles ?? appMeta.roles;
     const roles = Array.isArray(rolesRaw) && rolesRaw.every((r) => typeof r === "string") ? rolesRaw : undefined;
+    const identities = (user as { identities?: { provider?: string }[] }).identities;
+    const authProvider = identities?.[0]?.provider ?? (typeof appMeta.provider === "string" ? appMeta.provider : undefined);
 
     return {
       id: user.id,
       email: user.email ?? undefined,
       role,
       roles,
+      provider: authProvider,
     };
   }
 

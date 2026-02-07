@@ -1,7 +1,7 @@
 import { Database, Json } from "@/integrations/supabase/types";
 
-/** Account type: B2B (business) or B2C (individual consumer). */
-export type BusinessModel = "b2b" | "b2c";
+/** Account type: Individual or Business. */
+export type BusinessModel = "individual" | "business";
 
 // Database rows types
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];

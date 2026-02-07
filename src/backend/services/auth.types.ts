@@ -35,6 +35,8 @@ export interface User {
   email?: string;
   role?: string;
   roles?: string[];
+  /** Auth provider, e.g. "google" for Google sign-in. Used to lock account type for OAuth users. */
+  provider?: string;
 }
 
 export interface Session {

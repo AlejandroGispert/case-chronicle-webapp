@@ -27,7 +27,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Settings as SettingsIcon, AlertTriangle, Trash2, Download, Building2, User, CreditCard, ExternalLink } from "lucide-react";
+import {
+  Settings as SettingsIcon,
+  AlertTriangle,
+  Trash2,
+  Download,
+  Building2,
+  User,
+  CreditCard,
+  ExternalLink,
+} from "lucide-react";
 import { caseController } from "@/backend/controllers/caseController";
 import { dataExportController } from "@/backend/controllers/dataExportController";
 import { authController } from "@/backend/controllers/authController";
@@ -46,9 +55,12 @@ const Settings = () => {
   const [confirmTitle, setConfirmTitle] = useState("");
   const [exportLoading, setExportLoading] = useState(false);
   const [businessModelSaving, setBusinessModelSaving] = useState(false);
-  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(
+    null,
+  );
   const [billingLoading, setBillingLoading] = useState(false);
-  const { profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
+  const isGoogleUser = user?.provider === "google";
   const { toast } = useToast();
 
   const fetchCases = useCallback(async () => {
@@ -83,7 +95,12 @@ const Settings = () => {
         const info = await billingController.getSubscription();
         setSubscription(info);
       } catch {
-        setSubscription({ status: "none", planId: null, currentPeriodEnd: null, cancelAtPeriodEnd: false });
+        setSubscription({
+          status: "none",
+          planId: null,
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+        });
       }
     };
     loadSubscription();
@@ -92,7 +109,10 @@ const Settings = () => {
   const handleUpgrade = async () => {
     setBillingLoading(true);
     try {
-      const planId = profile?.business_model === "b2b" ? "plan_b2b" : "plan_b2c";
+      const planId =
+        profile?.business_model === "business"
+          ? "plan_business"
+          : "plan_individual";
       const { url, error } = await billingController.getCheckoutUrl(planId);
       if (error) {
         toast({ title: "Billing", description: error, variant: "destructive" });
@@ -127,7 +147,10 @@ const Settings = () => {
       await refreshProfile();
       toast({
         title: "Account type updated",
-        description: value === "b2b" ? "You're now set as a business account." : "You're now set as an individual account.",
+        description:
+          value === "business"
+            ? "You're now set as a business account."
+            : "You're now set as an individual account.",
       });
     } catch (error) {
       console.error("Error updating business model:", error);
@@ -226,36 +249,34 @@ const Settings = () => {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
-                Account type (B2B / B2C)
+                Account type
               </Label>
               <Select
                 value={profile?.business_model ?? ""}
                 onValueChange={(v) => {
-                  if (v === "b2b" || v === "b2c") handleBusinessModelChange(v);
+                  if (v === "business" || v === "individual")
+                    handleBusinessModelChange(v);
                 }}
-                disabled={businessModelSaving}
+                disabled={businessModelSaving || isGoogleUser}
               >
                 <SelectTrigger className="w-full max-w-xs">
                   <SelectValue placeholder="Choose account type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="b2b">
+                  <SelectItem value="business">
                     <span className="flex items-center gap-2">
                       <Building2 className="h-4 w-4" />
-                      B2B – Business
+                      Business
                     </span>
                   </SelectItem>
-                  <SelectItem value="b2c">
+                  <SelectItem value="individual">
                     <span className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      B2C – Individual
+                      Individual
                     </span>
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                Affects billing and plan options. You can change this anytime.
-              </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-2">
@@ -293,13 +314,17 @@ const Settings = () => {
               Billing & subscription
             </CardTitle>
             <CardDescription>
-              Manage your plan. B2B and B2C plans are available based on your account type.
+              Manage your plan. Individual and Business plans are available
+              based on your account type.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {subscription && (
               <p className="text-sm text-muted-foreground">
-                Status: <span className="font-medium capitalize">{subscription.status}</span>
+                Status:{" "}
+                <span className="font-medium capitalize">
+                  {subscription.status}
+                </span>
                 {subscription.planId && ` · Plan: ${subscription.planId}`}
               </p>
             )}

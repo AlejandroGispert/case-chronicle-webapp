@@ -98,7 +98,7 @@ const NewCaseModal = ({ onCaseCreated }: NewCaseModalProps = {}) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-legal-300 hover:bg-legal-400 text-white">
+        <Button className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground border-0">
           New Case
         </Button>
       </DialogTrigger>

@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Onboarding - B2B / B2C choice", () => {
-  test("onboarding page shows B2B and B2C options when visited", async ({
+test.describe("Onboarding - app explanation", () => {
+  test("onboarding page explains the app and has Continue button", async ({
     page,
   }) => {
     await page.goto("/onboarding");
@@ -12,14 +12,11 @@ test.describe("Onboarding - B2B / B2C choice", () => {
       return;
     }
 
-    await expect(page.getByText(/choose your account type/i)).toBeVisible({
+    await expect(page.getByText(/welcome to case chronicle/i)).toBeVisible({
       timeout: 5000,
     });
     await expect(
-      page.getByRole("button", { name: /b2b.*business/i }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /b2c.*individual/i }),
+      page.getByRole("button", { name: /continue/i }),
     ).toBeVisible();
   });
 });

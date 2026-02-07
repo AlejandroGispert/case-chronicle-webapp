@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { authController } from "@/backend/controllers/authController";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import type { BusinessModel } from "@/backend/models/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, User } from "lucide-react";
+import { Briefcase, FileText, Mail } from "lucide-react";
 
 const Onboarding = () => {
   const [saving, setSaving] = useState(false);
@@ -14,18 +13,19 @@ const Onboarding = () => {
   const { refreshProfile } = useAuth();
   const { toast } = useToast();
 
-  const handleSelect = async (model: BusinessModel) => {
+  const handleContinue = async () => {
     setSaving(true);
     try {
-      await authController.updateProfile({ business_model: model });
+      // New users get Individual by default; Business will use a separate login flow later.
+      await authController.updateProfile({ business_model: "individual" });
       await refreshProfile();
       toast({
-        title: "Account type set",
-        description: model === "b2b" ? "You're set up as a business account." : "You're set up as an individual account.",
+        title: "Welcome",
+        description: "You're all set. Start managing your cases.",
       });
       navigate("/home", { replace: true });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Could not save";
+      const message = error instanceof Error ? error.message : "Could not continue";
       toast({
         title: "Error",
         description: message,
@@ -41,36 +41,33 @@ const Onboarding = () => {
       <Card className="w-full max-w-md shrink-0">
         <CardHeader className="space-y-2">
           <CardTitle className="text-lg sm:text-xl break-words">
-            Choose your account type
+            Welcome to Case Chronicle
           </CardTitle>
           <CardDescription className="break-words text-sm">
-            This helps us tailor your experience and payment options. You can change this later in Settings.
+            A simple way to organize your cases, correspondence, and documents in one place.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3 sm:space-y-4">
+        <CardContent className="space-y-6">
+          <ul className="space-y-3 text-sm text-muted-foreground">
+            <li className="flex items-start gap-2">
+              <Briefcase className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>Create and manage cases with titles and details.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Mail className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>Link emails and attachments to cases for a clear timeline.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <FileText className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>Upload documents and keep everything in one place.</span>
+            </li>
+          </ul>
           <Button
-            variant="outline"
-            className="w-full h-auto min-h-0 py-4 sm:py-5 flex flex-col items-center gap-2 text-left"
-            onClick={() => handleSelect("b2b")}
+            className="w-full"
+            onClick={handleContinue}
             disabled={saving}
           >
-            <Building2 className="h-6 w-6 sm:h-8 sm:w-8 shrink-0" />
-            <span className="font-semibold break-words text-center">B2B – Business</span>
-            <span className="text-xs sm:text-sm font-normal text-muted-foreground break-words text-center max-w-full">
-              For firms, teams, and organizations. Invoicing and team plans.
-            </span>
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full h-auto min-h-0 py-4 sm:py-5 flex flex-col items-center gap-2 text-left"
-            onClick={() => handleSelect("b2c")}
-            disabled={saving}
-          >
-            <User className="h-6 w-6 sm:h-8 sm:w-8 shrink-0" />
-            <span className="font-semibold break-words text-center">B2C – Individual</span>
-            <span className="text-xs sm:text-sm font-normal text-muted-foreground break-words text-center max-w-full">
-              For individuals and sole practitioners. Simple subscription.
-            </span>
+            {saving ? "Setting up…" : "Continue"}
           </Button>
         </CardContent>
       </Card>

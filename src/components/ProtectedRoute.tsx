@@ -22,7 +22,7 @@ const ProtectedRoute = ({ redirectPath = "/login" }: ProtectedRouteProps) => {
     return <Navigate to={redirectPath} replace />;
   }
 
-  // Require business model choice (B2B/B2C) before using the app, unless already on onboarding
+  // Require business model (Individual/Business) set before using the app, unless already on onboarding
   const needsOnboarding =
     profile !== null &&
     profile !== undefined &&

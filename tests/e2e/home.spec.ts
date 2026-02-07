@@ -24,11 +24,10 @@ test.describe("Home page", () => {
       return;
     }
     if (url.includes("/onboarding")) {
-      await expect(page.getByText(/choose your account type/i)).toBeVisible({
+      await expect(page.getByText(/welcome to case chronicle/i)).toBeVisible({
         timeout: 5000,
       });
-      await expect(page.getByRole("button", { name: /b2b.*business/i })).toBeVisible();
-      await expect(page.getByRole("button", { name: /b2c.*individual/i })).toBeVisible();
+      await expect(page.getByRole("button", { name: /continue/i })).toBeVisible();
       return;
     }
 
