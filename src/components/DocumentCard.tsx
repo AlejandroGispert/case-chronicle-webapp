@@ -6,7 +6,7 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
-import { FileText, Download, Edit2, Calendar, CalendarDays, Clock, ExternalLink } from "lucide-react";
+import { FileText, Download, Edit2, CalendarDays, Clock, ExternalLink } from "lucide-react";
 import EditDocumentModal from "@/components/EditDocumentModal";
 import { format } from "date-fns";
 
@@ -88,19 +88,24 @@ const DocumentCard = ({ document, onUpdate }: DocumentCardProps) => {
               <FileText className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                <span className="flex items-center gap-1">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  {formatDate(document.date)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  {formatTime(document.time)}
+                </span>
+              </div>
               <div className="flex items-center gap-2 mb-1">
                 <h4 className="font-medium truncate">{document.filename}</h4>
               </div>
-              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {formatDate(document.date)}
-                </span>
-                <span>{formatTime(document.time)}</span>
-                {document.size && (
-                  <span>{formatFileSize(document.size)}</span>
-                )}
-              </div>
+              {document.size && (
+                <div className="text-sm text-muted-foreground">
+                  {formatFileSize(document.size)}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -123,18 +128,6 @@ const DocumentCard = ({ document, onUpdate }: DocumentCardProps) => {
                       <Edit2 className="h-4 w-4" />
                     </Button>
                   )}
-                </div>
-                <div className="flex items-center gap-1">
-                  <CalendarDays className="h-3.5 w-3.5" />
-                  <span className="break-words sm:break-normal">
-                    {formatDate(document.date)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span className="break-words sm:break-normal">
-                    {formatTime(document.time)}
-                  </span>
                 </div>
               </div>
             </div>
