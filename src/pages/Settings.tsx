@@ -27,10 +27,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Settings as SettingsIcon, AlertTriangle, Trash2, Download } from "lucide-react";
+import { Settings as SettingsIcon, AlertTriangle, Trash2, Download, Building2, User, CreditCard, ExternalLink } from "lucide-react";
 import { caseController } from "@/backend/controllers/caseController";
 import { dataExportController } from "@/backend/controllers/dataExportController";
+import { authController } from "@/backend/controllers/authController";
+import { billingController } from "@/backend/controllers/billingController";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import type { BusinessModel } from "@/backend/models/types";
+import type { SubscriptionInfo } from "@/backend/services/payment.types";
 
 type CaseOption = { id: string; title: string; number: string };
 
@@ -40,6 +45,10 @@ const Settings = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmTitle, setConfirmTitle] = useState("");
   const [exportLoading, setExportLoading] = useState(false);
+  const [businessModelSaving, setBusinessModelSaving] = useState(false);
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const { profile, refreshProfile } = useAuth();
   const { toast } = useToast();
 
   const fetchCases = useCallback(async () => {
@@ -68,7 +77,69 @@ const Settings = () => {
     fetchCases();
   }, [fetchCases]);
 
+  useEffect(() => {
+    const loadSubscription = async () => {
+      try {
+        const info = await billingController.getSubscription();
+        setSubscription(info);
+      } catch {
+        setSubscription({ status: "none", planId: null, currentPeriodEnd: null, cancelAtPeriodEnd: false });
+      }
+    };
+    loadSubscription();
+  }, []);
+
+  const handleUpgrade = async () => {
+    setBillingLoading(true);
+    try {
+      const planId = profile?.business_model === "b2b" ? "plan_b2b" : "plan_b2c";
+      const { url, error } = await billingController.getCheckoutUrl(planId);
+      if (error) {
+        toast({ title: "Billing", description: error, variant: "destructive" });
+        return;
+      }
+      if (url) window.location.href = url;
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    setBillingLoading(true);
+    try {
+      const { url, error } = await billingController.getPortalUrl();
+      if (error) {
+        toast({ title: "Billing", description: error, variant: "destructive" });
+        return;
+      }
+      if (url) window.location.href = url;
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
   const selectedCase = cases.find((c) => c.id === selectedCaseId);
+
+  const handleBusinessModelChange = async (value: BusinessModel) => {
+    setBusinessModelSaving(true);
+    try {
+      await authController.updateProfile({ business_model: value });
+      await refreshProfile();
+      toast({
+        title: "Account type updated",
+        description: value === "b2b" ? "You're now set as a business account." : "You're now set as an individual account.",
+      });
+    } catch (error) {
+      console.error("Error updating business model:", error);
+      toast({
+        title: "Update failed",
+        description: "Could not update account type.",
+        variant: "destructive",
+      });
+    } finally {
+      setBusinessModelSaving(false);
+    }
+  };
 
   const handleDeleteCase = async () => {
     if (!selectedCaseId) return;
@@ -152,6 +223,40 @@ const Settings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Account type (B2B / B2C)
+              </Label>
+              <Select
+                value={profile?.business_model ?? ""}
+                onValueChange={(v) => {
+                  if (v === "b2b" || v === "b2c") handleBusinessModelChange(v);
+                }}
+                disabled={businessModelSaving}
+              >
+                <SelectTrigger className="w-full max-w-xs">
+                  <SelectValue placeholder="Choose account type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="b2b">
+                    <span className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      B2B – Business
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="b2c">
+                    <span className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      B2C – Individual
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Affects billing and plan options. You can change this anytime.
+              </p>
+            </div>
             <div>
               <p className="text-sm text-muted-foreground mb-2">
                 Export all your data (GDPR Art. 20 – data portability). Choose
@@ -177,6 +282,46 @@ const Settings = () => {
                   {exportLoading ? "Exporting…" : "Export as JSON"}
                 </Button>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Billing & subscription
+            </CardTitle>
+            <CardDescription>
+              Manage your plan. B2B and B2C plans are available based on your account type.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {subscription && (
+              <p className="text-sm text-muted-foreground">
+                Status: <span className="font-medium capitalize">{subscription.status}</span>
+                {subscription.planId && ` · Plan: ${subscription.planId}`}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={handleUpgrade}
+                disabled={billingLoading || subscription?.status === "active"}
+                className="gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                {subscription?.status === "active" ? "Current plan" : "Upgrade"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleManageBilling}
+                disabled={billingLoading}
+                className="gap-2"
+              >
+                <CreditCard className="h-4 w-4" />
+                Manage subscription
+              </Button>
             </div>
           </CardContent>
         </Card>

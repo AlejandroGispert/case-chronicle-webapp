@@ -83,8 +83,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/select-case" className="flex items-center">
+                  <Link to="/home" className="flex items-center">
                     <Home className="h-4 w-4 mr-2" />
+                    Home
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/select-case" className="flex items-center">
+                    <FileText className="h-4 w-4 mr-2" />
                     {selectedCase ? "Change case" : "Select Case"}
                   </Link>
                 </SidebarMenuButton>

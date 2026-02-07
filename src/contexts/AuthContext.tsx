@@ -24,6 +24,7 @@ type AuthContextType = {
     redirectTo?: string,
   ) => Promise<void>;
   logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
   user: User | null;
   profile: Profile | null;
   loading: boolean;
@@ -75,6 +76,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     [navigate],
   );
+
+  const refreshProfile = useCallback(async () => {
+    try {
+      const profileData = await authController.getCurrentProfile();
+      setProfile(profileData);
+    } catch (error) {
+      console.error("Failed to refresh profile:", error);
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -184,7 +194,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           title: "Login successful",
           description: "Welcome to Case Chronicle",
         });
-        navigate(redirectTo || "/select-case", { replace: true });
+        navigate(redirectTo || "/home", { replace: true });
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Invalid email or password";
@@ -275,6 +285,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loginWithGoogle,
         signup,
         logout,
+        refreshProfile,
         user,
         profile,
         loading,

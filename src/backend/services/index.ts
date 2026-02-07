@@ -12,11 +12,14 @@ import { IStorageService } from './storage.types';
 import { SupabaseStorageService } from './storage.supabase';
 import { IAuthService } from './auth.types';
 import { SupabaseAuthService } from './auth.supabase';
+import { IPaymentService } from './payment.types';
+import { PlaceholderPaymentService } from './payment.placeholder';
 
 // Service instances (singletons)
 let databaseService: IDatabaseService | null = null;
 let storageService: IStorageService | null = null;
 let authService: IAuthService | null = null;
+let paymentService: IPaymentService | null = null;
 
 /**
  * Initialize services with Supabase implementation
@@ -31,6 +34,9 @@ export function initializeServices() {
   }
   if (!authService) {
     authService = new SupabaseAuthService(supabase);
+  }
+  if (!paymentService) {
+    paymentService = new PlaceholderPaymentService();
   }
 }
 
@@ -80,6 +86,20 @@ export function setStorageService(service: IStorageService) {
 
 export function setAuthService(service: IAuthService) {
   authService = service;
+}
+
+/**
+ * Get the payment service instance (placeholder until Stripe is configured).
+ */
+export function getPaymentService(): IPaymentService {
+  if (!paymentService) {
+    paymentService = new PlaceholderPaymentService();
+  }
+  return paymentService;
+}
+
+export function setPaymentService(service: IPaymentService) {
+  paymentService = service;
 }
 
 // Auto-initialize on module load

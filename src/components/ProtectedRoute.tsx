@@ -1,5 +1,4 @@
-
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
@@ -7,8 +6,9 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ redirectPath = "/login" }: ProtectedRouteProps) => {
-  const { isAuthenticated, loading } = useAuth();
-  
+  const { isAuthenticated, loading, profile } = useAuth();
+  const location = useLocation();
+
   // Wait for auth check to complete before redirecting
   if (loading) {
     return (
@@ -17,11 +17,22 @@ const ProtectedRoute = ({ redirectPath = "/login" }: ProtectedRouteProps) => {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to={redirectPath} replace />;
   }
-  
+
+  // Require business model choice (B2B/B2C) before using the app, unless already on onboarding
+  const needsOnboarding =
+    profile !== null &&
+    profile !== undefined &&
+    (profile.business_model === null || profile.business_model === undefined) &&
+    location.pathname !== "/onboarding";
+
+  if (needsOnboarding) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
   return <Outlet />;
 };
 

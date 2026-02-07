@@ -200,6 +200,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          business_model: "b2b" | "b2c" | null
           created_at: string
           email: string
           first_name: string | null
@@ -208,6 +209,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          business_model?: "b2b" | "b2c" | null
           created_at?: string
           email: string
           first_name?: string | null
@@ -216,6 +218,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          business_model?: "b2b" | "b2c" | null
           created_at?: string
           email?: string
           first_name?: string | null

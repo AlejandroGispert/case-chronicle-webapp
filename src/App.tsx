@@ -20,6 +20,8 @@ import Contacts from "./pages/Contacts";
 import ShareCase from "./pages/ShareCase";
 import InviteRedeem from "./pages/InviteRedeem";
 import CaseDetailPage from "./pages/CaseDetailPage";
+import Home from "./pages/Home";
+import Onboarding from "./pages/Onboarding";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -37,14 +39,16 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/invite/:token" element={<InviteRedeem />} />
               
-              {/* Redirect root to Select Case if authenticated, otherwise to login */}
-              <Route path="/" element={<Navigate to="/select-case" replace />} />
+              {/* Redirect root to Home if authenticated, otherwise to login */}
+              <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               {/* Protected routes */}
               <Route element={<ProtectedRoute />}>
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/home" element={<Home />} />
                 <Route path="/inbox" element={<Inbox />} />
                 <Route path="/select-case" element={<SelectCase />} />
-                <Route path="/dashboard" element={<Navigate to="/select-case" replace />} />
+                <Route path="/dashboard" element={<Navigate to="/home" replace />} />
                 <Route path="/case/:id" element={<CaseDetailPage />} />
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/documents" element={<Index />} />
