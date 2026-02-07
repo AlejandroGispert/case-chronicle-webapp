@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -16,18 +16,34 @@ interface AttachDocumentButtonProps {
   cases: Case[];
   onDocumentAttached?: () => void;
   defaultCaseId?: string;
+  /** Optional ref to trigger file dialog from outside (e.g. Add entry dropdown). */
+  triggerRef?: React.MutableRefObject<(() => void) | null>;
+  /** When true, only render file input (no visible button); use with triggerRef. */
+  hideButton?: boolean;
 }
 
 const AttachDocumentButton = ({
   cases,
   onDocumentAttached,
   defaultCaseId,
+  triggerRef,
+  hideButton = false,
 }: AttachDocumentButtonProps) => {
   const [selectedCaseId, setSelectedCaseId] = useState<string>(
     defaultCaseId || "",
   );
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!triggerRef) return;
+    triggerRef.current = () => {
+      if (selectedCaseId && selectedCaseId !== "none") fileInputRef.current?.click();
+    };
+    return () => {
+      triggerRef.current = null;
+    };
+  }, [triggerRef, selectedCaseId]);
   const { toast } = useToast();
 
   const handleFileSelect = async (
@@ -103,6 +119,20 @@ const AttachDocumentButton = ({
 
   // Compact mode: if defaultCaseId is provided and there's only one case, hide dropdown
   const isCompactMode = defaultCaseId && cases.length === 1;
+
+  if (hideButton) {
+    return (
+      <>
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          onChange={handleFileSelect}
+          disabled={isUploading}
+        />
+      </>
+    );
+  }
 
   return (
     <div className="flex items-center gap-3">

@@ -26,14 +26,22 @@ interface NewEventModalProps {
   cases?: { id: string; title: string }[];
   caseId?: string; // Optional: if provided, pre-select this case and hide selector
   onAddEvent: (eventData: import("@/types").NewEventFormData, caseId: string) => void;
+  /** When set, control the dialog open state from outside (e.g. Add entry dropdown). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const NewEventModal = ({
   cases = [],
   caseId,
   onAddEvent,
+  open: openProp,
+  onOpenChange,
 }: NewEventModalProps) => {
-  const [open, setOpen] = useState(false);
+  const [openInternal, setOpenInternal] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : openInternal;
+  const setOpen = isControlled ? (onOpenChange ?? (() => {})) : setOpenInternal;
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(
     caseId || null,
   );
@@ -95,13 +103,15 @@ const NewEventModal = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="secondary" size="sm" className="flex-shrink-0">
-          <Calendar className="h-4 w-4 mr-2" />
-          <span className="hidden sm:inline">New Entry</span>
-          <span className="sm:hidden">New Entry</span>
-        </Button>
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button variant="secondary" size="sm" className="flex-shrink-0">
+            <Calendar className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">New Entry</span>
+            <span className="sm:hidden">New Entry</span>
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>Add Entry to Case</DialogTitle>

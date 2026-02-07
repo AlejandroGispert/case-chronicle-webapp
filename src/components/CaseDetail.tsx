@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Case, Email, Event } from "../types";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import EmailTimeline from "./EmailTimeline";
 import NewEmailModal from "./NewEmailModal";
+import NewEventModal from "./NewEventModal";
 import AttachDocumentButton from "./AttachDocumentButton";
 import {
   Calendar,
@@ -13,8 +14,17 @@ import {
   ChevronDown,
   ChevronUp,
   ArrowUpDown,
+  Plus,
+  Upload,
 } from "lucide-react";
 import { format, isValid } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import EventTimeline from "./EventTimeline";
 import { emailController } from "@/backend/controllers/emailController";
 import {
@@ -44,6 +54,10 @@ import { Attachment } from "../types";
 import NewCategoryModal from "./NewCategoryModal";
 import { caseShareController } from "@/backend/controllers/caseShareController";
 import { Share2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
+import type { CreateEventInput } from "@/backend/models/types";
+import type { NewEventFormData } from "@/types";
 
 interface CaseDetailProps {
   caseData: Case;
@@ -72,6 +86,11 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
   const [sharedUsers, setSharedUsers] = useState<
     import("@/backend/models/caseShareModel").SharedUserWithPermissions[]
   >([]);
+  const [openEmailModal, setOpenEmailModal] = useState(false);
+  const [openEventModal, setOpenEventModal] = useState(false);
+  const attachDocTriggerRef = useRef<(() => void) | null>(null);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const fetchEmails = useCallback(async () => {
     try {
@@ -220,6 +239,33 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
       } catch (error) {
         console.error("Error adding email:", error);
       }
+    }
+  };
+
+  const handleAddEvent = async (eventData: NewEventFormData, caseId: string) => {
+    if (caseId !== caseData.id || !user) return;
+    try {
+      const input: CreateEventInput = {
+        title: eventData.title,
+        description: eventData.description,
+        date: eventData.date,
+        time: typeof eventData.time === "string" ? eventData.time : "12:00",
+        case_id: caseId,
+        user_id: user.id,
+        event_type: eventData.event_type || "event",
+      };
+      const created = await eventController.createNewEvent(input);
+      if (created) {
+        await fetchEvents();
+        toast({ title: "Event added", description: "The event was added to the timeline." });
+      }
+    } catch (error) {
+      console.error("Error adding event:", error);
+      toast({
+        title: "Error",
+        description: "Could not add the event.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -479,6 +525,12 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
             <p className="text-sm sm:text-base text-muted-foreground truncate">
               {caseData.number}
             </p>
+            <Link
+              to="/select-case"
+              className="text-sm text-primary hover:underline mt-1 inline-block"
+            >
+              Change case
+            </Link>
           </div>
           <Badge
             variant="outline"
@@ -559,25 +611,44 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
               Communication Timeline
             </h3>
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="flex-shrink-0"
-              >
-                <Filter className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Filters</span>
-                {isFilterOpen ? (
-                  <ChevronUp className="h-4 w-4 sm:ml-2" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 sm:ml-2" />
-                )}
-              </Button>
               {!readonly && (
                 <>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" className="flex-shrink-0">
+                        <Plus className="h-4 w-4 sm:mr-2" />
+                        Add entry
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setOpenEmailModal(true)}>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Add email
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setOpenEventModal(true)}>
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Add event
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => attachDocTriggerRef.current?.()}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Attach document
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <NewEmailModal
                     cases={[{ id: caseData.id, title: caseData.title }]}
                     onAddEmail={handleAddEmail}
+                    open={openEmailModal}
+                    onOpenChange={setOpenEmailModal}
+                  />
+                  <NewEventModal
+                    cases={[{ id: caseData.id, title: caseData.title }]}
+                    caseId={caseData.id}
+                    onAddEvent={handleAddEvent}
+                    open={openEventModal}
+                    onOpenChange={setOpenEventModal}
                   />
                   <AttachDocumentButton
                     cases={[
@@ -594,9 +665,25 @@ const CaseDetail = ({ caseData, readonly = false }: CaseDetailProps) => {
                         window.refreshDocumentsList();
                       }
                     }}
+                    triggerRef={attachDocTriggerRef}
+                    hideButton
                   />
                 </>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="flex-shrink-0"
+              >
+                <Filter className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Filters</span>
+                {isFilterOpen ? (
+                  <ChevronUp className="h-4 w-4 sm:ml-2" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 sm:ml-2" />
+                )}
+              </Button>
             </div>
           </div>
 

@@ -46,6 +46,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         to={`/case/${selectedCase.id}`}
                         className="flex items-center w-full"
                       >
+                        <span className="h-2 w-2 rounded-full bg-sidebar-primary shrink-0 mr-2" aria-hidden />
                         <FileText className="h-4 w-4 mr-2 shrink-0" />
                         <span className="truncate">{selectedCase.title}</span>
                       </Link>

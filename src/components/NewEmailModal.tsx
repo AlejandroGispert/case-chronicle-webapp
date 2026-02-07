@@ -26,10 +26,16 @@ import { Mail } from "lucide-react";
 interface NewEmailModalProps {
   cases?: { id: string; title: string }[];
   onAddEmail: (emailData: Email, caseId: string) => void;
+  /** When set, control the dialog open state from outside (e.g. Add entry dropdown). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
-  const [open, setOpen] = useState(false);
+const NewEmailModal = ({ cases = [], onAddEmail, open: openProp, onOpenChange }: NewEmailModalProps) => {
+  const [openInternal, setOpenInternal] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : openInternal;
+  const setOpen = isControlled ? (onOpenChange ?? (() => {})) : setOpenInternal;
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -113,13 +119,15 @@ const NewEmailModal = ({ cases = [], onAddEmail }: NewEmailModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="secondary" size="sm" className="flex-shrink-0">
-          <Mail className="h-4 w-4 mr-2" />
-          <span className="hidden sm:inline">New Email</span>
-          <span className="sm:hidden">New Email</span>
-        </Button>
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button variant="secondary" size="sm" className="flex-shrink-0">
+            <Mail className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">New Email</span>
+            <span className="sm:hidden">New Email</span>
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>Add Email to Case</DialogTitle>

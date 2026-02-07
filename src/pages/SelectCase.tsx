@@ -24,8 +24,18 @@ const SelectCase = () => {
     const state = location.state as { caseId?: string; caseTitle?: string } | null;
     if (state?.caseId && state?.caseTitle) {
       setSelectedCase({ id: state.caseId, title: state.caseTitle });
+      toast({ title: "Case selected", description: `"${state.caseTitle}" is now your active case.` });
     }
-  }, [location.state, setSelectedCase]);
+  }, [location.state, setSelectedCase, toast]);
+
+  useEffect(() => {
+    if (!selectedCase) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedCase(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedCase, setSelectedCase]);
 
   useEffect(() => {
     const fetchCases = async () => {
@@ -53,6 +63,11 @@ const SelectCase = () => {
     statusFilter === "active" || statusFilter === "closed"
       ? cases.filter((c) => c.status === statusFilter)
       : cases;
+
+  const handleSelectCase = (id: string, title: string) => {
+    setSelectedCase({ id, title });
+    toast({ title: "Case selected", description: `"${title}" is now your active case.` });
+  };
 
   const handleRefresh = async () => {
     try {
@@ -144,9 +159,7 @@ const SelectCase = () => {
                     "cursor-pointer transition-colors hover:bg-muted/50",
                     isSelected && "ring-2 ring-primary bg-primary/5"
                   )}
-                  onClick={() =>
-                    setSelectedCase({ id: c.id, title: c.title })
-                  }
+                  onClick={() => handleSelectCase(c.id, c.title)}
                 >
                   <CardContent className="flex items-center gap-3 py-3">
                     {isSelected && (

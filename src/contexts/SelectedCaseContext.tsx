@@ -3,10 +3,13 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   ReactNode,
 } from "react";
 
-/** Minimal case info for app-wide selection. In-memory only (no URL, no storage). */
+const STORAGE_KEY = "selected-case";
+
+/** Minimal case info for app-wide selection. Persisted in sessionStorage. */
 export interface SelectedCaseInfo {
   id: string;
   title: string;
@@ -22,9 +25,34 @@ const SelectedCaseContext = createContext<SelectedCaseContextType | undefined>(
   undefined,
 );
 
+function loadStored(): SelectedCaseInfo | null {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as SelectedCaseInfo;
+    if (parsed?.id && parsed?.title) return parsed;
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+function saveStored(info: SelectedCaseInfo | null) {
+  try {
+    if (info) sessionStorage.setItem(STORAGE_KEY, JSON.stringify(info));
+    else sessionStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 export const SelectedCaseProvider = ({ children }: { children: ReactNode }) => {
   const [selectedCase, setSelectedCaseState] =
-    useState<SelectedCaseInfo | null>(null);
+    useState<SelectedCaseInfo | null>(loadStored);
+
+  useEffect(() => {
+    saveStored(selectedCase);
+  }, [selectedCase]);
 
   const setSelectedCase = useCallback((caseInfo: SelectedCaseInfo | null) => {
     setSelectedCaseState(caseInfo);

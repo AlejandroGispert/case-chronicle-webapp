@@ -252,10 +252,23 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
           <p className="text-sm sm:text-base text-muted-foreground">
             {caseId
               ? `Entries for this case only`
-              : "View all events and emails organized by date"}
+              : "No case selected – showing all events and emails"}
           </p>
         </div>
       </div>
+
+      {!caseId && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-lg border bg-muted/50">
+          <p className="text-sm font-medium text-muted-foreground">
+            Select a case to focus the calendar on one case.
+          </p>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/select-case" className="inline-flex items-center gap-2">
+              Select case
+            </Link>
+          </Button>
+        </div>
+      )}
 
       {caseId && (
         <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-lg border bg-legal-50 border-legal-200">
@@ -263,12 +276,19 @@ const CalendarView = ({ className, caseId, caseTitle }: CalendarViewProps) => {
             Viewing calendar for:{" "}
             <span className="font-semibold">{caseTitle || "(this case)"}</span>
           </p>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/calendar" className="inline-flex items-center gap-2">
-              <X className="h-4 w-4" />
-              View all calendar
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/select-case" className="inline-flex items-center gap-2">
+                Change case
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/calendar" className="inline-flex items-center gap-2">
+                <X className="h-4 w-4" />
+                View all
+              </Link>
+            </Button>
+          </div>
         </div>
       )}
 
