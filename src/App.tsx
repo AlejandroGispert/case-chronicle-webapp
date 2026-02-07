@@ -22,6 +22,7 @@ import InviteRedeem from "./pages/InviteRedeem";
 import CaseDetailPage from "./pages/CaseDetailPage";
 import Home from "./pages/Home";
 import Onboarding from "./pages/Onboarding";
+import Landing from "./pages/Landing";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -39,8 +40,8 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/invite/:token" element={<InviteRedeem />} />
               
-              {/* Redirect root to Home if authenticated, otherwise to login */}
-              <Route path="/" element={<Navigate to="/home" replace />} />
+              {/* Business presentation / landing; Login in nav top right; redirect to home if authenticated */}
+              <Route path="/" element={<Landing />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               {/* Protected routes */}
               <Route element={<ProtectedRoute />}>
