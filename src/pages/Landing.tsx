@@ -140,6 +140,38 @@ const Landing = () => {
           </Button>
         </section>
       </main>
+
+      {/* Footer — company, legal links, security.txt */}
+      <footer className="border-t bg-muted/30 px-4 sm:px-6 py-8">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+          <div className="text-center sm:text-left">
+            <p>© 2026 Case Chronicle – AG sound Denmark. All rights reserved.</p>
+            <p className="mt-1">CVR: 44789418</p>
+          </div>
+          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+            <Link
+              to="/terms"
+              className="hover:text-foreground underline-offset-4 hover:underline"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              to="/privacy"
+              className="hover:text-foreground underline-offset-4 hover:underline"
+            >
+              Privacy Policy
+            </Link>
+            <a
+              href="/.well-known/security.txt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground underline-offset-4 hover:underline"
+            >
+              Security
+            </a>
+          </nav>
+        </div>
+      </footer>
     </div>
   );
 };

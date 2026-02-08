@@ -23,6 +23,8 @@ import CaseDetailPage from "./pages/CaseDetailPage";
 import Home from "./pages/Home";
 import Onboarding from "./pages/Onboarding";
 import Landing from "./pages/Landing";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -42,6 +44,8 @@ const App = () => {
               
               {/* Business presentation / landing; Login in nav top right; redirect to home if authenticated */}
               <Route path="/" element={<Landing />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               {/* Protected routes */}
               <Route element={<ProtectedRoute />}>

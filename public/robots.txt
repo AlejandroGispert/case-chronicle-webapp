@@ -12,3 +12,6 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap (replace with your production domain)
+Sitemap: https://your-production-domain.com/sitemap.xml
