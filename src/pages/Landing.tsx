@@ -39,9 +39,9 @@ const Landing = () => {
             <FileText className="h-5 w-5" aria-hidden />
             Case Chronicle
           </Link>
-          <nav className="flex items-center gap-2">
-            <Button asChild size="sm" className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground border-0">
-              <Link to="/login">Login</Link>
+          <nav className="flex items-center justify-end">
+            <Button asChild size="default" className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground border-0 font-medium">
+              <Link to="/login">Get started</Link>
             </Button>
           </nav>
         </div>
@@ -72,9 +72,43 @@ const Landing = () => {
               one place. Simple, private, and built for individuals and small
               teams, with strong GDPR compliance focus.
             </p>
-            <Button asChild size="lg" className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground border-0">
-              <Link to="/login">Get started — Sign in</Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Button asChild size="lg" className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground border-0">
+                <Link to="/login">Get started</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="border-white/50 bg-transparent !text-white hover:bg-white/10 hover:border-white hover:!text-white">
+                <Link to="/login">Sign in</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Who it's for — audience segmentation */}
+        <section className="border-t bg-background px-4 sm:px-6 py-12 sm:py-16">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-serif font-semibold text-foreground text-center mb-8">
+              For individuals and teams
+            </h2>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="rounded-lg border bg-card p-6 text-center">
+                <h3 className="font-semibold text-foreground mb-2">For individuals</h3>
+                <p className="text-sm text-muted-foreground">
+                  Manage your own cases, deadlines, and emails in one place. No clutter, no tracking — just your work.
+                </p>
+                <Button asChild size="sm" variant="outline" className="mt-4 border-sidebar-primary/50 text-sidebar-primary hover:bg-sidebar-primary/10">
+                  <Link to="/login">Get started</Link>
+                </Button>
+              </div>
+              <div className="rounded-lg border bg-card p-6 text-center">
+                <h3 className="font-semibold text-foreground mb-2">For teams</h3>
+                <p className="text-sm text-muted-foreground">
+                  Invite others to view or edit cases. Control access per case and keep collaboration simple and private.
+                </p>
+                <Button asChild size="sm" variant="outline" className="mt-4 border-sidebar-primary/50 text-sidebar-primary hover:bg-sidebar-primary/10">
+                  <Link to="/login">Get started</Link>
+                </Button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -134,14 +168,14 @@ const Landing = () => {
             asChild
             size="lg"
             variant="outline"
-            className="border-sidebar-primary/50 text-sidebar-primary hover:bg-sidebar-primary/10 hover:border-sidebar-primary"
+            className="border-sidebar-primary/50 bg-background text-sidebar-primary hover:bg-sidebar-primary/10 hover:border-sidebar-primary hover:text-sidebar-primary"
           >
             <Link to="/login">Sign in or create an account</Link>
           </Button>
         </section>
       </main>
 
-      {/* Footer — company, legal links, security.txt */}
+      {/* Footer — company, legal links */}
       <footer className="border-t bg-muted/30 px-4 sm:px-6 py-8">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="text-center sm:text-left">
@@ -161,14 +195,6 @@ const Landing = () => {
             >
               Privacy Policy
             </Link>
-            <a
-              href="/.well-known/security.txt"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground underline-offset-4 hover:underline"
-            >
-              Security
-            </a>
           </nav>
         </div>
       </footer>

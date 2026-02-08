@@ -39,7 +39,21 @@ const PrivacyPolicy = () => {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground">2. What we collect</h2>
+            <h2 className="text-lg font-semibold text-foreground">2. No cookies, no analytics</h2>
+            <p>
+              We do not use cookies on this website. We do not use analytics tools
+              (such as Google Analytics, Microsoft Clarity, or similar) and we do
+              not track or count visitors. We have chosen to forfeit analytics and
+              visitor counting to minimise data processing and to align with strict
+              data protection principles, including the GDPR (data minimization,
+              Art. 5(1)(c)). Session data for logged-in users (e.g. authentication
+              state) is stored in local browser storage only where necessary to
+              provide the Service; we do not use this for tracking or profiling.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-foreground">3. What we collect</h2>
             <p>
               We collect and process data necessary to provide the Service:
               account information (e.g. email), case and collaboration data you
@@ -49,7 +63,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground">3. Legal basis and purpose</h2>
+            <h2 className="text-lg font-semibold text-foreground">4. Legal basis and purpose</h2>
             <p>
               We process your data on the basis of contract (providing the
               Service), legitimate interest (security, abuse prevention), and
@@ -59,7 +73,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground">4. Your rights (GDPR)</h2>
+            <h2 className="text-lg font-semibold text-foreground">5. Your rights (GDPR)</h2>
             <p>
               You have the right to access, rectify, erase, restrict processing,
               data portability, and to object. You may request a data export
@@ -70,7 +84,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground">5. Retention and security</h2>
+            <h2 className="text-lg font-semibold text-foreground">6. Retention and security</h2>
             <p>
               We retain data as long as your account is active and as required
               by law. We apply appropriate technical and organisational measures
@@ -80,7 +94,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground">6. Contact</h2>
+            <h2 className="text-lg font-semibold text-foreground">7. Contact</h2>
             <p>
               For privacy-related requests or questions, contact AG sound
               Denmark using the contact details provided on the Service or at

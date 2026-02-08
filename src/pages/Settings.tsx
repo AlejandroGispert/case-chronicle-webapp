@@ -36,7 +36,11 @@ import {
   User,
   CreditCard,
   ExternalLink,
+  Globe,
+  Info,
+  Shield,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { caseController } from "@/backend/controllers/caseController";
 import { dataExportController } from "@/backend/controllers/dataExportController";
 import { authController } from "@/backend/controllers/authController";
@@ -47,6 +51,12 @@ import type { BusinessModel } from "@/backend/models/types";
 import type { SubscriptionInfo } from "@/backend/services/payment.types";
 
 type CaseOption = { id: string; title: string; number: string };
+
+const LOCALE_STORAGE_KEY = "case-chronicle:locale";
+const SUPPORTED_LOCALES = [
+  { value: "en", label: "English" },
+  { value: "da", label: "Dansk" },
+] as const;
 
 const Settings = () => {
   const [cases, setCases] = useState<CaseOption[]>([]);
@@ -59,6 +69,10 @@ const Settings = () => {
     null,
   );
   const [billingLoading, setBillingLoading] = useState(false);
+  const [locale, setLocale] = useState<string>(() => {
+    if (typeof window === "undefined") return "en";
+    return window.localStorage.getItem(LOCALE_STORAGE_KEY) ?? "en";
+  });
   const { user, profile, refreshProfile } = useAuth();
   const isGoogleUser = user?.provider === "google";
   const { toast } = useToast();
@@ -240,9 +254,118 @@ const Settings = () => {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              General
+            </CardTitle>
+            <CardDescription>
+              About the app and language preferences.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Info className="h-4 w-4" />
+                About Case Chronicle
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Case Chronicle is a case management platform by AG sound Denmark.
+                Organize cases, track emails and events, and collaborate with
+                controlled access. Built with a strong focus on privacy and GDPR
+                compliance.
+              </p>
+              <Button variant="link" className="h-auto p-0 text-sidebar-primary" asChild>
+                <Link to="/about">Learn more</Link>
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                Language and region
+              </Label>
+              <Select
+                value={locale}
+                onValueChange={(v) => {
+                  setLocale(v);
+                  try {
+                    window.localStorage.setItem(LOCALE_STORAGE_KEY, v);
+                  } catch {
+                    // ignore
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full max-w-xs">
+                  <SelectValue placeholder="Choose language" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORTED_LOCALES.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                English and Danish are supported. UI language may apply after
+                refresh.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Privacy
+            </CardTitle>
+            <CardDescription>
+              Your data, export options, and privacy policy.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">
+                We do not use cookies or analytics. Read how we handle your data.
+              </p>
+              <Button variant="link" className="h-auto p-0 text-sidebar-primary" asChild>
+                <Link to="/privacy">Privacy Policy</Link>
+              </Button>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">
+                Export all your data (GDPR Art. 20 – data portability). Choose
+                readable text or JSON for machine portability.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportData("text")}
+                  disabled={exportLoading}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  {exportLoading ? "Exporting…" : "Export as text"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportData("json")}
+                  disabled={exportLoading}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  {exportLoading ? "Exporting…" : "Export as JSON"}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Account Settings</CardTitle>
             <CardDescription>
-              Configure your account preferences and profile information.
+              Configure your account type and profile.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -277,32 +400,6 @@ const Settings = () => {
                   </SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">
-                Export all your data (GDPR Art. 20 – data portability). Choose
-                readable text or JSON for machine portability.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => handleExportData("text")}
-                  disabled={exportLoading}
-                  className="gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  {exportLoading ? "Exporting…" : "Export as text"}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleExportData("json")}
-                  disabled={exportLoading}
-                  className="gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  {exportLoading ? "Exporting…" : "Export as JSON"}
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
