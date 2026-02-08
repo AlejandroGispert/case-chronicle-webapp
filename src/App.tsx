@@ -25,6 +25,7 @@ import Onboarding from "./pages/Onboarding";
 import Landing from "./pages/Landing";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Plans from "./pages/Plans";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -46,6 +47,7 @@ const App = () => {
               <Route path="/" element={<Landing />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/plans" element={<Plans />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               {/* Protected routes */}
               <Route element={<ProtectedRoute />}>
